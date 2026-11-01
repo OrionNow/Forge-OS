@@ -3,7 +3,9 @@ const base = (process.argv[2] || "http://localhost:8080") + "/api/forge";
 const call = async (b) => { const r = await fetch(base, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(b) }); return { status: r.status, body: await r.json() }; };
 let fails = 0; const ok = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fails++; };
 const tag = Date.now().toString(36).slice(-5).toUpperCase();
-const A = (await call({ op: "enter", callsign: "C" + tag })).body;
+const E = await call({ op: "enter", callsign: "C" + tag });
+if (E.status !== 200) { console.log("FAIL enter: " + E.status + " " + JSON.stringify(E.body) + " (run on a fresh dev server; the table holds a limited number of seats)"); process.exit(1); }
+const A = E.body;
 const T = { code: "TABLE", token: A.token };
 let s = (await call({ op: "poll", ...T, since: -1 })).body;
 const chat = { nonce: "n" + tag + "a", uid: null, tone: "dim", html: "&lt;b&gt;hi", rc: { k: "chat", t: "<b>hi</b>" } };

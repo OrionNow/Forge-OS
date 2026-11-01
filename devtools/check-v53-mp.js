@@ -107,10 +107,11 @@ const wait = (ms) => new Promise(r => setTimeout(r, ms));
   ok(await logHas(P.p, /YOUR UNITS ::/), "'/mp whoami' runs as a command");
   await wait(2500);
   ok(!(await got(H.p, /mp whoami/, 1500)), "'/mp whoami' is not sent as chat");
+  const seen = await H.p.evaluate(() => [...document.querySelectorAll('#log .rc')].map(e => e.dataset.rcid));
   await P.p.evaluate((k) => { const W = weapons(); W[k].am = 30; Forge.state().dmgN = 5; const R0 = Math.random; Math.random = () => 0; atkRoll(k); Math.random = R0; }, k[0]);
-  const card = async (p, re, ms = 10000) => { const t0 = Date.now(); while (Date.now() - t0 < ms) { const v = await p.evaluate((src) => { const re = new RegExp(src); const els = [...document.querySelectorAll('#log .rc')].filter(x => re.test(x.textContent)); const el = els[els.length - 1]; return el ? { id: el.dataset.rcid, txt: el.textContent, exp: el.getAttribute('aria-expanded') } : null; }, re.source); if (v) return v; await wait(300); } return null; };
+  const card = async (p, re, ms = 10000) => { const t0 = Date.now(); while (Date.now() - t0 < ms) { const v = await p.evaluate(([src, seen]) => { const re = new RegExp(src); const els = [...document.querySelectorAll('#log .rc')].filter(x => !seen.includes(x.dataset.rcid) && re.test(x.textContent)); const el = els[els.length - 1]; return el ? { id: el.dataset.rcid, txt: el.textContent, exp: el.getAttribute('aria-expanded') } : null; }, [re.source, seen]); if (v) return v; await wait(300); } return null; };
   const hcard = await card(H.p, /^PILOTB.* \/ PB-7 .* · .* · CRIT SUCCESS · \d+ HITS/);
-  ok(!!hcard && hcard.exp === 'false', 'host sees the attack as one line: USER / FRAME · WEAPON · N HITS ' + JSON.stringify(hcard));
+  ok(!!hcard && hcard.exp === 'false' && !/DMG/.test(hcard.txt), 'host sees the attack as one line: USER / FRAME · WEAPON · N HITS ' + JSON.stringify(hcard));
   if (hcard) {
     await H.p.locator(`#log .rc[data-rcid="${hcard.id}"]`).first().click(); await wait(300);
     const hd = await H.p.evaluate((id) => { const el = document.querySelector(`#log .rc[data-rcid="${id}"]`), d = el.nextElementSibling; return { exp: el.getAttribute('aria-expanded'), det: d && d.classList.contains('rcd') ? d.textContent : '', html: d ? d.innerHTML : '' }; }, hcard.id);
@@ -118,7 +119,7 @@ const wait = (ms) => new Promise(r => setTimeout(r, ms));
     await P.p.evaluate((k) => rollW(k), k[0]);
     const t0 = Date.now(); let up = null;
     while (Date.now() - t0 < 9000) { up = await H.p.evaluate((id) => { const els = document.querySelectorAll(`#log .rc[data-rcid="${id}"]`), d = els[0].nextElementSibling; return { n: els.length, txt: els[0].textContent, det: d ? d.textContent : '' }; }, hcard.id); if (/DMG \d+/.test(up.txt)) break; await wait(300); }
-    ok(up && up.n === 1 && /HITS · DMG \d+/.test(up.txt) && /DAMAGE 1\//.test(up.det), 'damage folds into the same line on the host (and its open details) ' + JSON.stringify(up && [up.n, up.txt]));
+    ok(up && up.n === 1 && /HITS · DMG \d+/.test(up.txt) && /DAMAGE 1\//.test(up.det) && /\[-\]$/.test(up.txt.trim()), 'damage folds into the same line on the host (and its open details) ' + JSON.stringify(up && [up.n, up.txt]));
   }
   await P.p.evaluate(() => { const R0 = Math.random; Math.random = () => 0.5; dodgeRoll(); Math.random = R0; });
   const dc = await card(H.p, /^PILOTB.* · DODGE · [+-]\d+ Do[SF]/);
