@@ -1,0 +1,65 @@
+<!doctype html><html><head><meta charset=utf-8><title>FORGE-OS // Workstation shell mockup v2 (static)</title>
+<style>
+:root{--bg:#050a08;--fg:#3fbf6f;--line:#1e6b6b;--cyan:#7ff;--panel:#0b1f18;--hover:#17493a;--label:#2aa;--muted:#8a9aa6;--c-ok:#3fdc7f;--c-warn:#ffa726;--c-crit:#ff4d4d;--font:"JetBrains Mono",Consolas,"DejaVu Sans Mono","Courier New",monospace;--fs-b:14px;--fs-l:12.5px;--fs-d:11.5px}
+*{box-sizing:border-box}html,body{margin:0;height:100%;background:var(--bg);color:var(--fg);font:var(--fs-b)/1.45 var(--font)}
+body{display:grid;grid-template-rows:32px 1fr;background-image:repeating-linear-gradient(0deg,rgba(0,0,0,.18) 0 1px,transparent 1px 3px)}
+.br{background-image:linear-gradient(var(--c),var(--c)),linear-gradient(var(--c),var(--c)),linear-gradient(var(--c),var(--c)),linear-gradient(var(--c),var(--c)),linear-gradient(var(--c),var(--c)),linear-gradient(var(--c),var(--c)),linear-gradient(var(--c),var(--c)),linear-gradient(var(--c),var(--c));background-repeat:no-repeat;background-size:var(--s) 2px,2px var(--s),var(--s) 2px,2px var(--s),var(--s) 2px,2px var(--s),var(--s) 2px,2px var(--s);background-position:left top,left top,right top,right top,left bottom,left bottom,right bottom,right bottom;--c:var(--line);--s:10px}
+.primary{--c:var(--cyan);--s:18px;border-color:#2c8f8f!important}
+header{position:relative;z-index:1000;display:flex;gap:14px;align-items:center;padding:0 10px;border-bottom:1px solid var(--line);background:#06130e;font-size:var(--fs-l);white-space:nowrap}
+header .org{color:var(--label);letter-spacing:.05em}header b{color:var(--cyan)}header .sp{flex:1}
+.tag{border:1px solid currentColor;padding:0 5px}.ok{color:var(--c-ok)}.warn{color:var(--c-warn)}.crit{color:var(--c-crit)}.dim{color:var(--muted)}
+button{font:inherit;font-size:var(--fs-l);background:transparent;color:var(--fg);border:1px solid var(--line);padding:0 6px;height:22px;min-width:28px;cursor:pointer}button:hover,button.hv{background:var(--hover);color:var(--cyan)}
+.desk{display:grid;grid-template-columns:210px 1fr;min-height:0}
+nav{position:relative;z-index:1000;border-right:1px solid var(--line);padding:10px 8px;display:flex;flex-direction:column;gap:4px;background:#040d0a;font-size:var(--fs-l)}
+nav h2{margin:0 0 6px;font-size:var(--fs-l);color:var(--label);letter-spacing:.1em;font-weight:normal}
+.slot{display:flex;justify-content:space-between;padding:3px 6px;border:1px solid transparent}.slot.on{border-color:var(--line);background:var(--panel)}.slot.nc{color:#56676d}
+nav .foot{margin-top:auto}
+.area{position:relative;overflow:hidden;isolation:isolate}
+.win{position:absolute;background:var(--panel);border:1px solid var(--line);display:flex;flex-direction:column}
+.wt{display:flex;align-items:center;gap:8px;height:28px;padding:0 6px;border-bottom:1px solid var(--line);background:#081812;font-size:13px;letter-spacing:.04em;cursor:move;white-space:nowrap;color:var(--fg)}
+.win.focus>.wt{background:var(--hover);color:var(--cyan);box-shadow:inset 0 -1px 0 var(--cyan)}
+.wt .t{flex:1;overflow:hidden;text-overflow:ellipsis}.wt button{height:20px}
+.win.col{height:auto!important}.win.col .wb{display:none}.win.col>.wt{border-bottom:0}
+.wb{padding:10px;overflow:hidden;flex:1}
+.tabs{display:flex;gap:6px;padding:6px 10px;border-bottom:1px solid var(--line);font-size:var(--fs-l)}.tabs>span{border:1px solid var(--line);padding:1px 8px}.tabs .cur{background:var(--hover);color:var(--cyan)}
+.rz{position:absolute;right:0;bottom:0;width:12px;height:12px;background:linear-gradient(135deg,transparent 50%,var(--line) 50%)}
+.hud{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:10px}.hud div{border:1px solid var(--line);padding:4px 6px}.hud small{display:block;color:var(--label);font-size:var(--fs-d)}
+.doll{display:grid;grid-template-columns:1fr 130px 1fr;gap:10px;align-items:center;margin:8px 0}.doll .box{border:1px solid var(--line);height:170px;display:grid;place-items:center;color:var(--label)}
+.loc{border-left:2px solid var(--c-ok);padding:2px 6px;margin:4px 0}.loc.warn{border-color:var(--c-warn)}.loc.crit{border-color:var(--c-crit)}
+.dmg{border:1px dashed var(--line);padding:6px;display:flex;gap:6px;align-items:center}.dmg input{width:76px;background:#030806;border:1px solid var(--line);color:var(--fg);font:inherit;height:22px}
+.sec{color:var(--label);font-size:var(--fs-l);letter-spacing:.1em;margin:8px 0 3px}
+.log div{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.log .ts{color:var(--muted)}.undone{text-decoration:line-through;opacity:.6}
+.ci{border-top:1px solid var(--line);padding:5px 10px;color:var(--cyan)}
+.tip{position:absolute;z-index:1300;background:#020604;border:1px solid var(--cyan);color:var(--cyan);font-size:var(--fs-l);padding:2px 8px;white-space:nowrap}
+.legend{position:absolute;left:10px;bottom:8px;color:var(--muted);font-size:var(--fs-d)}
+</style></head><body>
+<header><span class=org>CORE EMPIRE // SCIENCE CORPS R+D // FORGE-OS v5.1.0 // TL8 // WORKSTATION R+D-117</span><span>CLEARANCE: <b>IMPERIAL TALONS</b></span><span class=dim>SESSION 08:31:12Z</span><span class=sp></span><span id=sync class="tag ok">● LINK OK · 84ms</span><button title="Toggle terminal audio">[AUDIO: MUTED]</button><button title="Cycle colour theme">[THEME]</button><button title="Terminate this terminal session">(L)OGOUT</button></header>
+<div class=desk>
+<nav role=toolbar aria-label="Module bay"><h2>MODULE BAY // DIRECTORY</h2>
+<div class="slot nc" title="No clearance during live sortie"><span>01 FRAME ASSEMBLY</span><span>—</span></div>
+<div class="slot nc"><span>02 COMP. REGISTRY</span><span>—</span></div>
+<div class="slot on"><span>03 SORTIE TELEMETRY</span><span class=warn>▲</span></div>
+<div class="slot on"><span>04 FRAME SHEET</span><span class=warn>▲</span></div>
+<div class="slot on"><span>05 OPERATOR CONSOLE</span><span class=ok>●</span></div>
+<div class="slot on"><span>06 TABLE ROSTER</span><span class=ok>●</span></div>
+<div class="slot nc"><span>07 MANIFEST INTAKE</span><span>—</span></div>
+<div class=foot><button style="width:100%" title="Restore the default layout for this role">[RESET LAYOUT]</button><div class=dim style="font-size:var(--fs-d);margin-top:6px">F6 cycle · Alt+C console<br>Alt+K collapse · Alt+M minimize</div><div class=dim style="font-size:var(--fs-d);margin-top:4px">STATIC MOCKUP v2 · PILOT DEFAULT<br>layout local only, never synced</div></div>
+</nav>
+<main class=area>
+<section class="win br primary" role=region aria-label="Musha Test, sortie telemetry" style="left:10px;top:10px;width:calc(62% - 15px);bottom:10px;z-index:12">
+<div class=wt><span class=warn>▲</span><span class=t>MUSHA TEST // SORTIE TELEMETRY</span><button title="Collapse window" aria-label="Collapse window">[–]</button><button class=hv title="Minimize to module bay" aria-label="Minimize to module bay">[_]</button><button title="Maximize" aria-label="Maximize">[□]</button></div>
+<div class=tabs><span class=cur>MUSHA TEST ▲</span><span>KAGE <span class=crit>✕</span></span><span class=dim>(sheetTabs() in #bar)</span></div>
+<div class=wb><div class=hud><div><small>STATUS</small><span class=warn>▲ DAMAGED</span></div><div><small>INTEGRITY</small>80%</div><div><small>HEAT</small>4 / 12</div><div><small>TAGS</small><span class="tag warn">BRITTLE −1 SR</span></div></div>
+<div class=doll><div><div class=loc>HEAD 40/40</div><div class="loc crit">L.ARM −1/132 [DIS] ✕</div><div class=loc>L.LEG 132/132</div></div><div class=box>[ FRAME ]</div><div><div class="loc warn">CORE 105/264 [DMG] ▲</div><div class=loc>R.ARM 132/132</div><div class=loc>R.LEG 132/132</div></div></div>
+<div class=sec>IMPACT RESOLUTION</div><div class=dmg>DMG <input value=2600> DIV <input value=1 style="width:44px"> <button>[APPLY]</button><button>[UNDO]</button><span class=dim>target: CORE</span></div>
+<div class=sec>PILOT // RADS</div><div>RADS <b>135</b> <span class="tag warn">ELEVATED ▲</span> <button>[−5]</button> <button>[+5]</button> <button>[VIS CORE +15]</button> <button>[PURGE]</button></div></div><div class=rz></div></section>
+<div class=tip style="left:calc(62% - 300px);top:42px">Minimize to module bay · Alt+M</div>
+<section class="win br col" role=region aria-label="Musha Test, frame sheet, collapsed" style="left:62%;top:10px;right:10px;z-index:11">
+<div class=wt><span class=warn>▲</span><span class=t>MUSHA TEST // FRAME SHEET</span><button title="Expand window" aria-label="Expand window" aria-expanded=false>[+]</button><button title="Minimize to module bay">[_]</button><button title="Maximize">[□]</button><button title="Close window">[✕]</button></div><div class=wb></div></section>
+<section class="win br col" role=region aria-label="Table roster, collapsed" style="left:62%;top:50px;right:10px;z-index:13">
+<div class=wt><span class=ok>●</span><span class=t>TABLE ROSTER // 2 SEATS · HOSTA ● PILOTB ●</span><button title="Expand window" aria-expanded=false>[+]</button><button title="Minimize to module bay">[_]</button></div><div class=wb></div></section>
+<section class="win br focus" role=region aria-current=true aria-label="Operator console" style="left:62%;top:90px;right:10px;bottom:10px;z-index:14">
+<div class=wt><span class=ok>●</span><span class=t>OPERATOR CONSOLE</span><button title="Collapse window" aria-label="Collapse window">[–]</button><button title="Minimize to module bay" aria-label="Minimize to module bay">[_]</button><button title="Maximize" aria-label="Maximize">[□]</button></div>
+<div class="wb log"><div><span class=ts>08:36:04</span> PILOTB // KAGE :: 2600 cr → L.ARM <span class=crit>DISABLED</span></div><div class=undone><span class=ts>08:36:07</span> HOSTA // MUSHA :: 400 cr → CORE</div><div><span class=ts>08:36:10</span> <span class=ok>[ OK ]</span> UNDO COMPLETE · ev#41</div><div><span class=ts>08:36:22</span> PILOTB :: RADS 120 → 135 <span class=warn>ELEVATED</span></div><div><span class=ts>08:36:30</span> <span class=dim>poll · rev 58 · 2 seats</span></div></div>
+<div class=ci>CE//FORGE&gt; _</div><div class=rz></div></section>
+</main></div></body></html>

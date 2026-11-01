@@ -1,0 +1,398 @@
+MechaGurps Arc 2: A Lonely Void - captured read-only from Roll20 journal (Lancer-style sheets on GURPS template; data lives in Attributes & Abilities tab; Bio/GM notes empty unless stated)
+
+=== [Mechs] Home Plate MK II | character ===
+Mostly blank template: frame_class=ZHENG, frame_hp max 10, frame_heat max 6, frame_repairs max 6, core-tab=2, ST/DX/IQ/HT 10, HP 10, Move 5, Dodge 8. No weapons/systems/inventory.
+
+=== [Mechs] HEPHAESTUS | character ===
+frame_name=HEPHAESTUS; frame_class=GENGHIS; callsign=Phoenix; background=Fucking Scientist; licenselevel=5; baselicensename=Ghengis
+grit=3 evasion=8 edef=8 speed=4 techattack=-2 frame_hp=16/19 frame_heat=9/10 frame_repairs=0/6 frame_max_sp=3
+core_hull=5 core_agility=2 corebonuses=Mount Retrofitting
+frame stats: evasion 6, speed 3, edefense 8, sp 0, techatk -2, armor 3, sensors 5, savetarget 13, size 2, limited_bns 0
+Frame weapon: Magnetic Cannon | mount Main | type Main | range 8 line | damage 1D3+1 energy | All characters within the affected area must succeed on a Hull save or be pulled 1d3+1 spaces toward you, or as close as possible.
+System: Explosive Vents | 1/Round | When you clear all heat or take stress, your mech's cooling vents open and unleash a burst 1 explosion. Characters within the affected area take 2 heat and 2 burn.
+Core passive: While in the DANGER ZONE, you are surrounded by shimmering heat that interferes with targeting. You gain soft cover. Additionally, other than you, characters within Burst 1 can't take reactions.
+Core active: For the rest of the scene, the Genghis is wreathed in coruscating heat. Your FURIOSA aura grows to Burst 2, and your mech ignores all difficult terrain, simply melting through it. If you overheat during this time, your mech releases a blast of heat that melts the ground beneath it. Characters other than you within the affected area of FURIOSA take 1d6 AP Energy damage and must succeed on a HULL save or become IMMOBILIZED until the end of their next turn. The area then becomes difficult terrain for the rest of the scene.
+Reaction: Subterranean Reposition | Trigger: during your turn, you are completely within an entrance | Effect: You immediately Tunnel, ending the movement completely within a different Entrance created by the same character as the first.
+Talents: Spaceborn rank1: All of your mechs that you build come with built-in EVA capabilities, meaning you suffer no penalties when operating underwater or in zero-g environments. As a quick action, you can shunt power into this component to fly 3 spaces and take Heat equal to your mech's Size + 1, although you must land at the end of this movement or fall.
+ Vanguard rank1: Gain +1 Accuracy when using CQB weapons to attack targets within Range 3.
+ rank2: You've modified your sensors and ammo to punch through, disregard, or otherwise ignore cover at close range. As long as you have line of sight, you ignore both soft and hard cover when using CQB weapons to attack targets within Range 3.
+ rank3: You may attack with Overwatch using CQB weapons when hostile characters enter, leave, or exit spaces within your Threat, no matter whether they started their movement there.
+Pilot: HP 12/12; skill Read A Situation +4; armor Assault Hardsuit (armor 1, evasion 8, edef 8, spd 4, HP +3); weapons Ligh Signature (range 3, dmg 1 energy, sidearm), Light A/C (range 1, dmg 1 energy, sidearm); friends/foes: Friends- Pitch, Reika, Ashi? maybe, Fritz; Foes- FUCKING ANTIAGO, Core Empire, Remus Accord, The Hellion Rebellion; notes: LvL 1 Psychic
+
+=== [Mechs] Evil Eye | character ===
+frame_name=Evil Eye; frame_class=DEATH'S HEAD (baselicensename Deaths Head); player=Patty S.; background=Worker; licenselevel=4
+grit=1 evasion=8 edef=8 speed=4 techattack=0 frame_hp max 13 heat max 8 repairs max 5 max_sp 7 (sheet also shows alt block: grit 2, evasion 14, speed 8, hp 2/10, heat 9/9, repairs 0/2, sp 10)
+core_hull=0 core_engineering=3 core_agility=4
+frame: size 1, armor 0, speed 6, evasion 10, edefense 8, sp 8, sensors 20, savetarget 12, limited_bns 1
+Frame weapon: Vulture DMR | Main Rifle | tags Accurate, Overkill, Heat 1 (self) | range 15 | damage 1d6+1 kinetic
+System: Armament redundancy (1 SP, Unique): You may choose to ignore weapon destruction as a result of the SYSTEM TRAUMA result when taking structure damage. This system can only be used once before each FULL REPAIR, and is not a valid target for system destruction.
+Core active: Choose a character within range 30 but further than range 5 to focus on; while focusing, you become Immobilized and can't take reactions, but you deal bonus damage based on weapon size (aux: 1d6, main: 2d6, heavy or larger: 3d6) on ranged critical hits against them, as long as they aren't in cover or within range 5. You may only focus on one character at a time. As a protocol, you may cease focusing on a target.
+Reaction: Sympathetic Precognition | Trigger: An allied character in line of sight makes a skill check, attack, or save. | Effect: That character may choose not to roll, instead treating their check, attack, or save as if they had rolled a 10 on the d20.
+Talents: Crack Shot r3: r1 As a protocol, you may steady your aim. If you do, you become Immobilized until the start of your next turn but gain +1 Accuracy on all attacks you make with Rifles. r2/r3 1/round, while steadying your aim and making a ranged attack with a Rifle, you can attempt to hit a weak point: gain +1 Difficulty on the attack roll, and deal +1d6 bonus damage on a critical hit.
+ Spotter r2: r1 When an allied character adjacent to you attacks a target and consumes Lock On, they may roll twice and choose either result.
+Pilot: HP 8/8; skill Spot +6; armor Stealth Hardsuit (armor 0, evasion 8, edef 8, spd 4; Quick Action- Become invisible); weapons Medium A/C (range 1, dmg 2), Medium Signature (range 5, dmg 2 kinetic); friends: Pink Frosted Donuts, The Heads of the Rebellion; foes: The Core Empire
+
+=== [Mechs] FR1/D:G3_EX:θ「exploded」 | character ===
+frame_name=Beholder; frame_class=HOMEBREW; callsign=HAMMERHEAD; pilot Reika; player Nicko; background=Super Soldier; licenselevel=5; baselicensename=Blackbeard; corebonuses=OVERPOWER CALIBER
+grit=3 evasion=7 edef=6 speed=4 techattack=1 frame_hp 5/25 heat 6/8 repairs 0/6 max_sp 11; frame_hp_bonus 12, heat_bonus 6, repairs_bonus 4
+core_hull=5 core_engineering=2
+frame: size 1, armor 2, speed 4, evasion 7, edefense 6, sp 8, sensors 5, savetarget 13, techatk 1
+Frame weapon: //HARDLIGHT MESSER// | Superheavy Melee | range 1 threat | damage 3D6 kinetic (+2d6 bonus energy) | tags [AP] [OVERKILL] [OP.CALIBER] [THERMAL CHARGE] (N.CAVALIER II) (Executioner III) (Brawler I) (Pankrati I)
+ notes: [[+1d6]] Exp (Thermal Charge) On 1 rolls, add 1d6 to total damage vs Prone, Immobilized, or Stunned. -- VISION WITHOUT DESTRUCTION IS FUTILE. YOU SHALL CARVE MY PATH. A supermassive blade wreathed in bleeding edge core empire hardlight tech, clocked well above manufacturer safety standards without regard to the battlefield longevity of the pilot.
+System: PERSONALIZATIONS (1 SP, UNIQUE): You gain +2 HP and, in consultation with the GM, you may establish a minor modification you have made to your mech. This mod has no numerical benefit beyond the additional HP it grants, but could provide other useful effects. If the GM agrees that this mod would help with either a pilot or mech skill check, you gain +1 Accuracy for that check.
+Core passive: UNTENABLE POWER / INDOMITABLE FORCE
+Core active: MARROW ANCHORS (protocol): For the rest of the scene, while Grappling you count as 1 Size larger than the combined size of all targets you're currently Grappling. Additionally: IKU'S HAND (free) After successfully hitting a character with a melee weapon attack, the Empakaai may Grapple the target as a free action. On a success, the target is pulled adjacent to you and Grappled. CATALYTIC INFUSOR (free) At the end of the Empakaai's turn, it deals [its current Heat] in energy AP damage to a character of its choice it is Grappled with. It may also instead choose to divide this total amongst any characters it's currently Grappling.
+Reaction: Convincing Rhetoric (1/Round) | Trigger: You or an allied character takes the Scan Quick Tech action against a hostile character. | Effect: You open an isolated comms channel with your target and they become Impaired. This lasts until they succeed on a Systems check at the end of their turn. They cannot clear Impaired any other way. Using this reaction again on a new character ends the Impaired condition early.
+Talents: EXECUTIONER r3: r1 BACKSWING CUT 1/round, when you hit with a Heavy or Superheavy melee weapon, you can make another melee attack with the same weapon as a free action against a different character within Threat and line of sight. This attack deals half damage, if successful. r2 WIDE ARC CLEAVE The first time in a round that you perform a critical hit with a Heavy or Superheavy melee weapon, you deal 3 Kinetic damage to all characters and objects of your choice within Threat, other than the one you just attacked. r3 NO ESCAPE 1/round, when you miss with a melee attack, you reroll it against a different target within Threat and line of sight.
+ ORATOR r3: r1 CONVINCING RHETORIC Gain the Convincing Rhetoric reaction. r2 VOICE OF REASON You start combat with 1 Orator die - a d6 - representing your power of speech. At the end of your turn when you do not attack or force any saves from hostile characters that turn, you gain +1 Orator die up to a maximum of 3 Orator Die. They last until expended or the current scene ends. 1/round as a free action you can expend Orator Dice for one of the following effects as long as you can communicate with your target: Encourage (1 Die) - An ally in line of sight may make a systems check against any non self inflicted conditions affecting them, using the Orator Die as an accuracy, ending that condition on a successful check. Investigate (2 Dice) - Choose a hostile character in line of sight. The next time you or your allies make an attack against that character the attack is rolled twice, choosing the highest result. Cast Doubt (2 Dice) - Choose a hostile character in line of sight. That character cannot benefit from or be targeted by their allies' systems or traits until the end of their next turn. r3 THE MARCH OF THE TEN THOUSAND Start combat with +1 additional Orator Dice. Additionally, gain an additional option for Voice of Reason: Demoralize (3 Dice): Choose a hostile character in line of sight. They cannot move, attack, force saves or take tech actions until the end of their next turn. They then gain Immunity to this effect until the end of the scene.
+Pilot: Reika HP 7/7; skill Survive +4; backstory: Kidnapped at young age and placed into Nepharite program. Family witnessed kidnapping and was killed in process. This Event and the ensuing channeled hatred for the Empire allowed Reika to survive the Nepharite symbiosis process, and gave her something most other candidates lacked: A complete hatred for humanity, a sentiment both her and her NHP symbiote now shared.
+ appearance: RACE NEPHARITE G9; HAIR BLUE; EYES MAGENTA; HEIGHT 5 feet; WEIGHT 140 LBS; AGE 18
+ gear: PLASMA MONOWIRE; 1X CUSTOM MOBILITY HARDSUIT WITH INTEGRATED SYLPH UNDERSUIT, TYPE C RATIONS 1 WEEK, PLASMA BREACH CHARGE (Thermite)
+ armor CUSTOM MOBILITY HARDSUIT (armor 0, evasion 10, edef 10, spd 5, FLIGHT SUITE); weapons PLASMA MONOWIRE (range 1, dmg 1 energy, MELEE SIDEARM), PLASMA REND (range 1, dmg 3 energy, MELEE INNACURATE); Foes: Core Empire; Friends: Rebellion Contacts
+
+=== [Mechs] Midnight | character ===
+frame_name=Midnight; frame_class=GOBLIN (license Goblin); callsign=Midnight; pilot=Ashi Yoruichi; player=Momo; background=Hacker; licenselevel=4
+grit=2 frame_hp=4/10 frame_heat max 4 frame_repairs max 2 frame_max_sp=11 core_agility=2 core_systems=3 core_hull=1
+frame: armor 0, sensors 20, techatk 2, speed 5, edefense 12, evasion 10, savetarget 13, sp 8
+Frame weapon: AUTOPOD | range 15 | damage 3 | tags SEEKING, UNIQUE, REACTION | Instead of using any kind of trigger mechanism, this weapon automatically scans for target locks, firing spinning, razor-sharp disks upon successful IDs. Gain the Autonomous Assault reaction, which is the only way you can attack with the Autopod. You may automatically hit their target with the Autopod.
+System: EXPANDED COMPARTMENT (1 SP, UNIQUE): Your mech has space for one additional non-Mech character or object of Size 1/2 to ride as a passenger in the cockpit. While inside the mech, they cannot suffer any effect from outside or be targeted by attacks, as if they were a pilot. You can hand over or take back control to or from them as a protocol (following the same rules as pilot and AIs), but if they take over the controls from you, the mech becomes Impaired and Slowed to reflect the lack of appropriate licenses and integration.
+Core passive: LITURGICODE: The Goblin gains +1 accuracy on tech attacks.
+Core active: ACTIVE - SYMBIOSIS (QUICK): Your mech retracts its major systems and attaches itself to another mech, becoming more like a vestigial blister than a separate entity. The host must be an allied and willing mech not already hosting another Goblin, larger than and adjacent to you. While attached, you occupy their space, move with them, and benefit from hard cover, but can still be attacked and targeted separately. You also take any conditions and heat taken by your host. Your host may use your Systems, E-Defense, and Tech Attack instead of their own. Additionally, from the beginning of the next round, you no longer take your own turns; instead, you can take two quick actions or one full action at any point during your host's turn. You can't Overcharge or move, but may still take reactions and free actions normally. Your host's turn counts as your turn for the purpose of effects that refer to the start or end of a character's turn. This effect lasts either for the rest of the scene, until you detach as a quick action, or until you or your host becomes Stunned. When the effect ends, you don't take a turn until the next round.
+corebonuses: THE LESSON OF THE HELD IMAGE: 1/round, as a reaction at the start of any allied character's turn, you may make a Lock On tech action against any character within line of sight and Sensors.
+Reaction: SUPERIOR INTELLIGENCE (2/Round) | Trigger: An allied character in Line of Sight has rolled an Attack Roll. | Effect: You may add 1 to the attack roll. This may cause an attack to hit or to critically hit. Each attack roll can only be affected this way once.
+Talents: HACKER r3: r1 SNOW_CRASH When you hit with a tech attack that consumes Lock On, your target must choose to either take 2 Heat or be pushed 3 spaces in a direction of your choice. r2 SAFE_CRACKER Gain options for Invade: JAM COCKPIT - Characters may not Mount or Dismount your target until the cockpit is fixed with a successful Engineering check as a full action. DISABLE LIFE SUPPORT - Your target receives +1 Difficulty on all saves until the life-support system is rebooted with a successful Systems check as a quick action. r3 LAST ARGUMENT OF KINGS Gain the Last Argument of Kings Full Tech option. Make a tech attack against a target within Sensors and line of sight. On a success, you implant a virus that triggers a minor meltdown in your target's reactor: they immediately take Burn equal to their current Heat. If this action causes your target to overheat, it resolves before they reset their Heat Cap.
+ FIELD ANALYST r1: TACTICAL INTELLIGENCE Whenever an allied character in line of sight misses with an attack, you know by how much it missed. Additionally, you gain the "Superior Intelligence" Reaction.
+Pilot: skill Hack or Fix +6; armor LIGHT HARDSUIT (evasion 10, edef 10, spd 4, +3 Hp); weapons Sidearm (MEDIUM A/C; range 3, dmg 1 explosive), Portable Hacking Interface (MEDIUM SIGNATURE; range 5, dmg 2 energy)
+ gear: SUBJECTIVITY-ENHANCEMENT SUITE; DATAPLATING - a general term for any comm-linked jewelry, subdermal netting, wearable jaw, brow, or maxillary plates, etc., that allows subvocal communication and persistent heads-up and augmented reality displays without wearing a helm. Quickly translate nearly any language, and allow users to communicate with each other all but silently. OMNIHOOK - allows for communication, data transfer, and limited hot-spotting. extremely valuable, although most mech squads have at least one. Tuning one requires a high level of skill, so they are usually mounted or carried by designated operators.
+
+=== [Mechs] Momo Mech Part 2 | character === 
+No attributes found in Attributes & Abilities (appears blank/placeholder; see report).
+
+=== [Mechs] Nightingale's SP1D3R | character ===
+frame_name=H1TAN1A'S SP1D3R; pilot_name=H1TAN1A'S SP1D3R; licenselevel=5
+grit=3 frame_hp=13/13 frame_heat max 6 frame_repairs max 5 frame_max_sp=12 core_systems=6 core_agility=1
+frame: evasion 10, speed 4, edefense 10, sp 6, techatk 1. No weapons/systems entered.
+
+=== [Imperial Survivors (Griffon) > Ships and Machines] Archduke-Class Mk 1 "Griffon" | character ===
+Sheet stats: grit 0, frame_hp max 10, heat max 6, repairs max 5, max_sp 0 (template defaults, no weapons/systems)
+Bio: The experimental Archduke-Class battleship is a supreme battle station capable of both heavy ordinance strong and effective enough to bombard through atmosphere, and also provide a large enough storage space for several strike teams of allied machines.
+Being the first in the series, the warship was outfitted with many experimental systems, ranging from Psi-Communion devices capable of utilizing psychic energy to communicate with allies, to special storage units capable of holding nepharites in blissful stasis in order to not drain the drug that is necessary to keeping them in working condition.
+Alas, the Archduke-Class proved to be far too expensive to mass produce, even for an elite status, and as such the empire had mothball both of them in favor of more specialized ships. After a few exchanges and backroom dealings, the two ships ended up in control of the Antiago family, finding residence by the border next to the Remus Accord.
+This ship is the personal battle station of Catalina.
+GM Notes: (empty)
+
+=== [Ships and Machines] Battle Station "Chimera" | character ===
+Sheet stats: template defaults (frame_hp max 10, heat 6, repairs 5)
+Bio: Being a battle station more suited to land combat, these hulking bastions of war are capable of laying down heavy fire on any subject they see fit to destroy, however their purpose is more important than simply leading the charge as they house up to two teams of battle mechs and a support arsenal of tanks, planes and any other assets they can fit inside. A true nightmare for any fortress unlucky enough to face off against the Empire's superior ground forces.
+GM Notes: (empty)
+
+=== [Ships and Machines] Carrier Class "Mother Hen" | character ===
+Frame: frame_class HOMEBREW; grit 1; frame_hp 11/11 (+8 bonus); heat max 6 (+6); repairs 2/2 (+2); max_sp 6; armor 2; sensors 15; savetarget 10; size 3; evasion 8; speed 5; edefense 10; sp 5; core_hull 1, core_agility 2; licenselevel 1
+Weapon: Pistol (Anti-Air Defenses) x2 | range 5 / 3 threat | damage 1d3 | Reliable 1
+System: Expanded Compartment
+Bio: A mass production type carrier, stripping away durability, offense, and any form of survivability for pure cost, and also some might argue it serves well as a transport for Spearfish and sometimes something a little bit bigger. Many officers assigned to a Mother Hen complain about the lack of safety systems, however they are not aware at how much money they are saving the empire with the production value of this mighty machine.
+GM Notes: (empty)
+
+=== [Ships and Machines] Great White (Destroyed by Henry) | character ===
+Bio: TL 8
+Medium
+Armed with;
+Four 20mm Autocannons built into head (2) and torso (2) - Can fire two of them per attack.
+Two Requiem "Beam" Blades stored in the skirt armor - 78d(3) Beam weapon, Range=C,1
+One Stagger Beam Rifle - 5dx20(3) Acc=10, ROF=1
+One "Oni Slayer" Anti-Ship Sword - 80d(6) Beam Weapon, Range=C, 1-3
+Can opt to swap shield for any other weapon in the Imperial Armory, or Change out Stagger "Beam" Rifle for a more favorable weapon.
+Sub Systems;
+Experimental Force Armor - Gives the machine a surface level shield over the frames body, doubles DR against non-beam weapon attacks (Ballistic, Explosive, etc...)
+Cold Fusion Oleum Reactor (CFOR) - Allows the machine to realistically operate indefinitely, being able to generate heat and thrust without need for refueling.
+Attributes tab: empty
+
+=== [Ships and Machines] Swordfish "Arondight" | character ===
+Bio: Protoype kickstarting TL 9
+Armed with;
+Four 20mm Autocannons built into head (2) and torso (2) - Can fire two of them per attack.
+Two Requiem "Beam" Blades stored in the skirt armor
+One Stagger Beam Rifle
+One "Oni Slayer" Anti-Ship Sword - 80d(6) Beam Weapon, Range=C, 1-3
+Can opt to swap shield for any other weapon in the Imperial Armory, or Change out Stagger "Beam" Rifle for a more favorable weapon.
+Sub Systems;
+Experimental Force Armor - Gives the machine a surface level shield over the frames body, doubles DR against non-beam weapon attacks (Ballistic, Explosive, etc...)
+Cold Fusion Oleum Reactor (CFOR) - Allows the machine to realistically operate indefinitely, being able to generate heat and thrust without need for refueling.
+Attributes: defaults only
+
+=== [Ships and Machines] Spearfish | character ===
+Bio: TL8
+The backbone of the Imperial Home Defense Army, though nearly a century old, the weapons utilized by these armaments are more than capable of causing damage to those they face.
+Spearfish standard issue gun is the 45mm auto cannon Addendum
+Weapons:
+45mm Hand Cannon - Damage = 9dx9(3) Acc (14) Rof = 3 1/2= 2,700 Max = 10,350
+Vibroblade (Broadsword) = 76d(3)
+*Vibroblade can be exchanged at mechbay for a vibroaxe.
+*45mm Hand Cannon can be exchanged for 120mm Rocket Cannon
+Small Shield DR 360/180 HP 320
+Special Abilities:
+Modular Design: can be repaired at double the rate of normal machines due to it's standardized parts.
+GM Notes (GM only): Vibroblade = 9dx9(5); DR for medium Mechs be 500/375; ST/HP = 170; Hnd/SR = +3; Move = 15/15; SM = +4
+Attributes: defaults only
+
+=== [Ships and Machines] Spearfish Ramrod | character ===
+Bio: TL8
+The backbone of the Imperial Home Defense Army, though nearly a century old, the weapons utilized by these armaments are more than capable of causing damage to those they face. This variant is an attempt to standardize a heavy weapons variant without sacrificing the mobility of the spearfish. However due to the timing in which this design was put forward, the empire suffered a material crisis, thus only came out with a few tens of thousands to distribute across the empire.
+Spearfish standard issue gun is the 45mm auto cannon Addendum
+Weapons:
+100mm APEP Tank Cannon: 6dx25(3)
+90mm Single Shot Heavy Rifle: 9dx15(3)
+Subsystems:
+Limited Ammo Capacity: Due to heavy weapons and ammunition, the Ramrod is capable of only one reload per gun.
+GM Notes: (empty)
+
+=== [Ships and Machines] Uno Fish | character ===
+Bio: TL8, Medium
+Part of the "Restructure" program for the empire in order to fill out frontlines with effective combat machines. The scraps and junk of enemy captured Numero Unos recrafted and reforged into the "fearsome" Uno Fish, sent to stand alongside both the Gupp and the Spearfish on the frontlines against both the accord and the Republic.
+Armaments: 45mm Single Shot Rifle; Vibroaxe; Light Shield DR 320/120 HP 80
+Subsystems:
+One Man's Trash: Should the pilot of a Uno Fish score a critical hit, reroll one of the 3d6 and take that result instead.
+Stronger built in Thrusters: +1 to Handling for this machine and +5 yards while in space.
+GM Notes: (empty)
+
+=== [Ships and Machines] Malware (Hammer Head) | character ===
+Bio: TL8, Medium
+Armed With;
+One 45mm Autocannon (Built into Right Forearm) - 9dx9(3)
+One Requiem "Beam" Blades stored in the skirt armor - 78d(3) Beam weapon, Range=C,1
+One Stagger Beam Rifle - 5dx20(3) Acc=10 ROF=1
+Subsystems;
+Cold Fusion Oleum Reactor (CFOR) - Allows the machine to realistically operate indefinitely, being able to generate heat and thrust without need for refueling.
+GM Notes: (empty)
+
+=== [Ships and Machines] Malware (Fly-Fin Mode) | character ===
+Bio: TL8, Medium
+Armed With;
+Twin-Linked 45mm Autocannons 9dx9(3) - Double RoF due to Twinlink
+Six 120mm Rockets (Stored in Hull) - 6dx30(3) - RoF Chosen by Shooter, must dock to reload. Recoil 6
+"Nail Driver" Beam Cannon (Stagger "Beam" Rifle Stats) - 5dx20(3) Ammo: 8* (Line Template) Range: 90
+Subsystems;
+Cold Fusion Oleum Reactor (CFOR) - Allows the machine to realistically operate indefinitely, being able to generate heat and thrust without need for refueling.
+Fly-Fin Mode - Base Speed +50. Gains ability to fly in gravity, Must move at least 30 yards a turn, or Land. Should "torso" damage be considered destroyed, disengage Fly-Fin mode, carry over damage to base Hammer Head, then resume with Hammer Head template.
+A Weapon Encased - Cannot take the Parry or Block active defense action while in Fly-Fin Mode
+Attached Mega Light Canon - If the ship has the mega light canon, it receives a -1 to all active defense and reduce it's speed by 10 yards
+GM Notes: (empty)
+
+=== [Ships and Machines] Mega Light Canon | character ===
+"Nail Driver" Beam Cannon (Stagger "Beam" Rifle Stats) - 5dx20(3) ACC: 10 Ammo: 8* (Line Template) Range: 120
+Subsystems:
+HEAVY WEAPON: can still dodge, at a -1 to active defense
+GM Notes: (empty)
+
+=== [Ships and Machines] Gupp | character ===
+Bio: TL8, Light Mech
+Weapons: 45mm Single Shot Cannon* 9dx9(3) (*Weapon only has a rate of fire of 1)
+Subsystems:
+A Coffin for a Friend: Should the Gupp/Guppy suffer critical damage to the torso, causing it to reach zero hit points, the cockpit is ruptured and the pilot suffers all damage that would bleed over the Gupp/Guppy's DR.
+(Text after GM Notes header:) A repurposed mining machine armed with "State of the Art" weaponry alongside a few grafted sheets of metal for armor.
+These hardy little machines are then shipped out to the frontlines to act as a speedbump towards any enemy force, slowing their advance just enough to allow for reinforcements to arrive and later stop the attack.
+Due to strained resources and the civil war with the republic, alongside the Remun invasion, the empire has been forced to try and remodel and prioritize efficient uses of it's current weapons. With hundreds of thousands of Guppys manufactured, imperial engineers were able to fit legs and arms to the working model to grant the machine gravity based combat capabilities, thus bolstering the numbers the empire is ready to field on the frontlines in defense of their planets.
+However the machine is still rudimentary at best, and lacks nearly any armaments capable of truly damaging anything from the accord without supreme numbers.
+
+=== [Ships and Machines] Guppy | character ===
+Bio: TL8, Light Mech
+Weapons: 45mm Single Shot Cannon* 9dx9(3) (*Weapon only has a rate of fire of 1)
+Subsystems:
+A Coffin for a Friend: (same as Gupp) Should the Gupp/Guppy suffer critical damage to the torso, causing it to reach zero hit points, the cockpit is ruptured and the pilot suffers all damage that would bleed over the Gupp/Guppy's DR.
+(Text after GM Notes header:) A repurposed mining machine armed with "State of the Art" weaponry alongside a few grafted sheets of metal for armor.
+These hardy little machines are then shipped out to the frontlines to act as a speedbump towards any enemy force, slowing their advance just enough to allow for reinforcements to arrive and later stop the attack.
+A skilled pilot might be able to tease a little more power out of this minuscule fighter, especially in tandem with other defensive measures, but any and all would agree... you had to piss someone off to get assigned one of these...
+
+=== [Ships and Machines] Oni Union | character ===
+Bio: A retrofitted Akeda Oni with a great deal of standardized Imperial parts to give the machine an easier control scheme, using parts from the Great White, the machine is capable of matching the output of it's father unit.
+Armaments: Four embedded "Divine Shogun Blade" Beam Katanas (2 on arms, 2 on feet) 78d(6); One Stagger Beam Rifle - 5dx20(3) Acc=10 ROF=1; Medium Shield
+Subsystems:
+Divine Engine Light Reactor (DELR) - Allows the Machine to operate for days on end without need to recharge, additionally engine will fully recharge from rest in 14 hours.
+Supreme Handling - Grants a +1 Bonus to the machine's Handling Stat.
+Repaired Force Armor - Gives the machine a surface level shield over the frames body, doubles DR against non-beam weapon attacks (Ballistic, Explosive, etc...)
+GM Notes: (empty)
+
+=== [Ships and Machines] The Dozy | character ===
+Bio: TL9, Heavy Mech
+A prototype Machine attempting to modernize the now almost ancient operating system that plagues all Numero "Uno" machines, overhauling the machine's fuel output, weight class and weaponry.
+Alas, the project is extremely costly and only a handful of these machines were made before the Rebellion had to cancel the project to focus on mass production.
+Armed with; One Heavy 60mm Rotary Cannon; Two 120mm Rockets (Integrated into Left Arm); One Integrated 45mm Autocannon (Integrated into Right Arm); One Heavy Vibro-Axe; Heavy Shield
+Subsystems;
+Advanced Warning Auto Defense (+1 to Active Defense attempts against one Designated Target, pick target at beginning of turn)
+Hyper Reinforced Hull and Redundancy Systems (+200 Health Points to Torso)
+Experimental Recoil Arm System - Halves the recoil value for weapons wielded by machine.
+GM Notes: (empty)
+
+=== [Ships and Machines] Oni Union Upgrade (Claw Form) | character ===
+Bio: An upgrade to the Oni Union, allowing it's joints to be more versatile and as such giving it capabilities to enter into a new form. In addition, plans from the Malware were installed into the torso of the machine, giving it a much heavier canon to destroy groups of enemies, or ships in a single shot.
+GM Notes: (empty)
+
+=== [Ships and Machines] Whale | character ===
+Bio: TL 9, Heavy
+Heavy Torso Plasma Cannon - 8d6*20(6)
+Head Mounted Plasma Cannon - 7d6*20(6)
+Sub Systems;
+Experimental Anti-Beam Armor - Gives the machine a surface level shield over the frames body, Triples DR against beam weapon attacks on Arms, Legs, Torso and Head (Beam Weapons and Sabers)
+Cold Fusion Oleum Reactor (CFOR) - Allows the machine to realistically operate indefinitely, being able to generate heat and thrust without need for refueling.
+Titanic Force - Triple the Strength and health of the machine. (690)
+GM Notes: (empty)
+
+=== [Ships and Machines] Whale (Frame Mode) | character ===
+Bio: TL 9, Heavy
+Weapons: Heavy Torso Plasma Cannon - 8d6*20(6); Head Mounted Plasma Cannon - 7d6*20(6); Two Colossal Hands - 120d6(3) Range 3 Hexes
+Sub Systems;
+Experimental Anti-Beam Armor - Gives the machine a surface level shield over the frames body, Triples DR against beam weapon attacks on Arms, Legs, Torso and Head (Beam Weapons and Sabers)
+Cold Fusion Oleum Reactor (CFOR) - Allows the machine to realistically operate indefinitely, being able to generate heat and thrust without need for refueling.
+Titanic Force - Triple the Strength and health of the machine. (690) But Handling is a -2
+GM Notes: (empty)
+
+=== [Ships and Machines] Stingray (Frame-Mode) | character ===
+=== [Ships and Machines] Stingray (Flyfin Mode) | character === (identical text in both entries)
+Bio: TL9, Light Mech
+Weapons:
+Twin-Linked Back Mounted 45mm Cannons (Up RoF to 6) 9dx9(3) Recoil 3.
+One "Rusher" Beam Spray Rifle - Built into Right Arm (Stagger Beam Rifle, but with 10 shots) - 5dx20(6)
+One "Judgement" Beam Blade Stored in Left Arm (Requiem Beam Blade) - 66d(6)
+One "Stingray Fin" Spine Piercer - 100d(6) Range 3 Hexes (9 Yards)
+Subsystem:
+Rotational Grav-Seat - Gives pilot +1 to dodge active defenses
+Fly-Fin Mode - Base Speed +50. Gains ability to fly in gravity, Must move at least 30 yards a turn, or Land. Should "torso" damage be considered destroyed, disengage Fly-Fin mode, carry over damage to base Hammer Head, then resume with Hammer Head template.
+A Weapon Encased - Cannot take the Parry or Block active defense action while in Fly-Fin Mode
+GM Notes: (empty)
+
+=== [Rule and notes section] Notes for Mecha Design | handout ===
+Callsign Generator
+DR for medium Mechs be 500/375
+DR = 500/375
+(Average Strike Team: 6 pilots, 3 Autocannons, 2 Missile Launchers, 1 Long Rifle)
+Light Shield 1 $10,000 80 320/120
+Small Shield 1 $16,000 320 360/180
+Medium Shield 2 $24,000 600 400/240
+Large Shield 3 $36,000 1,000 480/360
+Fatigue Points Resources Page: Basic 426
+Universal Jammers reduce effective range to 300 yards (Can only blind fire outside of 300 yards)
+Mechs have an actual strength of 4 times it's normal strength when making melee attacks
+Vibroblades make normal melee attacks have an armor divisor of (3)
+Each Hex should be 3 yards
+Changing base movement to 30 whilst in space for all mechs.
+Can push a mech further but must take g-tolerance check. (difficulty increases per increase of 15 yards)
+Pushing causes a pilot check/test at a -4 for every increment of 15 beyond base movement.
+On failure, pilot is stunned (Heath Test)
+https://gurps.fandom.com/wiki/Stun
+GM Notes section:
+Spearfish standard issue gun is the 45mm auto cannon Addendum
+45mm Hand Cannon - Damage = 9dx9(3) Acc (14) Rof = 2 1/2= 2,700 Max = 10,350
+Vibroblade = 9dx9(5)
+Numero Uno
+30mm Autocannon = 9dx9(3) Acc (14) RoF = 4 (1/2) = 2250 Max= 9150
+Vibroblade = 9d x9(5)
+(Shield table repeated: Light 1 $10,000 80 320/120; Small 1 $16,000 320 360/180; Medium 2 $24,000 600 400/240; Large 3 $36,000 1,000 480/360)
+
+=== [Critical Notes for Party] Mech Stats by Tier and Age | handout ===
+Tech Level 8
+TL 8 | ST/HP | Hnd/SR | HT | Move | SM | DR*
+Light  | 145 | +4/3 | 12 | 15L/30S | +3 | 400/200
+Medium | 170 | +3/3 | 12 | 15L/30S | +4 | 500/250
+Heavy  | 200 | +2/3 | 12 | 15L/30S | +5 | 700/350
+Tech Level 9
+TL 9 | ST/HP | Hnd/SR | HT | Move | SM | DR*
+Light  | 175 | +4/3 | 12 | 35L/50S | +3 | 500/250
+Medium | 200 | +3/3 | 12 | 25L/40S | +4 | 700/350
+Heavy  | 230 | +2/3 | 12 | 25L/40S | +5 | 1000/500
+TL 10 and TL 11 tables (Light/Medium/Heavy): blank
+GM Notes: (empty)
+
+=== [Critical Notes for Party] Weapon List | handout ===
+Columns: TL | Weapon | Damage | Acc | RoF | Shots | Recoil | 1/2D | Max | Notes
+BALLISTIC
+8 | 30mm Autocannon* | 6dx9(3) | 14 | 5 | 30(2) | 2 | 2,250 | 9,150 | Lower Ranged Alternative to 45mm Offering Less damage and higher RoF
+8 | 45mm Hand Cannon* | 9dx9(3) | 14 | 3 | 20(2) | 3 | 2,700 | 10,350 | Gold Standard Generalist weapon, What Everything TL 8 is based around.
+9 | 100mm APEP Tank Cannon | 6dx25(3) | 6 | 1 | 1(4) | - | 3,000 | 10,000 | Medium Tank Gun (UT 138) / Ammo (UT 152)
+8 | 120mm Rocket Cannon* | 6dx30(3) | 15 | 1 | 4(4) | 6 | 3,000 | 15,000 |
+(Anti-Ship Weapons utilized by Mechs: Mech Active Defense chance bonus +2)
+8 | 90mm Single Shot Heavy Rifle* | 9dx15(3) | 14 | 1 | 7(2) | 4 | 3,000 | 10,000 | The "Sniper Rifle" of the current Mech World. A heavy and Bulky rifle.
+MELEE
+8/9 | Vibro Weapon* | Light 64d(3), Medium 76d(3), Heavy 88d(3)
+9 | Heat Based Weapon | Light 64d(3), Medium 76d(3), Heavy 88d(3) | When this weapon hits, reduce the armor value of the body part/equipment hit by 33%
+- | Beast Slayer Blade | Medium 80d(6) | recoil/col 6 | A giant blade capable of slicing either Spearfish or Star Cruiser in one swing. Can Reach slightly further than a regular sized blade. Can be used as a shield as well, HP 500, DR 500.
+- | "Divine Daimyo" Buster Blades | Medium 76d(6) | A large and wide blade with a powerful aura surrounding the blade, honing it's edge and quadrupling it's sharpness against it's targets. The aura is also defensive, allowing the blades to function as shields for the purposes of blocking. HP 250, DR 100
+BEAM
+10 | Stagger "Beam" Rifle // "Divine Dragon" Phase Cannon (TL 9) | 5dx20(3) | Acc 10 | RoF 1 | Shots 30* | Recoil 2 | 3000 | 10,000 | *Shots will need to be recharged after fired, must be stored on the Mech's chassis for 30 minutes. The "New Age" weaponry made by Raphael, this weapon's beams go through any and all armor in this time as if it were non-existent. Ignore all armor and dr values from any machine in TL 8 and 9.
+9 | "Divine Gaze" Torso Embedded Phase Cannon | 7dx20(3) | 10 | 1 | 5* | 5 | 3000 | 10,000 | *recharge as above. An upgraded version of the "Divine Dragon" Phase Cannon, designed to take out large chassis employed by rival samurai, and to hunt ships, destroying them in one to two shots. Ignore all armor and dr values from any machine in TL 8 and 9.
+11 | Requiem "Beam" Blade // "Divine Shogun Blade" Beam Katana (TL 9) | Light 66d(3), Medium 78d(3), Heavy 90d(3) | Similar to it's rifle counterpart, these beam swords are capable of cutting through almost anything, giving it a deadly utility on the battlefield. Ignore all armor and dr values from any machine in TL 8 and 9.
+12 | Heavy 60mm Rotary Cannon | 6dx15(3) | 14 | 5 | 60(10) | 6 | 3,000 | 10,000 | A experimental weapon with an extremely heavy caliber, overclocked to fire rapidly at targets.
+13 | 120mm Heavy Bolt Cannon | 6dx30(3) | 6 | 2 | 8(4) | 8 | 4,500 | 12,000 | An extremely heavy cannon utilized by the Republic in order to fight against their more advanced foes.
+14 | 50mm Anti-Ship Gauss Cannon | 6dx80(3) | 6 | 1 | 1(5) | 20 | 6,000 | 18,000 | A heavily modified weapon taken from the hulls of ships, given to several machines in order to field mobile weapons capable of taking out any target. - Due to not being mounted upon a ship, a special action must be taken in-between each shot, one must take "Change Stance - Brace"
+15 | Shields: Light DR 320/120 HP80; Small DR 360/180 HP 320; Medium DR 400/240 HP 600; Large DR 480/360 HP 1000
+16 | Divine Dragon's Breath | 10dx20(3) | 10 | 1 | 30* | 2 | 120 | Line, Wall, Persistence
+17 | Colossal Talon | 100d(3) | C,1-4
+18 | "Oni-Slayer" Anti-Ship sword (Beam Sword) | 80d(6) | C, 1-3 | Unwieldy
+19 | Plasma Talons | 78d(6) | C, 1-4 | Half Damage and Close only when not in overcharge. When in overcharge deal half damage when not in C with ranged attacks.
+20 | (blank)
+*Imperial Standard Issue Weapons
+Note: "I have not included RoF as all of them are crazy high (upwards of 30) we probs wanna go a bit lower I'd imagine"
+Cannon Damage By Caliber (Ref. Mecha p.67) TL | Cost | Weight | Size | Damage | Acc | 1/2D | Max
+8 5.4k 90 20mm 6dx4(3) 12 1,260 6,450
+8 8.6k 230 30mm 6dx9(3) 14 2,250 9,150
+8 18k 680 45mm 9dx9(3) 14 2,700 10,350
+8 26k 1,100 60mm 6dx15(3) 14 2,250 9,150
+8 76k 3,600 90mm 9dx15(3) 14 2,700 10,350
+8 130k 6,500 120mm 6dx30(3) 15 3,150 11,400
+8 360k 18,000 200mm 6dx50(3) 15 4,050 13,350
+Gauss Damage By Caliber (Ref. Mecha p.67)
+8 320k 600 20mm 6dx20(3) 18 5,100 15,600
+8 3mil 7,500 50mm 6dx80(3) 20 19,500 26,700
+Particle Beam Damage By Size? (Ref. Mecha p.66)
+8 13k 44 Blaster 6dx20 17 1,100 3,300
+8 55k 350 Light 6dx40 19 2,300 6,900
+8 240k 2,200 Medium 6dx100 21 5,600 16,800
+8 900k 8,800 Heavy 6dx200 23 11,300 33,900
+8 3.5mil 35,000 Mega 6dx400 25 2,300 69,000
+GM Notes: (empty)
+
+=== [Critical Notes for Party] To hit distance modifiers | handout ===
+(empty body; GM Notes empty)
+
+=== [Rule and notes section] Hit Location Ideas | handout ===
+RaW Location Hits for a Humanoid Character (Roll | Location | To-hit | Effect)
+ - | Eyes | -9 | Can target w/ impaling/pierce/tight beam; injury over hp/10 blinds eye; treat as skull without
+3-4 | Skull | -7 | Extra DR 2; wounding mod 4x; knockdown rolls at -10; crit head blow table (b556)
+5 | Face | -5 | -5 to knockdown rolls; crits use head table; corrosion 1.5x wound mod
+6-7 | Right Leg | -2 | piercing and impaling reduced to 1x; Over 1/2 hp damage is lost and limb is crippled
+8 | Right Arm | -2 | same as leg
+9-10 | Torso | +0 | default hit location; no bonus or malus
+11 | Groin | -3 | torso hit; males recieve double shock from crushing & -5 to knockdown
+12 | Left Arm | -2 | piercing and impaling reduced to 1x; Over 1/2 hp damage is lost and limb is crippled
+13-14 | Left Leg | -2 | same
+15 | Hand | -4 | piercing and impaling reduced to 1x; Over 1/3 hp damage is lost and limb is crippled
+16 | Foot | -4 | same as hand
+17-18 | Neck | -5 | crushing/corrosion at 1.5x; cutting at 2x
+ - | Vitals | -3 | Increase wounding mod on impaling/piercing attack to x3, tight beam at x2
+"Idea for a mecha (b554?)": same table (Eyes -9, Skull 3-4 -7, Face 5 -5, R Leg 6-7 -2, R Arm 8 -2, Torso 9-10 +0, Groin 11 -3, L Arm 12 -2, L Leg 13-14 -2, Hand 15 -4, Foot 16 -4, Neck 17-18 -5, Vitals -3) with effects column blank.
+
+=== [Handouts > Old Campaign > Resources] Example Mech Directory | handout ===
+HowTo: [name of handout/character]
+Rebel Pilots: Captain Fritz Callus; Dieter "Roach" Handcock; Joseph Dangly; Carlo Ortiz; Rebel Pilot
+Rebel Hardware: Cargo Ship; Carrier Class "Mother Hen" (Fritz Custom); Numero "Uno" Custom; Numero "Uno"
+
+=== [Handouts > Old Campaign > Resources] Imperial Color Schemes | handout ===
+Imperial Groups: Normal Military: Black; Blue: Science; Red: Intelligence (Hacking)
+
+=== [Handouts] Abbreviations for Gurps | handout ===
+https://gurps.fandom.com/wiki/Building_Firearms
+Range Weapon Stat block: Damage = Damage; Acc = Accuracy, Aim bonus for weapon; 1/2D = Optimum Range before fall off "Effective Range"; Max = Max Range; Weight; Volume; RoF = Rate of Fire (Firing more shots reduces chance to hit)
+Mech Abbreviations: TL = Tech Level; Type; ST/HP = Strength and Max HP; Hnd/SR = Handling and Stability Rating (Handling Divided by Stability); HT = Vehicle Health; Move = ... Acceleration/Top Speed; double for mph; LWt = Loaded Weight in Tons; Load = Weight, in tons, of occupants (including operator) and cargo the vehicle can carry; SM = Size Modifier; Occ = Number of occupants the vehicle can carry in reasonable comfort; DR = Damage Reduction; Cost = Cost Money; Loc = Location
+Loc codes: A arm; C caterpillar tracks; D draft animals; E exposed rider; G large glass windows; g small glass windows; H helicopter rotors; L leg; M mast and rigging; O open cabin; R runners or skids; r retractable; S large superstructure or gondola; s small superstructure; T main turret; t independent turret; W wheel; Wi a pair of wings; X exposed weapon mount
+
+=== [Universal Units] Drop Pod | character === A device that can be used to drop objects down to the surface of a planet while keeping the cargo inside safe. In wartimes, these are often utilized in large numbers to overwhelm defenders. Can hold a maximum of 4 spaces.
+=== [Universal Units] Civilian Cruiser | character === (bio empty)
+=== [Universal Units] Pegasus Point Defense Turrets | character === The industry "Pegasus" has been known to develop many different weapons, one of the most popular among planetary defenses would include the humble point defense system, capable of taking on most foes at a moderate level of success, while being affordable.
+=== [Universal Units] Infantry Team | character === Often consisting of about 7 soldiers, these brave men and women go into battle against a variety of foes, all armed with a plethora of weapons to grant a wide variety of options. About 3 out of the 7 are armed with anti-tank capabilities. P. 323
+=== [Universal Units] Battle Tank | character === The Standard Battle Tank whose schematics are widely shared amongst the war industry. It's armor is serviceable with it's main gun packing enough of a punch to pose a threat to a combat mech when used in massed numbers. P.333
+=== [Universal Units] Hover Tank | character === The lighter brother unit to the battle tank, often for every battle tank, there one of these smaller, lighter variants moving around to flank their opponents.
+=== [Universal Units] Fighter Aircraft | character === In the constant battle for air superiority, dozens of the standard fighter plane are deployed with the hopes of winning with sheer numbers. Armed with light rapid cannons, they can harass light to medium battle mechs easily, and if ignored long enough can do lasting damage and turn the fight in their favor. GM Notes: 1 HP
+=== [Universal Units] Bomber Plane | character === When there are few battle mechs to send to the front lines, there is only one hope for frontline forces to crack heavily armored targets, and for that call they utilize giant war planes to utilize their heavy cannons and massive payload to ensure whatever comes up against them lies in a field of explosive ordinance. They are very slow however, and as such they often suffer from being targeted and then shot down due to their flimsy wing support. GM Notes: 18 HP
+=== [Creatures] Oleum Crustaceans | character === A wondering creature of the bitter surface of Glintus Minus. Before, records have shown that they feast on some sort of tiny lifeform that lives within the snow, however due to the recent arrival of new life from the Core Empire, these creatures are more than happy to add a few people to their diet. Some have taken to hunting down pilots and other survivors on surface bases for some sort of sport.
+=== [The Tri-Ring Conflict] Glintus Minus | handout === Planet: A bitter cold planet, at a high of -35 F, constant blizzard reducing visibility; land useless, colonies freeze without support. Rare minerals and ores deep within, plus "Oleum-Vis," a thick viscous liquid that is burning hot, always retains its heat, never changes form and produces a great deal of energy.
+=== [The Tri-Ring Conflict] Ardensensor II | handout === A grand desert, Ardensensor II is a vast planet with many rich different lifeforms.
+=== [The Tri-Ring Conflict] Piscato X | handout === (empty)

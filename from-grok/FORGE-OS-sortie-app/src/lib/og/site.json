@@ -1,0 +1,7 @@
+{
+  "title": "FORGE-OS",
+  "description": "Shared sortie tracker for a private table of pilots.",
+  "type": "x:game",
+  "card": "custom",
+  "color": "3fbf6f"
+}

@@ -1,0 +1,53 @@
+/* ===== v5.1: UI/UX fixes and polish, passes 1-7 (desktop only) ===== */
+@font-face{font-family:"JetBrains Mono";src:url(fonts/JetBrainsMono-Regular.woff2) format("woff2");font-weight:400;font-display:swap}
+@font-face{font-family:"JetBrains Mono";src:url(fonts/JetBrainsMono-Bold.woff2) format("woff2");font-weight:700;font-display:swap}
+:root{--font:"JetBrains Mono",Consolas,"DejaVu Sans Mono","Courier New",monospace;--fs-b:14px;--fs-l:12.5px;--fs-d:11.5px;--fs-e:15px;--muted:#8a9aa6;--c-ok:#3fdc7f;--c-dmg:#ffa726;--c-warn:#ffa726;--c-crit:#ff4d4d}
+body{font-family:var(--font);font-size:var(--fs-b);line-height:1.5}
+/* P4.2 one amber for DMG/WARN, one red for CRIT, the same in every theme and skin (AA on every theme background) */
+html body[data-theme],body.admin,body.research,.mechmap[data-tt]{--c-ok:#3fdc7f;--c-dmg:#ffa726;--c-warn:#ffa726;--c-crit:#ff4d4d}
+body.admin,html body[data-theme=talon],.mechmap[data-tt=talon]{--fg:#e05a5a;--label:#e46a6a;--muted:#a39494}
+body.research,html body[data-theme=sci],.mechmap[data-tt=sci]{--label:#b98ae0;--muted:#9a8aa6}
+html body[data-theme=remus],.mechmap[data-tt=remus]{--muted:#a39a7c}
+html body[data-theme=crow],.mechmap[data-tt=crow]{--muted:#8fa38c}
+.mechmap[data-tt=navy]{--muted:#8a9aa6}
+.sp{color:#8a9aa6}.c-dmg{color:var(--c-dmg)}.c-sev,.c-dead{color:var(--c-crit)}
+/* P5.3 heavy brackets only on the primary readout */
+.panel{background-image:none}
+.panel.primary{background-image:linear-gradient(var(--cyan),var(--cyan)),linear-gradient(var(--cyan),var(--cyan)),linear-gradient(var(--cyan),var(--cyan)),linear-gradient(var(--cyan),var(--cyan)),linear-gradient(var(--cyan),var(--cyan)),linear-gradient(var(--cyan),var(--cyan)),linear-gradient(var(--cyan),var(--cyan)),linear-gradient(var(--cyan),var(--cyan));background-repeat:no-repeat;background-size:12px 2px,2px 12px,12px 2px,2px 12px,12px 2px,2px 12px,12px 2px,2px 12px;background-position:left top,left top,right top,right top,left bottom,left bottom,right bottom,right bottom}
+/* P5.1 segmented gauges (the exact numbers stay in .hv / .hbt) */
+.hpbar,.gauge,.igbar{position:relative}
+.hpbar::after,.gauge::after,.igbar::after{content:"";position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(90deg,transparent 0 calc(10% - 1px),var(--bg) calc(10% - 1px) 10%)}
+/* P4.4 HUD sortie readout */
+.sorhead.hud{position:sticky;top:0;z-index:4;display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));margin:0 0 6px;border:1px solid var(--line);background:var(--bg);background-image:linear-gradient(180deg,var(--panel),var(--bg))}
+.sorhead.hud>.hc{padding:3px 10px;border-left:1px solid var(--line);font-size:var(--fs-l);letter-spacing:.06em;min-width:0;overflow-wrap:anywhere}
+.sorhead.hud>.hc:nth-child(-n+2){grid-column:1/-1;border-left:0;border-bottom:1px dashed var(--line)}
+.sorhead.hud>.hc-id{font-size:var(--fs-e);color:#fff;letter-spacing:.1em}
+.sorhead.hud>.hc:nth-child(3){border-left:0}
+.sorhead.hud b{font-size:var(--fs-b)}
+.sorhead.hud [data-state=warn] b{color:var(--c-dmg)}.sorhead.hud [data-state=crit] b{color:var(--c-crit)}
+.igbar{display:block;height:6px;margin-top:3px;border:1px solid var(--line);background:#0d1a16}.igbar>i{display:block;height:100%;background:var(--c-ok)}.hc[data-state=warn] .igbar>i{background:var(--c-dmg)}.hc[data-state=crit] .igbar>i{background:var(--c-crit)}
+.sorhead.critcue{outline:2px solid var(--c-crit);outline-offset:1px}
+#hudfx{position:fixed;inset:0;pointer-events:none;z-index:90;opacity:0;background:radial-gradient(ellipse at center,transparent 55%,rgba(255,60,60,.22) 100%)}
+#hudfx.go{animation:hudflash .24s ease-out 1}
+@keyframes hudflash{0%{opacity:1}100%{opacity:0}}
+#sync[data-s]{animation:none}#sync[data-s=ok]{color:var(--c-ok)}#sync[data-s=lag]{color:var(--c-dmg)}#sync[data-s=off],#sync[data-s=err],#sync[data-s=conf]{color:var(--c-crit)}#sync[data-s=local]{color:var(--cyan)}
+/* pilot radiation: one number, a band tag, +/- */
+.radbox{margin:var(--sp1) 0 var(--sp2);display:flex;flex-wrap:wrap;gap:var(--sp1) var(--sp2);align-items:center}.radbox>b{font-size:var(--fs-e)}
+.radtag.ok{color:var(--c-ok)}.radtag.warn{color:var(--c-warn)}.radtag.crit{color:var(--c-crit)}
+.brtag{color:var(--c-warn);font-weight:bold}
+/* P5.2 section title strips with focus + badges */
+.shh{background:linear-gradient(90deg,var(--panel),transparent);padding:2px var(--sp2);text-transform:uppercase;letter-spacing:.08em}
+.shtl{outline:none}.shtl:focus-visible{outline:2px solid var(--cyan);outline-offset:2px}
+.shb{margin-left:var(--sp2);font-weight:bold;letter-spacing:0}.shb.crit{color:var(--c-crit)}.shb.warn{color:var(--c-dmg)}
+.mlab[role=button]:focus-visible{outline:2px solid #ffb400;outline-offset:1px}
+/* P6.3 catalogue search (sticky, catalogue only) */
+#con .catalog-head{position:sticky;top:0;z-index:3;display:flex;gap:var(--sp2);align-items:center;background:var(--bg);padding:var(--sp1) 0;border-bottom:1px dashed var(--line);margin-bottom:var(--sp1)}#catq{max-width:none;flex:1}#catn{min-width:10ch;text-align:right}
+/* P4 undo ledger: console timestamps and struck-through undone lines */
+#log .ts{color:var(--muted);margin-right:6px}#log>div.undone{text-decoration:line-through;opacity:.72}
+/* live table */
+/* motion, a11y */
+.sr-only{position:absolute!important;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;margin:-1px;padding:0;border:0}
+.stt-crit,.mz.zs-crit,.mz.sel.zs-crit{animation-iteration-count:3!important}
+@media(prefers-reduced-motion:reduce){#hudfx,.blink{animation:none!important;display:none}.hpbar i,.heatbar i,.lockbox .hpbar i,.hpfill,button{transition:none!important}}
+/* P7.1 wide-screen: sheet and console side by side */
+@media(min-width:1700px){#wrap{max-width:1880px}main{grid-template-columns:minmax(0,1.1fr) minmax(0,1.45fr)}#rt{display:grid;grid-template-columns:minmax(0,1fr) minmax(360px,.6fr);grid-template-rows:minmax(0,1fr)}#rt>#sh,#rt>#cb{min-height:0}#cb{display:flex;flex-direction:column}#cb.cs1 #log{flex:1;height:auto;min-height:0}}

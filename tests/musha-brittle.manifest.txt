@@ -1,0 +1,11 @@
+==========================================================================================
+ CORE EMPIRE // FRAME LOADOUT MANIFEST
+ SHEET EXPORT VERSION: 5.0.2
+ FRAME ID: MSH-01 / MUSHA TEST
+ ORIGIN: REMAN FOUNDRY-TEMPLE   CLEARANCE: IMPERIAL INTELLIGENCE
+==========================================================================================
+--------CHASSIS---------------------------------------------------------------------------
+ [EP 6] MUSHA-CLASS KNIGHT FRAME
+      ST/HP165 DR650/325 MOVE10L/20S SM+6 HND/SR+2/2 BRITTLE:-1_SR_below_half_HP NOTE:repairs_take_x2_time_without_Reman_crews_and_parts
+ LOADOUT CHECKSUM: VALID
+==========================================================================================

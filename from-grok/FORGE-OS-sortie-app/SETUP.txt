@@ -1,0 +1,81 @@
+FORGE-OS — local shared table
+=============================
+
+Unzip this folder. It is the terminal and the server together.
+It is not a file you double-click, and Netlify cannot run it.
+
+You need Node.js 22: https://nodejs.org
+
+Open a terminal in the unzipped folder and run:
+
+  npm install
+  npm run dev
+
+Leave that window open. Then open:
+
+  http://localhost:8080
+
+You should see the normal clearance screen, not a separate lobby.
+
+  [1] GUEST                  build a new frame (normal EP limit)
+  [2] MECHANIC               open a saved .txt manifest
+  [3] RESEARCH STAFF         edit the catalogue. Token: BINAH
+  [4] IMPERIAL INTELLIGENCE  single-player sortie
+  [5] OVERSEER               no EP limit. Token: MALKUTH
+  [6] LIVE DATA INTERCEPT    the shared table
+
+Option 6 asks for a callsign, the same way Overseer asks for a token.
+There is no room code and no join link. There is one table.
+The first person to authenticate is the host. Everyone else is a pilot.
+
+
+If npm run dev says "spawn vite ENOENT"
+----------------------------------------
+
+  1. Run npm install in this folder first. You only do this once.
+  2. On Windows, vite has to be launched through the command shell.
+     This zip already does that. If you are on an older unzip, open
+     scripts/with-app-env.mjs and make sure the spawn( line includes
+     shell: process.platform === "win32"
+
+
+Same house / same Wi-Fi
+-----------------------
+
+localhost only works on the computer running the server.
+Find that computer's IPv4 address
+(Windows: ipconfig. Mac: System Settings, Network).
+Everyone, including you, opens:
+
+  http://THAT-IP:8080
+
+Example: http://192.168.1.40:8080
+If Windows asks, allow Node through the firewall on port 8080.
+
+
+Different houses
+----------------
+
+Their browsers cannot see a server that only exists on your home
+network. Point a tunnel at port 8080 (Cloudflare Tunnel or ngrok).
+Everyone opens the public address the tunnel gives you.
+
+
+How a night goes
+----------------
+
+  1. You pick [6] LIVE DATA INTERCEPT, type a callsign, AUTHENTICATE.
+     You are the host.
+  2. Each pilot opens the same address, picks [6], and types their own callsign.
+  3. A pilot can load one compiled .txt. It is assigned to them.
+     The host can load as many frames as the table needs.
+  4. A pilot edits everything on their own sheet.
+     On every other unit they get the paper doll and the damage box.
+     Anyone can undo.
+  5. LOGOUT leaves your seat. The table stays up while the server window is open.
+
+Stopping that window, or restarting the computer, wipes the table.
+Start it again with npm run dev and everyone authenticates again.
+
+Do not use an old FORGE_OS-Ver5_0_1.html for the shared table.
+That file is the solo terminal only.
