@@ -1,0 +1,18 @@
+/* ===== FORGE-OS 5.5 ===== */
+.hxw{display:inline-flex;align-items:center;gap:4px;margin-left:8px;white-space:nowrap}
+.hxbtn{min-height:20px!important;padding:0 6px!important}
+.hxbtn.on{color:var(--cyan);border-color:var(--cyan)}
+.hxv{font-weight:bold}
+.tgline{display:flex;align-items:center;gap:8px;flex-wrap:nowrap;white-space:nowrap}
+.tgline .hxw{margin-left:0}
+.tgnote .tgline+*{margin-left:0}
+.dmrow2{flex-basis:100%;display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:4px}
+.dmrow2 .selbtns{margin-left:0}
+.conhead .hros{min-height:20px!important;margin-left:6px}
+#cb{position:relative}
+#cb #mpfriends{position:absolute;left:auto;right:0;bottom:0;width:210px;max-height:none;border-right:0;border-left:1px solid var(--line);z-index:3}
+#cb.users #log,#cb.users #pr,#cb.users #hint{margin-right:214px}
+#cb.cs0 #mpfriends{display:none}
+#cb.cs0.users #log,#cb.cs0.users #pr,#cb.cs0.users #hint{margin-right:0}
+body.mp-view .rbtn,body.mp-view .tgdrop,body.mp-view .ammoc button{display:none!important}
+body.mp-view .ammoc input{pointer-events:none}
