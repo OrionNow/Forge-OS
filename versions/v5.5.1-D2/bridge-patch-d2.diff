@@ -1,0 +1,39 @@
+--- a/mp-bridge.js
++++ b/mp-bridge.js
+@@ -1081,7 +1081,8 @@
+         const S = Forge.state();
+         const bar = document.getElementById("bar");
+         if (bar && (S.view === "sortie" || S.view === "intel") && !bar.querySelector(".stabs")) {
+-          bar.innerHTML = '<div class=panel style="margin-top:12px"><div class=stabs>' + mpTabs() + "</div></div>";
++          const owned = window.Desk && Desk.ownsBar && Desk.ownsBar(); // D2: no wrapper margin inside the desktop doll window
++          bar.innerHTML = (owned ? "<div class=panel>" : '<div class=panel style="margin-top:12px">') + "<div class=stabs>" + mpTabs() + "</div></div>";
+         }
+       }
+       if (MP.linked) paintFriends();
+@@ -1707,6 +1708,7 @@
+     return "Welcome";
+   }
+ 
++  window.mpD2Roster = true; // D2: tells desk.js the roster can live in a USERS window
+   function paintFriends() {
+     if (!MP.linked) return;
+     ensureChrome();
+@@ -1716,6 +1718,10 @@
+       box.id = "mpfriends";
+     }
+     const cbox = document.getElementById("cb");
++    // D2 (display only): the desktop shell may host the roster in its own USERS window.
++    const host = window.Desk && Desk.rosterHost && Desk.rosterHost();
++    if (host) { if (box.parentElement !== host) host.appendChild(box); box.style.top = ""; if (cbox) cbox.classList.remove("users"); }
++    else {
+     if (cbox && box.parentElement !== cbox) cbox.appendChild(box);
+     else if (!cbox && !box.parentElement) document.body.appendChild(box);
+     if (cbox) {
+@@ -1723,6 +1729,7 @@
+       const ch = document.getElementById("conhead");
+       box.style.top = (ch ? ch.offsetHeight : 24) + "px";
+     }
++    }
+     box.classList.toggle("min", !MP.seatsOpen);
+     document.body.classList.add("mp-linked");
+     document.body.classList.toggle("mp-friends-min", !MP.seatsOpen);

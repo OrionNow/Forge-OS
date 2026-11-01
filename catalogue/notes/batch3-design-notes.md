@@ -33,9 +33,9 @@ Divisors follow the TL band ruling: TL8 is the core base, TL9 sits 0-2 steps abo
 |---|---|---|---|---|
 | OLEUM PLASMA LANCE | Pyramid 3/51 p.27, Plasma Lance | 6dx20(10) burn exp, Acc 8, 20/200 | 6dx20(5), ACC 3, RNG 20/100 | Laminate doubles DR against plasma (3/51 pp.26-27), so (10) acts as (5). TL9 is +1 step over the 120mm ROCKET CANNON (4). The "exp" becomes BLAST at 1/3 damage within 1 hex (GURPS explosions fall off by 3 x distance in yards, B414; Campaigns is not in `gurps/`). |
 | HERALD 20mm GAUSS CARBINE | Overseer's Weapon List, Gauss 20mm 6dx20(3) Acc 18, 5,100/15,600 (Mecha p.67); UT Gauss guns p.141 | 6dx20(3) | 6dx20(4), ACC 4, RNG 180/600, AMMO 5(1), HEAT +2/shot (v1) | TL9 is +1 step over the 30mm AUTOCANNON (3). Range is trimmed under the SKYFALL's 200/750 so it does not out-range the railgun. OVERPEN stands in for gauss overpenetration. |
-| DIVINE DRAGON'S BREATH | 3/51 p.27 Plasma Lance (Pulver: "a hybrid of flamer and fusion gun"); UT Flamers p.127 for the line behavior | 6dx20(10) | 6dx15(5), RNG 40/120 | A line hits every target, so damage is cut to 3/4 (6dx15). TL10 Reman (5) is +1 step over the 120mm (4). The canon Roll20 entry is 10dx20(3) at range 120. Only the 120 range is kept. **Damage pending the Overseer:** canon 10dx20(3) or GURPS-derived 6dx15(5); Ryuji backs 6dx15(5). |
+| DIVINE DRAGON'S BREATH | 3/51 p.27 Plasma Lance (Pulver: "a hybrid of flamer and fusion gun"); UT Flamers p.127 for the line behavior | 6dx20(10) | 6dx15(5), RNG 40/120 | A line hits every target, so damage is cut to 3/4 (6dx15). TL10 Reman (5) is +1 step over the 120mm (4). The canon Roll20 entry is 10dx20(3) at range 120. Only the 120 range is kept. **Overseer ruling: 6dx15(5).** |
 | AUTOPOD | UT HEMP Warhead Table p.155, 64mm | 6dx8(10) cr inc | 6dx8(4) | (10) becomes (4) under the batch-2 laminate rule, level with the core 60mm MISSILE POD (4), TL8. v1: rolls Gunnery-4 with a random hit location, and a mech may carry only one AUTONOMOUS item. |
-| DIVINE DAIMYO BUSTER BLADE | UT superfine vibroblade (5), p.164; 3/51 p.27 says giant blades need superfine vibro or monomolecular edges | n/a (melee) | 76d(5), 0.8 t, EP 4 (v1) | The dice are the canon "Medium 76d" from the Roll20 weapon list, which matches the baseline fit 79 + 13 ln(t) at about 0.8 t. TL10 Reman (5) is +2 steps over the VIBROBLADE (MEDIUM) (3). The AURA-GUARD block uses the canon HP 250 and DR 100. Canon divisor is **76d(6)** (Roll20 l.318). **Divisor pending the Overseer:** (5) or (6); both are in band. |
+| DIVINE DAIMYO BUSTER BLADE | UT superfine vibroblade (5), p.164; 3/51 p.27 says giant blades need superfine vibro or monomolecular edges | n/a (melee) | 76d(6), 0.8 t, EP 4 (v1) | The dice are the canon "Medium 76d" from the Roll20 weapon list, which matches the baseline fit 79 + 13 ln(t) at about 0.8 t. TL10 Reman (5) is +2 steps over the VIBROBLADE (MEDIUM) (3). The AURA-GUARD block uses the canon HP 250 and DR 100. Canon divisor is **76d(6)** (Roll20 l.318). **Overseer ruling: keep the canon (6)**, TL10 +3 steps over the VIBROBLADE (MEDIUM) (3), in band at the ladder cap. |
 | EXPLOSIVE VENTS | 3/51 p.27 Light Missile Pod, linked 8dx2 cr ex | 8dx2 | 8dx2(3) burn | A small splash. The real bite is +2 target heat, capped below half cap like the SUNSPIKE. The canon Lancer text is "2 heat and 2 burn". |
 | WHALE (TITANIC-FORCE) | Roll20 weapon list, Colossal Talon 100d(3) | n/a | 100d(3) | The fit 79 + 13 ln(t) gives 100d at about 5 t of fist, which is plausible for an SM +8 hand. TL9 at (3) is 0 steps. |
 | MALWARE (CATALYTIC-INFUSOR) | No GURPS equivalent (a trait, not a weapon) | n/a | HEAT x20 burn (3), max 240 | Capped at 240 (v1), about one medium vibroblade per turn. The target rolls to break free at the start of each of its turns. |
@@ -73,9 +73,9 @@ Divisors follow the TL band ruling: TL8 is the core base, TL9 sits 0-2 steps abo
 - The GLINTUS COCKPIT COMFORT KIT: seat warmer, two cupholders and a blanket clip, with a real rules hook (+1 to surge and Stun HT rolls, no cold penalties on Glintus Minus at -35 F).
 
 ## Open for the Overseer and Ryuji
-1. **Factions:** the Roll20 journal is silent for the Malware (filed Crow Republic) and the Whale (filed Core Empire).
-2. **Dragon's Breath damage:** the GURPS-derived 6dx15(5) differs from the canon 10dx20(3). Which one wins? (Ryuji backs 6dx15(5).)
-3. **Daimyo Buster Blade divisor:** (5) or canon (6).
+1. ~~Factions~~ Settled: Malware is Crow Republic, Whale is Core Empire (Overseer).
+2. ~~Dragon's Breath damage~~ Settled: 6dx15(5) (Overseer).
+3. ~~Daimyo divisor~~ Settled: canon 76d(6) (Overseer).
 4. **Oleum-curve questions:** see `oleum-reactor-pass.md`.
 5. **Validator (v1):** 28 lines, 0 real rejects. The only rejects are the 3 tier names, which are expected because this file has no tiered items.
 
@@ -88,12 +88,21 @@ Divisors follow the TL band ruling: TL8 is the core base, TL9 sits 0-2 steps abo
 | 4 | MALWARE (HAMMER HEAD) | HEAT x20, uncapped, no escape | Max 240; the target rolls to break free at the start of each of its turns |
 | 5 | AUTOPOD | No attack roll, no location, no limit | Gunnery-4, random hit location, one AUTONOMOUS item per mech |
 | 6 | HERALD 20mm GAUSS | AMMO 10(1), HEAT +1/shot | AMMO 5(1) SPARE 1, HEAT +2/shot; still 6dx20(4) |
-| 7 | DIVINE DRAGON'S BREATH | PERSIST uncapped | Target heat can't rise to half cap or above; lines don't stack; lasts to the end of your next turn; 6dx15(5) pending the Overseer |
+| 7 | DIVINE DRAGON'S BREATH | PERSIST uncapped | Target heat can't rise to half cap or above; lines don't stack; lasts to the end of your next turn; 6dx15(5) (Overseer ruling) |
 | 8 | REMORA | Host uses your skill; you mirror host heat | +1 HEAT per turn latched |
 | 9 | CFOR | ST/HP +60% | ST/HP +50% (option A chosen; the OLEUM VIS CORE is unchanged) |
 | 10 | MIZUCHI | +1 to be hit; Overflow -2 | +1 to be hit removed; +3 to detect kept as flavor; standard Overflow -1 |
-| 11 | DIVINE DAIMYO BUSTER BLADE | 3 EP | 4 EP; (5) kept, (6) canon pending the Overseer |
+| 11 | DIVINE DAIMYO BUSTER BLADE | 3 EP | 4 EP; divisor set to the canon (6) (Overseer ruling) |
 | 12 | PEGASUS FAILSAFE | Cap -3 for the rest of the sortie | Clause dropped |
 | 13 | FLASH-BOILER CELL | +20% MOVE this turn | +20% MOVE on your next turn |
 | 14 | HELLION WAKE STACK | +40% MOVE and no burn HEAT | +40% MOVE only |
 | nit | ARMAMENT REDUNDANCY RIG | Once per full repair | Once per sortie (Ryuji's stated preference) |
+
+## Overseer rulings (Nov 1, applied in place to v1)
+| Item | Ruling | Change |
+|---|---|---|
+| DIVINE DRAGON'S BREATH | Damage is 6dx15(5) | The "pending" note is removed from the RAW line and the companion. |
+| DIVINE DAIMYO BUSTER BLADE | Keep the original canon divisor (6) | DMG is now 76d(6) and the "pending" note is removed. |
+| MALWARE (HAMMER HEAD) | Crow Republic, confirmed | The "faction open" wording is removed. |
+| WHALE | Core Empire, confirmed | The "faction open" wording is removed. |
+| Oleum RAD | Depends on the pilot rad tracker removed from the UI in v5.2 | Flagged as a DEPENDENCY (see `oleum-reactor-pass.md`). Nothing new builds on RAD. |

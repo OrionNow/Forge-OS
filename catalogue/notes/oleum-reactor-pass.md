@@ -2,6 +2,18 @@
 
 Hikari's proposal for the Overseer's ask: Oleum reactors get their own danger-zone and redline behavior. Text only; nothing in `terminal.html` changes. Status: **v1, Ryuji round 2.** v1 changes (Ryuji r1): every reactor now has SCRAM; the surge roll is a flat HT-2; Mizuchi Overflow is back to -1; CFOR is ST/HP +50%.
 
+> **DEPENDENCY: pilot rad tracker (flagged; don't build on it).** Every Oleum RAD cost in this pass (per-sortie RAD, +10 per turn in bloom, +25 or +50 per surge, RAD halving) depends on the pilot rad tracker, which the Overseer removed from the UI in v5.2. Until a tracker returns, RAD is GM bookkeeping at most. The rest of the curve still works without it: bloom, sticky heat, Overflow, the SURGE HT-2 roll and SCRAM all read the heat track. Without RAD, the costs that remain on the Oleum side are sticky heat (DR x0.75) and the surge HT roll.
+>
+> **Batch 3 items that reference RAD:**
+> - COLD FUSION OLEUM REACTOR (CFOR): `RAD:15/sortie`
+> - OLEUM BASTION PILE: `RAD:25/sortie`
+> - HELLION BLOOM-BURNER: `RAD:25/sortie`, and the surge costs +25 and +50 RAD
+> - DRIP-FEED OLEUM CELL: `RAD:25/sortie`
+> - MIZUCHI OLEUM SPIRIT CORE: `RAD:10/sortie`, and CONTAINMENT halves RAD
+> - GREAT WHITE: OLEUM-PLUMBED halves RAD
+>
+> These batch 2 items also reference RAD: OLEUM VIS CORE, OLEUM SPIKE CELL, OLEUM PURGE VALVE (`RAD:+50_pilot`) and SHRINE-GRADE COCKPIT SHIELDING. The GLINTUS COCKPIT COMFORT KIT touches only the surge HT roll, not RAD. Batch 4 adds nothing that relies on RAD.
+
 ## Why Oleum should behave differently
 The Roll20 canon (Glintus Minus handout) says Oleum-Vis is "burning hot, always retains its heat, never changes form and produces a great deal of energy", and the CFOR lets a machine "operate indefinitely". Three design hooks fall out of that:
 1. **It retains heat.** Once an Oleum core is hot, it stays hot.
