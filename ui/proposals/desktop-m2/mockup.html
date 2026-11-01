@@ -1,0 +1,497 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>FORGE-OS // DESKTOP M2 MOCKUP r2 (proposal, v5.5.1-D2)</title>
+<!-- FORGE-OS desktop M2 proposal mockup. Static, self-contained, placeholder data only. Not a program file.
+     Hikari Aoi, Catalog Ideator, for the Overseer. Round 2. Layout persists to localStorage keys forge_m2_mock_desk2*. -->
+<style>
+:root{--bg:#050a08;--fg:#3fbf6f;--line:#1e6b6b;--cyan:#7ff;--panel:#0b1f18;--hover:#17493a;--label:#2aa;--muted:#8a9aa6;
+--ok:#3fdc7f;--dmg:#ffa726;--crit:#ff4d4d;--gold:#ffd700;--font:Consolas,"Liberation Mono","DejaVu Sans Mono","Courier New",monospace;
+--hd:30px;--tb:40px;--acc:var(--line)}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--fg);font:12px/1.3 var(--font);overflow:hidden}
+body::after{content:"";position:fixed;inset:0;pointer-events:none;z-index:6000;background:repeating-linear-gradient(0deg,rgba(0,0,0,.16) 0 1px,transparent 1px 3px)}
+::-webkit-scrollbar{width:6px;height:6px}::-webkit-scrollbar-thumb{background:var(--line)}::-webkit-scrollbar-track{background:#020504}
+.glow{text-shadow:0 0 5px currentColor}
+.dim{color:var(--muted)}.ok{color:var(--ok)}.dm{color:var(--dmg)}.cr{color:var(--crit)}.ds{color:#fff}.gd{color:var(--gold)}.lb{color:var(--label)}
+button{font:inherit}
+.b{all:unset;cursor:pointer;padding:0 6px;height:22px;line-height:22px;border:1px solid var(--line);color:var(--fg);white-space:nowrap;font-size:11.5px}
+.b:hover,.b:focus-visible{color:var(--cyan);border-color:var(--cyan);background:var(--hover)}
+.b[aria-pressed=true]{color:var(--cyan);border-color:var(--cyan);box-shadow:inset 0 0 6px rgba(127,255,255,.25)}
+input,select,textarea{font:inherit;background:#000;color:var(--cyan);border:1px solid var(--line)}
+input:focus,select:focus,textarea:focus{outline:1px solid var(--cyan)}
+/* header */
+#hd{height:var(--hd);display:flex;align-items:center;gap:8px;padding:0 8px;border-bottom:1px solid var(--line);white-space:nowrap;overflow:hidden;color:#dff}
+#hd .sp{flex:1}#hd .mk{color:var(--gold);border:1px solid var(--gold);padding:0 5px;font-size:11px}
+/* desktop */
+#desk{position:absolute;top:calc(var(--hd) + 4px);left:6px;right:6px;bottom:calc(var(--tb) + 4px);overflow:hidden;isolation:isolate}
+#grid{position:absolute;inset:0;pointer-events:none;opacity:0;transition:opacity .15s;background-image:radial-gradient(circle,rgba(127,255,255,.25) 1px,transparent 1.3px);background-size:8px 8px}
+#desk.dragging #grid{opacity:1}
+/* windows */
+.win{position:absolute;display:flex;flex-direction:column;border:1px solid var(--line);background:rgba(5,10,8,.97);min-width:120px;min-height:24px;resize:both;overflow:hidden;transition:opacity .12s}
+.win.acc{border-color:color-mix(in srgb,var(--acc) 55%,var(--line))}
+.win::after{content:"";position:absolute;inset:0;pointer-events:none;z-index:3;
+background:linear-gradient(var(--acc),var(--acc)) 0 0/10px 2px,linear-gradient(var(--acc),var(--acc)) 0 0/2px 10px,
+linear-gradient(var(--acc),var(--acc)) 100% 0/10px 2px,linear-gradient(var(--acc),var(--acc)) 100% 0/2px 10px,
+linear-gradient(var(--acc),var(--acc)) 0 100%/10px 2px,linear-gradient(var(--acc),var(--acc)) 0 100%/2px 10px,
+linear-gradient(var(--acc),var(--acc)) 100% 100%/10px 2px,linear-gradient(var(--acc),var(--acc)) 100% 100%/2px 10px;background-repeat:no-repeat;opacity:.9}
+.win.focus{box-shadow:0 0 0 1px var(--acc),0 0 14px color-mix(in srgb,var(--acc) 35%,transparent)}
+.win.col{height:24px!important;min-height:24px;resize:none}.win.col>.wb{display:none}
+.win.min{display:none}
+.win.max{left:0!important;top:0!important;width:100%!important;height:100%!important;resize:none}
+.win.pin{resize:none}.win.pin>.wt{cursor:default}
+.win.drag{opacity:.85}.win.dockhint>.wt{background:repeating-linear-gradient(45deg,#0c2a22 0 6px,#123d30 6px 12px);outline:1px dashed var(--cyan)}
+.win.tearing{outline:1px dashed var(--gold)}
+.wt{flex:none;height:24px;display:flex;align-items:center;gap:3px;padding:0 3px 0 7px;background:#081812;border-bottom:1px solid var(--line);cursor:move;user-select:none;font-size:12px;letter-spacing:.03em}
+.win.focus>.wt{background:var(--hover);border-bottom-color:var(--acc)}
+.wt .tt{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--fg)}
+.win.acc .wt .tt{color:var(--acc)}.win.focus .wt .tt{text-shadow:0 0 5px currentColor}
+.wt .dot{flex:none;width:8px;height:8px;background:var(--acc);box-shadow:0 0 6px var(--acc)}
+.wt .tag{flex:none;font-size:10px;padding:0 3px;border:1px solid currentColor}
+.wt .tag.live{color:var(--ok)}.wt .tag.mir{color:var(--muted)}
+.wt select{height:18px;font-size:11px;max-width:150px;color:var(--acc);border-color:color-mix(in srgb,var(--acc) 60%,var(--line))}
+.c{all:unset;flex:none;cursor:pointer;min-width:19px;height:17px;line-height:17px;text-align:center;border:1px solid var(--line);font-size:11px;color:var(--fg)}
+.c:hover,.c:focus-visible{color:var(--cyan);border-color:var(--cyan)}.c.on{color:var(--gold);border-color:var(--gold)}
+.wb{flex:1;min-height:0;display:flex;overflow:hidden;padding:2px}
+.wb.m-col,.lc{flex-direction:column}.lc{display:flex;flex:1;min-width:0;min-height:0}
+.wb.m-lr>.pn:first-child{flex:1.7}.wb.m-lr>.lc{flex:1;min-width:150px}
+.wb.empty{align-items:center;justify-content:center;color:var(--muted);text-align:center;padding:10px;border:1px dashed var(--line);margin:6px}
+.wb.m-tabs{flex-direction:column}
+.tabsr{display:flex;gap:2px;flex:none;border-bottom:1px solid var(--line);padding:0 2px}
+.tab{all:unset;cursor:pointer;padding:1px 7px;font-size:11px;color:var(--label);border:1px solid transparent;border-bottom:0}
+.tab.on{color:var(--cyan);border-color:var(--line);background:#06140f}
+.pn{display:flex;flex-direction:column;flex:1;min-width:0;min-height:0;margin:2px;border:1px solid rgba(30,107,107,.55);container-type:inline-size}
+.ph{flex:none;height:18px;display:flex;align-items:center;gap:4px;padding:0 3px 0 5px;color:var(--label);font-size:11px;background:#06140f;cursor:grab;letter-spacing:.05em;user-select:none}
+.ph .sp{flex:1}.ph:active{cursor:grabbing}
+.pb{flex:1;min-height:0;overflow:auto;padding:4px 6px}
+/* paper doll */
+.dh{display:flex;flex-wrap:wrap;gap:2px 10px;font-size:11px;margin-bottom:3px}
+.doll{display:grid;grid-template-columns:minmax(0,1fr) minmax(54px,.9fr) minmax(0,1fr);gap:2px 4px;align-items:center}
+.dc{display:flex;flex-direction:column;gap:3px}
+.cmp{font-size:10.5px;line-height:1.2;padding:1px 3px;border-left:2px solid var(--acc);background:rgba(11,31,24,.55)}
+.cmp b{color:#dff;font-weight:normal}.cmp.dm{border-left-color:var(--dmg)}.cmp.cr{border-left-color:var(--crit)}
+.cmp .v{color:var(--fg)}
+.bar{height:4px;background:#0b2a22;margin-top:2px;position:relative}
+.bar>i{display:block;height:100%;background:currentColor;box-shadow:0 0 4px currentColor}
+.cmp .bar{color:var(--acc)}.cmp.dm .bar{color:var(--dmg)}.cmp.cr .bar{color:var(--crit)}
+.bar.seg{background:repeating-linear-gradient(90deg,#0b2a22 0 calc(var(--s) - 2px),transparent calc(var(--s) - 2px) var(--s))}
+.bar.seg>i{-webkit-mask:repeating-linear-gradient(90deg,#000 0 calc(var(--s) - 2px),transparent calc(var(--s) - 2px) var(--s))}
+.fig svg{width:100%;height:auto;max-height:240px;display:block;filter:drop-shadow(0 0 3px var(--acc))}
+@container (max-width:215px){.doll{grid-template-columns:1fr 1fr}.fig{display:none}}
+/* readouts */
+.kv{display:grid;grid-template-columns:auto 1fr;gap:1px 8px;font-size:11px}.kv>span:nth-child(odd){color:var(--label)}
+.gauge{margin:3px 0 5px}.gauge .gl{display:flex;justify-content:space-between;font-size:11px}
+.bar.heat{height:7px}.bar.heat::before{content:"";position:absolute;left:50%;top:-2px;bottom:-2px;width:1px;background:var(--dmg)}
+.row{display:flex;flex-wrap:wrap;gap:4px;align-items:center;margin:3px 0;font-size:11px}
+.row input[type=text],.row input:not([type]){width:52px;height:18px}
+.sk{display:grid;grid-template-columns:repeat(auto-fill,minmax(98px,1fr));gap:3px 6px}
+.sk label{display:flex;flex-direction:column;font-size:10px;color:var(--label);letter-spacing:.03em}
+.sk input{width:100%;max-width:64px;height:17px}
+.wr{padding:2px 0;border-bottom:1px dotted var(--line);font-size:11px}.wr b{color:#dff;font-weight:normal}.wr .ep{float:right;color:var(--cyan)}
+.wr .dim{font-size:10px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.log{font-size:11px;line-height:1.35;display:flex;flex-direction:column;height:100%}
+.log .ll{flex:1;overflow:auto}.log .pr{flex:none;border-top:1px dashed var(--line);padding-top:3px;color:var(--cyan)}
+.log input{border:0;background:transparent;width:70%;color:var(--cyan)}
+/* roster */
+.ros{display:flex;flex-direction:column;gap:2px}
+.u{display:flex;align-items:center;gap:5px;height:20px;font-size:11px;padding:0 2px;border-left:2px solid transparent}
+.u:hover{background:var(--hover)}.u.off{opacity:.45}.u.me{border-left-color:var(--cyan)}
+.u i{flex:none;width:16px;height:16px;line-height:16px;text-align:center;font-style:normal;font-size:9px;color:#000;border-radius:2px}
+.u .un{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.u .ur{flex:none;color:var(--label);font-size:10px}
+.u .pl{display:none}
+.r-full .u{height:30px;flex-wrap:wrap;align-content:center}.r-full .u .pl{display:block;width:100%;padding-left:21px;font-size:9.5px;color:var(--muted);margin-top:-3px}
+.r-rail .u{justify-content:center;padding:0}.r-rail .u .un,.r-rail .u .ur{display:none}.r-rail .u i{width:22px;height:22px;line-height:22px;font-size:10px}
+.win.rail{min-width:0}.win.rail .wt .tt,.win.rail .wt .c:not([data-a=rail]){display:none}.win.rail .wt{padding:0 2px;justify-content:center}.win.rail .pb{padding:3px 2px}
+/* taskbar */
+#tb{position:absolute;left:0;right:0;bottom:0;height:var(--tb);display:flex;align-items:center;gap:6px;padding:0 6px;border-top:1px solid var(--cyan);background:linear-gradient(#08180f,#030806);z-index:5000;box-shadow:0 -2px 12px rgba(127,255,255,.12)}
+#tb .lbl{color:var(--cyan);letter-spacing:.06em;font-size:11px;white-space:nowrap}
+#tb .grp{display:flex;align-items:center;gap:3px;flex:none}
+#tb .sep{width:1px;height:24px;background:var(--line);flex:none}
+#chips{flex:1;display:flex;gap:3px;min-width:0;overflow:hidden}
+.chip{all:unset;cursor:pointer;flex:0 1 150px;min-width:46px;display:flex;align-items:center;gap:4px;height:26px;padding:0 5px;border:1px solid var(--line);border-bottom:2px solid var(--acc,var(--line));font-size:11px;box-sizing:border-box}
+.chip .n{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.chip .g{flex:none;color:var(--acc,var(--fg))}
+.chip.min{opacity:.55;border-style:dashed;border-bottom-style:solid}.chip.focus{background:var(--hover);color:var(--cyan)}
+.chip:hover{border-color:var(--cyan)}
+.slot{all:unset;cursor:pointer;width:22px;height:22px;line-height:22px;text-align:center;border:1px solid var(--line);position:relative;font-size:11.5px}
+.slot.full::after{content:"";position:absolute;left:4px;right:4px;bottom:2px;height:2px;background:var(--ok);box-shadow:0 0 4px var(--ok)}
+.slot.sel{border-color:var(--cyan);color:var(--cyan);box-shadow:0 0 6px rgba(127,255,255,.5)}
+.slot:hover{background:var(--hover)}
+@keyframes fl{0%{background:var(--gold);color:#000}100%{background:transparent}}.flash{animation:fl .7s}
+#clock{color:var(--cyan);font-size:11px;min-width:40px;text-align:right}
+#pop{position:absolute;bottom:calc(var(--tb) + 2px);z-index:5001;background:#030806;border:1px solid var(--cyan);padding:4px;display:none;flex-direction:column;gap:2px;min-width:210px}
+#pop.on{display:flex}#pop .b{text-align:left}#pop .hdr{color:var(--label);font-size:10.5px;padding:2px 4px}
+#toast{position:fixed;top:calc(var(--hd) + 8px);left:50%;transform:translateX(-50%);z-index:5500;border:1px solid var(--cyan);background:#030806;color:var(--cyan);padding:3px 10px;font-size:11.5px;opacity:0;transition:opacity .2s;pointer-events:none}
+#toast.on{opacity:1}
+@media (max-width:1500px){#tb .lbl.hide-s,#tb .lbl.bay{display:none}.chip{flex-basis:118px}.cmp{font-size:10px}.pb{padding:3px 4px}.dh{font-size:10.5px}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+/* round 2: live / mirror */
+.win.live{box-shadow:inset 0 0 0 1px var(--bg),inset 0 0 0 3px var(--ok)}
+.win.live.focus{box-shadow:inset 0 0 0 1px var(--bg),inset 0 0 0 3px var(--ok),0 0 14px rgba(63,220,127,.35)}
+.win.live>.wt{border-bottom:2px solid var(--ok)}
+.wt .tag.live{color:#000;background:var(--ok);border-color:var(--ok);font-weight:bold}
+.c.mk{padding:0 5px;color:var(--gold);border-color:var(--gold);font-size:10.5px}.c.mk:hover{background:#3a3000}
+.wt select:disabled{opacity:.6}
+.mirbar{flex:none;display:flex;align-items:center;gap:6px;height:18px;padding:0 5px;font-size:10.5px;color:var(--gold);background:repeating-linear-gradient(135deg,#1d1800 0 6px,#0e0c00 6px 12px);border-bottom:1px dashed var(--gold);white-space:nowrap;overflow:hidden}
+.mirbar .sp{flex:1}.mirbar .c{color:var(--gold);border-color:var(--gold);height:14px;line-height:14px;font-size:10px;padding:0 4px}
+.mirc{position:relative;opacity:.5;filter:saturate(.35)}
+.mirc::after{content:"";position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(135deg,rgba(255,215,0,.06) 0 5px,transparent 5px 11px)}
+.mirc button,.mirc input,.mirc select{cursor:not-allowed;border-style:dashed!important;color:var(--muted)!important}
+.nyv{display:flex;align-items:center;justify-content:center;height:100%;color:var(--muted);text-align:center;border:1px dashed var(--line);font-size:11px;padding:6px}
+.u.host i{position:relative}.u.host i::after{content:"★";position:absolute;right:-7px;top:-8px;font-size:13px;line-height:13px;color:var(--gold);text-shadow:0 0 3px #000,0 0 2px #000}
+#bar{flex:none;display:flex;flex-wrap:wrap;gap:3px;padding:3px 4px;border-bottom:1px solid var(--line);background:#06140f}
+#bar .stab{all:unset;cursor:pointer;font-size:11px;padding:1px 6px;border:1px solid var(--line);white-space:nowrap}
+#bar .stab.on{color:#000;background:var(--ok);border-color:var(--ok)}#bar .stab:hover{border-color:var(--cyan);color:var(--cyan)}
+#bar .stab .ow{color:var(--muted);font-size:10px}#bar .stab.on .ow{color:#000}
+#defBtn.undo{color:#000;background:var(--gold);border-color:var(--gold)}
+</style>
+</head>
+<body>
+<header id="hd">
+  <b>CORE EMPIRE</b><span class="dim">// SCIENCE CORPS R+D // FORGE-OS v5.5.1-D2</span><span class="mk">M2 MOCKUP r2</span><span class="dim">// TL8</span>
+  <span class="sp"></span>
+  <button class="b" id="classicBtn" title="Classic layout: returns the M1 containers, clears every panel and calls R() (simulated in the mockup)">[CLASSIC]</button><button class="b">[AUDIO: MUTED]</button><button class="b">[THEME: IMPERIAL NAVY]</button>
+  <span>CLEARANCE: <b>IMPERIAL TALONS</b></span><span class="dim">// OVERSEER</span><button class="b">(L)OGOUT</button>
+</header>
+
+<main id="desk" aria-label="Desktop"><div id="grid"></div></main>
+
+<div id="pop" role="menu" aria-label="Open a panel as its own window"></div>
+<nav id="tb" role="toolbar" aria-label="Module bay taskbar">
+  <span class="lbl bay">MODULE BAY //</span>
+  <div class="grp">
+    <button class="b" data-t="doll" title="Open another paper doll window (Ctrl+Alt+N)">[+ DOLL]</button>
+    <button class="b" data-t="sheet" title="Frame sheet (loadout manifest)">SHEET</button>
+    <button class="b" data-t="console" title="Operator console">CONSOLE</button>
+    <button class="b" data-t="roster" title="Users list">USERS</button>
+    <button class="b" id="panBtn" title="Open a panel as its own window" aria-haspopup="menu">PANELS ▴</button>
+  </div>
+  <span class="sep"></span>
+  <div id="chips" aria-label="Open windows"></div>
+  <span class="sep"></span>
+  <div class="grp">
+    <button class="b" id="snapBtn" title="Snap to the 8px grid and to window edges">▦ SNAP</button>
+    <span class="lbl hide-s">LAYOUT</span>
+    <span id="slots" class="grp"></span>
+    <button class="b" id="saveBtn" title="Save the current layout into the selected slot (Ctrl+Alt+Shift+1..5)">SAVE</button>
+    <button class="b" id="loadBtn" title="Load the selected slot (Ctrl+Alt+1..5, or double-click a slot)">LOAD</button>
+    <button class="b" id="defBtn" title="Reset to the default layout (one-step UNDO for 8 s)">DEF</button>
+  </div>
+  <span id="clock"></span>
+</nav>
+<div id="toast" role="status" aria-live="polite"></div>
+<script>
+"use strict";
+/* FORGE-OS desktop M2 mockup, round 2. Placeholder data only. Mirrors are cache-only stripped copies (no live re-render). */
+const MECHS={
+ "MSH-01":{n:"MSH-01 MUSHA TEST",f:"MUSHA-CLASS KNIGHT FRAME",o:"REMAN FOUNDRY-TEMPLE",hp:165,dr:[650,325],mv:"10L/20S",sm:"+6",hnd:"+2",sr:2,heat:null,vent:null,ep:6,
+   note:"BRITTLE:-1_SR_below_half_HP",W:[["VIBROBLADE (MEDIUM)",2,"ROF:X DMG:76d(3) AVG:266"],["30mm AUTOCANNON",3,"ROF:5 DMG:6dx9(3) ACC:4 RCL:2 RNG:113/458 AMMO:15(1)"]],dmg:{}},
+ "ICR-07":{n:"ICR-07 ICARUS SKIRMISHER",f:"ICARUS-PATTERN SKIRMISH FRAME",o:"CROW REPUBLIC",hp:110,dr:[300,150],mv:"13L/26S",sm:"+6",hnd:"+3",sr:1,heat:null,vent:null,ep:5,
+   W:[["60mm MISSILE POD",2,"ROF:8 DMG:4dx12(4) ACC:6 RCL:4 RNG:75/375 AMMO:8(1)"],["VIBROBLADE (LIGHT)",1,"ROF:X DMG:64d(3) AVG:224"],["ROCKET BOOSTERS",2,"MOVE:+50%_for_1_turn"]],dmg:{ra:31,ll:12}},
+ "HVC-03":{n:"HVC-03 BASTION",f:"HEAVY CHASSIS",o:"CORE EMPIRE",hp:185,dr:[630,315],mv:"8L/16S",sm:"+7",hnd:"+1",sr:3,heat:[3,9],vent:2,ep:12,
+   W:[["90mm HEAVY RIFLE",5,"ROF:1 DMG:9dx15(3) ACC:4 RCL:4 RNG:150/500 AMMO:3(1)"],["LARGE SHIELD",5,"DR:200/120 HP:300"],["STABILITY GYROS",1,"SR:+1_firing_heavy_or_sustained_weapons"]],dmg:{la:60}},
+ "LGT-05":{n:"LGT-05 WREN",f:"LIGHT CHASSIS",o:"CORE EMPIRE",hp:130,dr:[360,180],mv:"12L/23S",sm:"+6",hnd:"+3",sr:1,heat:[6,9],vent:2,ep:5,
+   W:[["30mm AUTOCANNON",3,"ROF:5 DMG:6dx9(3) ACC:4 RCL:2 RNG:113/458 AMMO:15(1)"],["JUMP JETS (SHORT)",2,"JUMP:up_to_1/2_MOVE"]],dmg:{ut:65,ra:60,co:20}}
+};
+const CL=[["hd","HEAD",1],["ra","RIGHT ARM",.5],["rl","RIGHT LEG",.5]], CR=[["ut","UTILITY",.5],["co","CORE",1],["la","LEFT ARM",.5],["ll","LEFT LEG",.5],["cc","CREW CABIN",1]];
+const SKILLS=["PILOTING (MECHA)","SENSORS","ELECTRONIC WARFARE","ENGINEERING (MECHA)","FAST DRAW (AMMO)","BALLISTIC SKILL","ROCKET/MISSILE","MELEE SKILL","SHIELD SKILL","ELECTROMAGNETIC"];
+const USERS=[["OVERSEER","host","#ffd700","HOST // TELEMETRY",1,1],["TALON-2","pilot","#7ff","MSH-01 // SORTIE",1,0],["KESTREL","pilot","#ffb347","ICR-07 // SORTIE",1,0],["RAVEN-6","pilot","#ff7fd4","HVC-03 // FRAME SHEET",1,0],["WREN-LEAD","pilot","#b6ff5c","OFFLINE",0,0],["OBSERVER-9","view","#a99bff","WELCOME",1,0]];
+const LOG=[["ok","TELEMETRY LINK ESTABLISHED [ OK ]"],["","SYNCING ISB FLIGHT RECORDER ..."],["","COMPONENT TABLE [##########] 100% 8 records"],["ok","FLIGHT RECORDER CHECKSUM VERIFIED [ OK ]"],["ok","PILOT INTERFACE BOUND [ OK ]"],["ok","[ OK ] FRAME MANIFEST LOADED :: m.txt // MUSHA-CLASS KNIGHT FRAME"],["dm","[WARN] IMPORT AUDIT :: 1 compatibility"],["lb","DESK M2 :: one live sheet // mirrors are read-only caches"]];
+const ACC=["#7ff","#ffb347","#ff7fd4","#b6ff5c","#a99bff"];
+const PT={doll:{n:"PAPER DOLL",a:"DOLL",m:1},bus:{n:"EP / HEAT BUS",a:"BUS",m:1},impact:{n:"IMPACT RESOLUTION",a:"IMP",m:1},skills:{n:"SKILL INPUTS",a:"SKL",m:1},
+ rolls:{n:"ROLLS // SENSORS · ENG",a:"ROLL",m:1},arms:{n:"ARMAMENT",a:"ARM",m:1},frame:{n:"FRAME STATS",a:"FRM",m:1},log:{n:"OPERATOR LOG",a:"LOG"},roster:{n:"USERS",a:"USERS"}};
+const KT={doll:"PAPER DOLL",sheet:"FRAME SHEET",console:"OPERATOR CONSOLE",roster:"USERS",float:"PANELS"};
+const KINDS=["doll","sheet","console","roster","float"], MODES=["lr","col","row","tabs"], RW={full:176,compact:124,rail:40};
+const LSK="forge_m2_mock_desk2", SLK="forge_m2_mock_desk2_slots";
+
+const $=(s,r=document)=>r.querySelector(s), desk=$("#desk");
+let S=null, slots={}, sel=1, hold=false, undoS=null, undoT=0;
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v)), r3=n=>Math.round(n*1000)/1000, num=(v,d)=>Number.isFinite(+v)?+v:d;
+const AW=()=>desk.clientWidth||1, AH=()=>desk.clientHeight||1;
+const W=id=>S.wins.find(w=>w.id===id), EL=id=>desk.querySelector(`.win[data-id="${id}"]`);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const hhmm=()=>new Date().toTimeString().slice(0,5);
+function nw(o){const id="w"+(++S.seq);const w=Object.assign({id,mech:null,mode:"col",act:0,z:++S.top,pin:false,col:false,min:false,max:false},o);
+ w.P=(o.P||[]).map(t=>typeof t==="string"?{id:"p"+(++S.seq),t,home:id}:t);S.wins.push(w);return w}
+
+/* ---------- presets: one live host per panel type ---------- */
+function blank(){return {v:2,snap:true,grid:8,seq:0,top:10,focus:null,live:"MSH-01",seen:{"ICR-07":"15:42","HVC-03":"15:18"},wins:[]}}
+function preset(name){S=blank();const g=r3(132/AW()),rest=1-g;
+ if(name==="trio"){const g2=r3(46/AW()),c=(1-g2)/3;nw({k:"roster",r:"rail",x:0,y:0,w:0,h:1,P:["roster"]});
+  ["MSH-01","ICR-07","HVC-03"].forEach((m,i)=>nw({k:"doll",mech:m,acc:i,mode:"lr",x:r3(g2+c*i),y:0,w:r3(c-.004),h:.6,P:["doll","bus"]}));
+  nw({k:"float",mech:"@live",mode:"tabs",x:g2,y:.61,w:r3(c-.004),h:.39,P:["impact","skills","rolls"]});
+  nw({k:"sheet",mech:"@live",mode:"row",x:r3(g2+c),y:.61,w:r3(c-.004),h:.39,P:["frame","arms"]});
+  nw({k:"console",x:r3(g2+2*c),y:.61,w:r3(c-.004),h:.39,P:["log"]});return}
+ if(name==="table"){const g2=r3(46/AW()),r2=1-g2;nw({k:"roster",r:"rail",x:0,y:0,w:0,h:1,P:["roster"]});
+  nw({k:"doll",mech:"MSH-01",acc:0,mode:"lr",x:g2,y:0,w:r3(r2*.72-.004),h:.64,P:["doll","bus","impact"]});
+  nw({k:"float",mech:"@live",mode:"row",x:g2,y:.65,w:r3(r2*.72-.004),h:.35,P:["skills","rolls","arms"]});
+  nw({k:"console",x:r3(g2+r2*.72),y:0,w:r3(r2*.28),h:1,P:["log"]});return}
+ nw({k:"roster",r:"compact",x:0,y:0,w:0,h:1,P:["roster"]});
+ nw({k:"doll",mech:"MSH-01",acc:0,mode:"lr",x:g,y:0,w:r3(rest*.38-.004),h:.6,P:["doll","bus"]});
+ nw({k:"doll",mech:"ICR-07",acc:1,mode:"lr",x:r3(g+rest*.38),y:0,w:r3(rest*.34-.004),h:.6,P:["doll","bus"]});
+ nw({k:"float",mech:"@live",mode:"row",x:g,y:.61,w:r3(rest*.72-.004),h:.39,P:["impact","skills","rolls"]});
+ nw({k:"sheet",mech:"@live",mode:"col",x:r3(g+rest*.72),y:0,w:r3(rest*.28),h:.55,P:["frame","arms"]});
+ nw({k:"console",x:r3(g+rest*.72),y:.56,w:r3(rest*.28),h:.44,P:["log"]})}
+
+/* ---------- sanitize: run on boot and on every slot load (Ryuji 8, Misaki 5) ---------- */
+function sanitize(L){
+ if(!L||typeof L!=="object"||L.v!==2||!Array.isArray(L.wins))return {ok:false,why:L&&L.v>2?"FUTURE VERSION v"+L.v:"CORRUPT LAYOUT"};
+ const o=blank();o.snap=L.snap!==false;o.seen={};o.live=MECHS[L.live]?L.live:null;
+ if(L.seen&&typeof L.seen==="object")for(const k in L.seen)if(MECHS[k]&&typeof L.seen[k]==="string")o.seen[k]=L.seen[k].slice(0,5);
+ let drop=0,blankd=0;const one={console:0,roster:0};S=o;
+ for(const w of L.wins){
+  if(!w||typeof w!=="object"||!KINDS.includes(w.k)){drop++;continue}
+  if(one[w.k]!==undefined&&one[w.k]++){drop++;continue}
+  let mech=null;
+  if(w.k==="doll"){if(!MECHS[w.mech]){drop++;continue}mech=w.mech}
+  else if(w.mech!=null){if(w.mech==="@live"||MECHS[w.mech])mech=w.mech;else{mech="@live";blankd++}}
+  const types=[];(Array.isArray(w.P)?w.P:[]).forEach(p=>{const t=p&&p.t;if(PT[t]&&!types.includes(t))types.push(t)});
+  if(w.k==="doll"&&!types.includes("doll"))types.unshift("doll");
+  if(w.k==="console"&&!types.includes("log"))types.unshift("log");
+  if(!types.length){drop++;continue}
+  if(!mech&&types.some(t=>PT[t].m))mech="@live";
+  const h=clamp(num(w.h,.4),.05,1),y=clamp(num(w.y,0),0,1-h);
+  const n=nw({k:w.k,mech,mode:MODES.includes(w.mode)?w.mode:"col",act:clamp(num(w.act,0)|0,0,types.length-1),x:clamp(num(w.x,0),0,.98),y,w:clamp(num(w.w,.3),.05,1),h,
+   z:0,pin:!!w.pin,col:!!w.col,min:!!w.min,max:!!w.max,P:types});
+  if(w.k==="doll"){const used=S.wins.filter(x=>x!==n&&x.k==="doll").map(x=>x.acc);n.acc=Number.isInteger(w.acc)&&!used.includes(w.acc)?w.acc:[0,1,2,3,4].find(a=>!used.includes(a))||0}
+  if(w.k==="roster")n.r=RW[w.r]?w.r:"compact";
+ }
+ // z order kept relative, renormalised below 800 (pinned add 900, still < 1000)
+ S.wins.forEach((w,i)=>{w.z=10+i});S.top=10+S.wins.length;
+ if(!S.wins.some(w=>w.k==="doll")){nw({k:"doll",mech:o.live||"MSH-01",acc:0,mode:"lr",x:.1,y:0,w:.4,h:.6,P:["doll","bus"]})}
+ if(!S.wins.some(w=>w.k==="console")){nw({k:"console",x:.6,y:.55,w:.4,h:.45,P:["log"]})}
+ if(!o.live||!MECHS[o.live])o.live=S.wins.find(w=>w.k==="doll").mech;
+ const res=S;S=null;return {ok:true,L:res,drop,blankd}}
+
+function persist(){if(hold)return;try{localStorage.setItem(LSK,JSON.stringify(S))}catch(e){}}
+function toast(m,ms){const t=$("#toast");t.textContent=m;t.classList.add("on");clearTimeout(toast.h);toast.h=setTimeout(()=>t.classList.remove("on"),ms||1800)}
+
+/* ---------- binding: a window is fixed to one mech, or LINKED to the live doll ---------- */
+function mechOf(w){if(!w)return null;return w.mech==="@live"?S.live:w.mech}
+function dollFor(m){return S.wins.find(x=>x.k==="doll"&&x.mech===m)}
+function accOf(w){if(!w)return null;if(w.k==="doll")return ACC[(w.acc||0)%ACC.length];const m=mechOf(w);const d=m&&dollFor(m);return d?ACC[(d.acc||0)%ACC.length]:null}
+const bound=w=>w.P.some(p=>PT[p.t].m);
+/* single-instance rule (Ryuji 6, Misaki 1): one live host per panel type, and only for the live mech */
+function liveHost(t){for(const w of S.wins){if(mechOf(w)!==S.live)continue;const p=w.P.find(p=>p.t===t);if(p)return {w,p}}return null}
+function pstate(w,p){if(!PT[p.t].m)return "free";const m=mechOf(w);if(m===S.live){const h=liveHost(p.t);return h&&h.p.id===p.id?"live":"copy"}return S.seen[m]?"cache":"none"}
+function winTitle(w){const m=mechOf(w);return w.k==="doll"?m+" DOLL":w.k==="float"?(m?m+" ":"")+w.P.map(p=>PT[p.t].a).join("+"):KT[w.k]}
+
+/* ---------- panel content (live markup carries real-style ids, so stripping is testable) ---------- */
+function compOf(M,k,f){const mx=Math.ceil(M.hp*f),cur=Math.max(0,mx-(M.dmg[k]||0)),r=cur/mx;return{mx,cur,r,st:r>=1?["OK","ok"]:r>=.5?["DMG","dm"]:r>0?["CRIT","cr"]:["DIS","ds"]}}
+function svg(M){const C=k=>{const c=compOf(M,k,k==="hd"||k==="co"||k==="cc"?1:.5);return c.st[1]==="ok"?"var(--acc)":c.st[1]==="dm"?"var(--dmg)":"var(--crit)"};
+ const p=(k,pts)=>`<polygon points="${pts}" fill="${C(k)}" fill-opacity=".14" stroke="${C(k)}" stroke-width="1.3"/>`;
+ return `<svg viewBox="0 0 120 160" aria-hidden="true">${p("hd","50,6 70,6 73,12 70,20 50,20 47,12")}${p("co","38,24 82,24 89,40 80,72 40,72 31,40")}${p("cc","60,33 68,38 68,48 60,53 52,48 52,38")}${p("ut","44,75 76,75 78,83 42,83")}${p("ra","15,28 34,26 36,60 31,88 18,86 13,50")}${p("la","105,28 86,26 84,60 89,88 102,86 107,50")}${p("rl","40,87 58,87 56,124 55,154 39,154 38,124")}${p("ll","80,87 62,87 64,124 65,154 81,154 82,124")}<g stroke="var(--acc)" stroke-opacity=".35" fill="none"><path d="M44 30h32M44 66h32M60 24v-4"/></g></svg>`}
+function dollP(M){let tc=0,tm=0;const row=([k,n,f])=>{const c=compOf(M,k,f);tc+=c.cur;tm+=c.mx;
+  return `<div class="cmp ${c.st[1]}" data-menu="loc:${k}"><b>${n}</b> <span class="${c.st[1]}">[${c.st[0]}]</span><br><span class="v">${c.cur}/${c.mx}</span><span class="dim"> HP DR${M.dr[0]}</span><div class="bar"><i style="width:${c.r*100}%"></i></div></div>`};
+ const L=CL.map(row).join(""),R=CR.map(row).join(""),ig=Math.round(tc/tm*100),st=ig>=100?["NOMINAL","ok"]:ig>=60?["DAMAGED","dm"]:["CRITICAL","cr"];
+ return `<div class="dh"><span class="dim">${M.f} :: BASE HP ${M.hp}</span><span id="sitsum">STATUS <b class="${st[1]} glow">${st[0]}</b> INTEGRITY <b class="glow">${ig}%</b></span><span>ISB LINK <b id="sync" class="ok">[LOCAL]</b></span></div>
+ <div class="doll"><div class="dc">${L}</div><div class="fig">${svg(M)}</div><div class="dc">${R}</div></div>`}
+function busP(M){const used=M.W.reduce((a,w)=>a+w[1],0);const ep=`<div class="gauge" id="tiers"><div class="gl"><span class="lb">EP BUS</span><b class="${used>M.ep?"cr":"ok"} glow">${used}/${M.ep}</b></div><div class="bar seg" style="--s:${100/M.ep}%;color:var(--acc)"><i style="width:${Math.min(1,used/M.ep)*100}%"></i></div></div>`;
+ const h=M.heat?(()=>{const [n,c]=M.heat,z=n>=c?["REDLINE","cr"]:n>=c/2?["DANGER ZONE","dm"]:["","ok"];return `<div class="gauge"><div class="gl"><span class="lb">HEAT</span><b class="${z[1]} glow">${n}/${c} ${z[0]}</b></div><div class="bar heat" style="color:var(--${z[1]==="ok"?"ok":z[1]==="dm"?"dmg":"crit"})"><i style="width:${n/c*100}%"></i></div></div>`})():`<div class="gauge dim">HEAT —  no heat track on this frame</div>`;
+ return ep+h+`<div class="kv"><span>MOVE</span><span>${M.mv}</span><span>HND/SR</span><span>${M.hnd}/${M.sr}</span><span>SM</span><span>${M.sm}</span>${M.vent?`<span>VENT</span><span>${M.vent} <span class="dim">(Engineering roll)</span></span>`:""}</div>`}
+function impactP(){return `<div class="row"><label class="lb" for="dmgIn">DMG</label><input id="dmgIn" name="dmg" aria-label="Damage"><label class="lb" for="divIn">DIV</label><input id="divIn" name="div" value="1" style="width:34px"></div>
+ <div class="row"><label><input type="checkbox" id="rearIn"> REAR</label><label><input type="checkbox" id="gapIn"> GAP</label><button class="b" onclick="mockApply()">[APPLY]</button></div>
+ <div class="row"><button class="b" onclick="mockApply()">[REPAIR]</button><button class="b" onclick="mockApply()">[REPAIR ALL]</button><button class="b" onclick="mockApply()">[UNDO]</button></div>`}
+function skillsP(){return `<div class="row" style="justify-content:space-between"><span class="lb">SKILL MOD <input id="skMod" style="width:34px" aria-label="Skill mod"></span><button class="b" onclick="mockApply()">[HEAT]</button></div><div class="sk">${SKILLS.map((s,i)=>`<label>${s}<input id="sk${i}" name="sk${i}" data-item="sk${i}" aria-label="${s}"></label>`).join("")}</div>`}
+function rollsP(){return `<div class="row"><span class="lb" style="width:100%">SENSORS / EW</span><button class="b" onclick="mockApply()">[ROLL]</button><span class="dim">SL--</span><button class="b" onclick="mockApply()">[DETECT]</button><button class="b" onclick="mockApply()">[STEALTH]</button></div>
+ <div class="row"><span class="lb" style="width:100%">ENGINEERING (MECHA)</span><button class="b" onclick="mockApply()">[ROLL]</button><span class="dim">SL-- // vent heat</span></div>
+ <div class="row"><span class="lb" style="width:100%">PILOTING (MECHA)</span><button class="b" onclick="mockApply()">[ROLL]</button><span class="dim">SL--</span></div>`}
+function armsP(M){const used=M.W.reduce((a,w)=>a+w[1],0);return M.W.map((w,i)=>`<div class="wr" data-item="arm${i}"><span class="ep">EP ${w[1]}</span><b>${w[0]}</b><div class="dim" title="${w[2]}">${w[2]}</div></div>`).join("")+`<div class="row"><span class="lb">EP USED</span><b class="ok">${used}/${M.ep}</b><span class="dim">placeholder loadout</span></div>`}
+function frameP(M){return `<div class="lb">// ${M.n}</div><div class="dim" style="font-size:10.5px">ORIGIN: ${M.o}</div><div style="margin:3px 0;color:#dff">[EP ${M.ep}] ${M.f}</div>
+ <div class="kv"><span>ST/HP</span><span class="gd">${M.hp}</span><span>DR</span><span>${M.dr.join("/")}</span><span>MOVE</span><span>${M.mv}</span><span>SM</span><span>${M.sm}</span><span>HND/SR</span><span>${M.hnd}/${M.sr}</span>${M.heat?`<span>HEAT/VENT</span><span>${M.heat[1]} / ${M.vent}</span>`:""}</div>${M.note?`<div class="gd" style="font-size:10.5px;margin-top:3px">${M.note}</div>`:""}`}
+function logP(){return `<div class="log"><div class="ll" id="log">${LOG.map(l=>`<div class="${l[0]}">${l[1]}</div>`).join("")}</div><div class="pr">CE//FORGE&gt; <input id="CI" aria-label="Console input" placeholder="_"></div></div>`}
+function rosterP(w){return `<div class="ros r-${w.r||"compact"}" id="mpfriends">${USERS.map(u=>`<div class="u${u[4]?"":" off"}${u[5]?" me":""}${u[1]==="host"?" host":""}" title="${u[0]} // ${u[1].toUpperCase()} // ${u[3]}"><i style="background:${u[2]}">${u[0].slice(0,2)}</i><span class="un">${u[0]}</span><span class="ur">${u[1]==="host"?"★":u[1]==="pilot"?"▲":"○"}</span><span class="pl">${u[3]}</span></div>`).join("")}</div>`}
+function content(t,m,w){const M=MECHS[m];if(PT[t].m&&!M)return `<div class="nyv">NO MECH</div>`;
+ return t==="doll"?dollP(M):t==="bus"?busP(M):t==="impact"?impactP():t==="skills"?skillsP():t==="rolls"?rollsP():t==="arms"?armsP(M):t==="frame"?frameP(M):t==="log"?logP():rosterP(w)}
+window.mockApply=()=>toast("LIVE INPUT // acts on the live sheet ("+S.live+")");
+/* mirror cache hygiene (Ryuji 3, Misaki 2): strip id, for, name, on-handlers, data-menu and data-item; disable controls; mount inert */
+function strip(html){const t=document.createElement("template");t.innerHTML=html;
+ t.content.querySelectorAll("*").forEach(e=>{[...e.attributes].forEach(a=>{const n=a.name;if(n==="id"||n==="for"||n==="name"||n==="data-menu"||n==="data-item"||n.startsWith("on"))e.removeAttribute(n)});
+  if(/^(BUTTON|INPUT|SELECT|TEXTAREA)$/.test(e.tagName)){e.setAttribute("disabled","");e.setAttribute("tabindex","-1")}});return t.innerHTML}
+function panelBody(w,p){const m=mechOf(w),st=pstate(w,p);
+ if(st==="live"||st==="free")return content(p.t,m,w);
+ if(st==="none")return `<div class="nyv">◇ ${m} // NOT YET VIEWED<br>MAKE LIVE TO LOAD</div>`;
+ const h=liveHost(p.t);
+ const bar=st==="copy"?`<div class="mirbar">◇ COPY · LIVE IN ${esc(winTitle(h.w))}<span class="sp"></span><button class="c" data-a="goto" data-w="${h.w.id}">GO</button></div>`
+  :`<div class="mirbar">◇ MIRROR · ${S.seen[m]} · MAKE LIVE TO EDIT<span class="sp"></span><button class="c" data-a="live" data-m="${m}" title="Make ${m} the live sheet (shGo)">◆ MAKE LIVE</button></div>`;
+ return bar+`<div class="mirc" inert>${strip(content(p.t,m,w))}</div>`}
+
+/* ---------- window rendering ---------- */
+const cb=(a,t,l,on,x)=>`<button class="c${on?" on":""}${x?" "+x:""}" data-a="${a}" title="${t}" aria-label="${t}">${l}</button>`;
+function titleHTML(w,m){let lead="",sel="",tt;const live=m===S.live;
+ if(w.k==="doll"){lead=`<span class="dot"></span>`;
+  sel=`<select data-a="mech" ${live?'disabled title="This is the live doll: make another doll live first"':'title="Mech shown in this doll window"'} aria-label="Mech">${Object.keys(MECHS).map(k=>`<option value="${k}"${k===w.mech?" selected":""}>${k}</option>`).join("")}</select>`;
+  lead+=live?`<span class="tag live" title="Live sheet (S.cur). Inputs act here.">◆ LIVE</span>`:"";
+  tt=`${MECHS[m].n.replace(m+" ","")} // PAPER DOLL`;
+ } else if(bound(w)){sel=`<select data-a="mech" title="LINKED follows the live doll, or lock this window to one mech" aria-label="Mech binding"><option value="@live"${w.mech==="@live"?" selected":""}>⛓ LINKED</option>${Object.keys(MECHS).map(k=>`<option value="${k}"${k===w.mech?" selected":""}>${k}</option>`).join("")}</select>`;
+  tt=w.k==="float"?w.P.map(p=>PT[p.t].n.split(" //")[0]).join(" + "):KT[w.k];
+ } else tt=KT[w.k];
+ const b=[];
+ if(w.k==="doll"&&!live)b.push(cb("live",`Make ${m} the live sheet (calls shGo). Focus and clicks never do this.`,"◆ MAKE LIVE",0,"mk"));
+ if(w.k==="roster")b.push(cb("rail","Width: compact / icon rail / full","◧"));
+ if(w.k==="float")b.push(cb("home","Re-dock these panels to their home window","⇲"));
+ if(w.k!=="roster")b.push(cb("pin",w.pin?"Unpin":"Pin: lock position and size, keep above unpinned windows","⌖",w.pin));
+ if(w.k!=="roster")b.push(cb("col",w.col?"Expand":"Collapse to title strip",w.col?"+":"–"));
+ b.push(cb("min","Minimize to the taskbar shelf","_"));
+ if(w.k!=="console"&&w.k!=="roster")b.push(cb("close","Close window","✕"));
+ return `<div class="wt">${lead}${sel}<span class="tt" title="${esc(tt)}">${esc(tt)}</span>${b.join("")}</div>`}
+function pan(p,w,hdr){return `<div class="pn" data-p="${p.id}" data-s="${pstate(w,p)}">${hdr?`<div class="ph" data-tear="${p.id}" title="Drag out of the window, or press ⇱, to tear off"><span>${PT[p.t].n}</span><span class="sp"></span><button class="c" data-a="tear" data-p="${p.id}" title="Tear off into its own window" aria-label="Tear off ${PT[p.t].n}">⇱</button></div>`:""}<div class="pb">${panelBody(w,p)}</div></div>`}
+function bodyHTML(w){if(w.col)return `<div class="wb"></div>`;const ps=w.P;
+ if(!ps.length)return `<div class="wb empty">EMPTY HOST<br>drop a window on this title strip to dock it here</div>`;
+ if(ps.length===1)return `<div class="wb">${pan(ps[0],w,false)}</div>`;
+ if(w.mode==="tabs"){const a=clamp(w.act||0,0,ps.length-1);return `<div class="wb m-tabs"><div class="tabsr" role="tablist">${ps.map((p,i)=>`<button class="tab${i===a?" on":""}" role="tab" aria-selected="${i===a}" data-a="tab" data-i="${i}">${PT[p.t].n.split(" //")[0]}</button>`).join("")}<span style="flex:1"></span><button class="c" data-a="tear" data-p="${ps[a].id}" title="Tear off this tab">⇱</button></div>${pan(ps[a],w,false)}</div>`}
+ if(w.mode==="lr")return `<div class="wb m-lr">${pan(ps[0],w,true)}<div class="lc">${ps.slice(1).map(p=>pan(p,w,true)).join("")}</div></div>`;
+ return `<div class="wb m-${w.mode}">${ps.map(p=>pan(p,w,true)).join("")}</div>`}
+/* clamp: windows always fit and their bottoms stay on screen (Misaki should-fix) */
+function place(e,w){const A=AW(),H=AH();let ww=w.k==="roster"?RW[w.r||"compact"]:Math.max(160,Math.round(w.w*A));ww=Math.min(ww,A);
+ const hh=clamp(Math.round(w.h*H),60,H);e.style.width=ww+"px";e.style.height=w.col?"":hh+"px";
+ e.style.left=clamp(Math.round(w.x*A),0,Math.max(0,A-ww))+"px";e.style.top=clamp(Math.round(w.y*H),0,Math.max(0,H-(w.col?24:hh)))+"px";
+ e.style.zIndex=(w.pin?900:0)+w.z}
+/* sheet tab strip = #bar (sheetTabs(): mech switcher, owners, Assign, right-click menu). Moved whole to the top of the live doll window. */
+const OWN={"MSH-01":"TALON-2","ICR-07":"KESTREL","HVC-03":"RAVEN-6","LGT-05":"WREN-LEAD"};
+function barHost(){return dollFor(S.live)||S.wins.find(x=>x.k==="doll")}
+function tabStrip(){return `<div id="bar" class="stabs" role="tablist" aria-label="Sheet tabs">${Object.keys(MECHS).map(k=>`<button class="stab${k===S.live?" on":""}" data-a="stab" data-m="${k}" role="tab" aria-selected="${k===S.live}" title="${k===S.live?"Live sheet":"Switch the live sheet to "+k+" (shGo, explicit)"}">${k} <span class="ow">· ${OWN[k]}</span></button>`).join("")}<button class="stab" data-a="stab" title="[+ LOAD SHEET] (inert in the mockup)">[+ LOAD SHEET]</button></div>`}
+function renderWin(w){let e=EL(w.id);if(!e){e=document.createElement("section");e.dataset.id=w.id;e.setAttribute("role","region");desk.appendChild(e);bind(e)}
+ const m=mechOf(w),acc=accOf(w);
+ // keep focus + caret across a re-render/harvest (Misaki should-fix)
+ const ae=document.activeElement,keep=ae&&e.contains(ae)&&ae.id?{id:ae.id,v:ae.value,s:ae.selectionStart,en:ae.selectionEnd}:null;
+ e.className="win"+(acc?" acc":"")+(w.id===S.focus?" focus":"")+(w.col?" col":"")+(w.min?" min":"")+(w.max?" max":"")+(w.pin?" pin":"")+(w.k==="roster"&&w.r==="rail"?" rail":"")+(w.k==="doll"&&m===S.live?" live":"");
+ e.style.setProperty("--acc",acc||"var(--line)");e.dataset.k=w.k;e.dataset.m=m||"";e.setAttribute("aria-label",winTitle(w));
+ e.innerHTML=titleHTML(w,m)+(w===barHost()&&!w.col?tabStrip():"")+bodyHTML(w);place(e,w);
+ if(keep){const n=document.getElementById(keep.id);if(n&&e.contains(n)){n.value=keep.v;n.focus();try{n.setSelectionRange(keep.s,keep.en)}catch(x){}}}}
+function render(){desk.querySelectorAll(".win").forEach(e=>{if(!W(e.dataset.id))e.remove()});S.wins.forEach(renderWin);paintBar();persist()}
+
+/* ---------- focus never promotes (Ryuji 4, Misaki 3) ---------- */
+function focusWin(id){const w=W(id);if(!w)return;S.focus=id;
+ if(w.z!==S.top){w.z=++S.top;if(S.top>790){S.top=10;S.wins.slice().sort((a,b)=>a.z-b.z).forEach(x=>x.z=++S.top)}}
+ desk.querySelectorAll(".win").forEach(e=>{e.classList.toggle("focus",e.dataset.id===id);const x=W(e.dataset.id);if(x)e.style.zIndex=(x.pin?900:0)+x.z});paintBar();persist()}
+function makeLive(m){if(!MECHS[m]||m===S.live)return;S.seen[S.live]=hhmm();S.live=m;render();toast("◆ LIVE SHEET → "+m+"  (shGo; mirrors keep their last cache)")}
+function closeWin(id){S.wins=S.wins.filter(x=>x.id!==id);if(!S.wins.some(w=>w.k==="doll"))nw({k:"doll",mech:S.live,acc:0,mode:"lr",x:.1,y:0,w:.4,h:.6,P:["doll","bus"]});if(S.focus===id)S.focus=null;render()}
+function act(id,a,el){const w=W(id);if(!w)return;
+ if(a==="live")return makeLive(el.dataset.m||mechOf(w));
+ if(a==="stab"){if(el.dataset.m)makeLive(el.dataset.m);return}
+ if(a==="goto"){const t=W(el.dataset.w);if(t){t.min=false;renderWin(t);focusWin(t.id)}return}
+ if(a==="pin"){w.pin=!w.pin;toast(w.pin?"PINNED // position locked":"UNPINNED")}
+ else if(a==="col")w.col=!w.col;
+ else if(a==="min"){w.min=true;if(S.focus===id)S.focus=null}
+ else if(a==="close")return closeWin(id);
+ else if(a==="rail"){w.r={compact:"rail",rail:"full",full:"compact"}[w.r||"compact"];toast("USERS // "+w.r.toUpperCase())}
+ else if(a==="tab")w.act=+el.dataset.i;
+ else if(a==="tear")return tear(id,el.dataset.p);
+ else if(a==="home")return dockHome(id);
+ renderWin(w);paintBar();persist()}
+function restore(id){const w=W(id);w.min=false;w.col=false;renderWin(w);focusWin(id)}
+
+/* ---------- tear-off / dock (bindings: a torn panel keeps its window's binding) ---------- */
+function tear(id,pid,at){const w=W(id);const i=w.P.findIndex(p=>p.id===pid);if(i<0)return;const [p]=w.P.splice(i,1);w.act=0;
+ const e=EL(id),A=AW(),H=AH();const x=at?at.x:e.offsetLeft+28,y=at?at.y:e.offsetTop+36;
+ const f=nw({k:"float",mech:PT[p.t].m?(w.mech||"@live"):null,mode:"col",x:r3(clamp(x,0,A-220)/A),y:r3(clamp(y,0,H-120)/H),w:r3(Math.max(240,Math.min(360,e.offsetWidth*.6))/A),h:r3(Math.min(.42,Math.max(.22,(e.offsetHeight*.55)/H))),P:[p]});
+ if(!p.home)p.home=id;if(!w.P.length&&w.k==="float")S.wins=S.wins.filter(x=>x!==w);if(w.k==="doll"&&!w.P.some(q=>q.t==="doll"))w.P.unshift({id:"p"+(++S.seq),t:"doll",home:id});
+ render();focusWin(f.id);toast("TORN OFF // "+PT[p.t].n)}
+function dockInto(src,dst){const s=W(src),d=W(dst);if(!s||!d||s===d)return;
+ s.P.forEach(p=>{if(!d.P.some(q=>q.t===p.t)){p.home=dst;d.P.push(p)}});if(!d.mech&&bound(d))d.mech="@live";
+ S.wins=S.wins.filter(x=>x!==s);d.min=false;d.col=false;if(S.focus===src)S.focus=dst;render();focusWin(dst);toast("DOCKED → "+winTitle(d))}
+function dockHome(id){const w=W(id);let moved=0;w.P.slice().forEach(p=>{const h=W(p.home);if(h&&h!==w&&!h.P.some(q=>q.t===p.t)){h.P.push(p);w.P.splice(w.P.indexOf(p),1);moved++;h.min=false}});
+ if(!moved){toast("NO HOME HOST // drag the title onto a window's title strip");return}
+ if(!w.P.length)S.wins=S.wins.filter(x=>x!==w);render();toast("RE-DOCKED // "+moved+" panel"+(moved>1?"s":""))}
+
+/* ---------- drag, simple snap, resize ---------- */
+function snapTo(e,L,T){const A=AW(),H=AH(),ww=e.offsetWidth,hh=e.offsetHeight,G=S.grid,D=10;
+ if(S.snap){L=Math.round(L/G)*G;T=Math.round(T/G)*G;
+  desk.querySelectorAll(".win:not(.min)").forEach(o=>{if(o===e)return;const l=o.offsetLeft,t=o.offsetTop,r=l+o.offsetWidth,b=t+o.offsetHeight;
+   if(T<b+D&&T+hh>t-D){if(Math.abs(L-(r+4))<D)L=r+4;if(Math.abs(L+ww-(l-4))<D)L=l-4-ww;if(Math.abs(L-l)<D)L=l}
+   if(L<r+D&&L+ww>l-D){if(Math.abs(T-(b+4))<D)T=b+4;if(Math.abs(T+hh-(t-4))<D)T=t-4-hh;if(Math.abs(T-t)<D)T=t}})}
+ if(L<12)L=0;if(L+ww>A-12)L=A-ww;if(T<12)T=0;return [clamp(L,0,Math.max(0,A-ww)),clamp(T,0,Math.max(0,H-hh))]}
+function commit(id){const w=W(id),e=EL(id);if(!w||!e||w.max)return;const A=AW(),H=AH();w.x=r3(e.offsetLeft/A);w.y=r3(e.offsetTop/H);
+ if(w.k!=="roster")w.w=r3(e.offsetWidth/A);if(!w.col)w.h=r3(Math.min(1,e.offsetHeight/H));persist()}
+function dragStart(ev,id,t){const w=W(id),e=EL(id);if(ev.button!==0||w.pin||w.max)return;ev.preventDefault();
+ const x0=ev.clientX,y0=ev.clientY,l0=e.offsetLeft,t0=e.offsetTop;let tgt=null,moved=false;t.setPointerCapture(ev.pointerId);
+ const nodock=k=>k==="roster"||k==="console";
+ const mv=v=>{const dx=v.clientX-x0,dy=v.clientY-y0;if(!moved&&Math.abs(dx)+Math.abs(dy)<3)return;if(!moved){moved=true;desk.classList.add("dragging");e.classList.add("drag")}
+  e.style.left=l0+dx+"px";e.style.top=t0+dy+"px";
+  const hit=document.elementsFromPoint(v.clientX,v.clientY).map(n=>n.closest&&n.closest(".wt")).find(n=>n&&n.parentNode!==e);let nt=hit?hit.parentNode:null;
+  if(nt&&(nodock(w.k)||nodock(nt.dataset.k)))nt=null;if(nt!==tgt){if(tgt)tgt.classList.remove("dockhint");tgt=nt;if(tgt)tgt.classList.add("dockhint")}};
+ const up=()=>{t.removeEventListener("pointermove",mv);t.removeEventListener("pointerup",up);t.removeEventListener("pointercancel",up);desk.classList.remove("dragging");e.classList.remove("drag");
+  if(!moved)return;if(tgt){tgt.classList.remove("dockhint");return dockInto(id,tgt.dataset.id)}
+  const [L,T]=snapTo(e,e.offsetLeft,e.offsetTop);e.style.left=L+"px";e.style.top=T+"px";commit(id)};
+ t.addEventListener("pointermove",mv);t.addEventListener("pointerup",up);t.addEventListener("pointercancel",up)}
+function tearDrag(ev,id,pid){if(ev.button!==0||ev.target.closest("button"))return;const e=EL(id),t=ev.target.closest(".ph");t.setPointerCapture(ev.pointerId);
+ const mv=v=>{const r=e.getBoundingClientRect();e.classList.toggle("tearing",v.clientX<r.left||v.clientX>r.right||v.clientY<r.top||v.clientY>r.bottom)};
+ const up=v=>{t.removeEventListener("pointermove",mv);t.removeEventListener("pointerup",up);const out=e.classList.contains("tearing");e.classList.remove("tearing");
+  if(out){const d=desk.getBoundingClientRect();tear(id,pid,{x:v.clientX-d.left-20,y:v.clientY-d.top-10})}};
+ t.addEventListener("pointermove",mv);t.addEventListener("pointerup",up)}
+function bind(e){const id=e.dataset.id;
+ e.addEventListener("pointerdown",ev=>{if(S.focus!==id)focusWin(id);const wt=ev.target.closest(".wt");
+  if(wt&&!ev.target.closest("button,select"))dragStart(ev,id,wt);
+  const ph=ev.target.closest(".ph");if(ph)tearDrag(ev,id,ph.dataset.tear)},true);
+ e.addEventListener("click",ev=>{const b=ev.target.closest("[data-a]");if(!b||b.tagName==="SELECT")return;ev.stopPropagation();act(id,b.dataset.a,b)});
+ e.addEventListener("change",ev=>{if(ev.target.dataset.a!=="mech")return;const w=W(id);const v=ev.target.value;
+  if(w.k==="doll"&&w.mech===S.live)return;w.mech=v;render();toast("BOUND → "+(v==="@live"?"LINKED (live doll)":v))});
+ e.addEventListener("dblclick",ev=>{if(ev.target.closest(".wt")&&!ev.target.closest("button,select")){const w=W(id);if(w.pin)return;w.max=!w.max;w.col=false;renderWin(w);persist()}});
+ e.addEventListener("pointerup",()=>{const w=W(id);if(!w||w.col||w.max||w.pin)return;const A=AW(),H=AH();
+  if((Math.abs(w.w*A-e.offsetWidth)>2&&w.k!=="roster")||Math.abs(w.h*H-e.offsetHeight)>2){if(S.snap){e.style.width=Math.round(e.offsetWidth/S.grid)*S.grid+"px";e.style.height=Math.round(e.offsetHeight/S.grid)*S.grid+"px"}commit(id)}})}
+
+/* ---------- taskbar: chips show state + mech + type (◆MSH·DOLL, ◇ICR·DOLL) ---------- */
+function chipT(w){const m=mechOf(w),s=m?(m===S.live?"◆":"◇"):"",ms=m?m.slice(0,3)+"·":"";
+ return s+ms+(w.k==="doll"?"DOLL":w.k==="float"?w.P.map(p=>PT[p.t].a).join("+"):w.k==="sheet"?"SHEET":w.k==="console"?"CONSOLE":"USERS")}
+function paintBar(){$("#chips").innerHTML=S.wins.map(w=>{const a=accOf(w),g=w.min?"_":w.pin?"⌖":w.col?"–":"●";
+ return `<button class="chip${w.min?" min":""}${w.id===S.focus?" focus":""}" data-id="${w.id}" style="${a?"--acc:"+a:""}" title="${esc(winTitle(w))} — click: ${w.min?"restore":w.id===S.focus?"minimize":"focus"}"><span class="g">${g}</span><span class="n">${esc(chipT(w))}</span></button>`}).join("");
+ $("#slots").innerHTML=[1,2,3,4,5].map(n=>{const s=slots[n];return `<button class="slot${s?" full":""}${n===sel?" sel":""}" data-n="${n}" aria-pressed="${n===sel}" title="${s&&s.saved?`SLOT ${n} // ${esc(s.name||"")} // ${String(s.saved).slice(0,16).replace("T"," ")} — double-click to load`:`SLOT ${n} // empty`}">${n}</button>`}).join("");
+ $("#snapBtn").setAttribute("aria-pressed",S.snap?"true":"false")}
+$("#chips").addEventListener("click",ev=>{const b=ev.target.closest(".chip");if(!b)return;const w=W(b.dataset.id);
+ if(w.min)restore(w.id);else if(w.id===S.focus){w.min=true;S.focus=null;renderWin(w);paintBar();persist()}else{if(w.col){w.col=false;renderWin(w)}focusWin(w.id)}});
+$("#slots").addEventListener("click",ev=>{const b=ev.target.closest(".slot");if(!b)return;sel=+b.dataset.n;paintBar()});
+$("#slots").addEventListener("dblclick",ev=>{const b=ev.target.closest(".slot");if(b)loadSlot(+b.dataset.n)});
+function saveSlots(){try{localStorage.setItem(SLK,JSON.stringify(slots))}catch(e){}}
+function saveSlot(n,quiet){const L=JSON.parse(JSON.stringify(S));slots[n]={v:2,name:`${L.wins.filter(w=>w.k==="doll").length} DOLL · ${L.wins.length} WIN`,saved:new Date().toISOString(),area:{w:AW(),h:AH()},layout:L};saveSlots();sel=n;paintBar();
+ const b=$(`.slot[data-n="${n}"]`);if(b)b.classList.add("flash");if(!quiet)toast("LAYOUT SAVED // SLOT "+n)}
+function loadSlot(n){const s=slots[n];if(!s||!s.layout){toast("SLOT "+n+" EMPTY");return}
+ const r=sanitize(s.layout);if(!r.ok){toast("SLOT "+n+" REJECTED // "+r.why+" // layout unchanged");return}
+ S=r.L;sel=n;hold=false;desk.querySelectorAll(".win").forEach(e=>e.remove());render();
+ toast("LAYOUT LOADED // SLOT "+n+(r.drop?` // ${r.drop} window(s) dropped`:"")+(r.blankd?` // ${r.blankd} relinked (mech missing)`:""),2600)}
+$("#saveBtn").onclick=()=>saveSlot(sel);$("#loadBtn").onclick=()=>loadSlot(sel);
+$("#defBtn").onclick=()=>{const b=$("#defBtn");
+ if(undoS&&Date.now()<undoT){S=undoS;undoS=null;b.textContent="DEF";b.classList.remove("undo");desk.querySelectorAll(".win").forEach(e=>e.remove());render();toast("UNDO // previous layout back");return}
+ undoS=JSON.parse(JSON.stringify(S));undoT=Date.now()+8000;hold=false;preset("def");desk.querySelectorAll(".win").forEach(e=>e.remove());render();
+ b.textContent="UNDO";b.classList.add("undo");toast("DEFAULT LAYOUT // press UNDO within 8 s to go back",2600);
+ setTimeout(()=>{if(Date.now()>=undoT){b.textContent="DEF";b.classList.remove("undo");undoS=null}},8100)};
+$("#snapBtn").onclick=()=>{S.snap=!S.snap;paintBar();persist();toast(S.snap?"SNAP ON // 8px grid + edges":"SNAP OFF")};
+$("#classicBtn").onclick=()=>toast("CLASSIC (real build): hostOut() returns #bar #con #sh #cb, every panel is emptied, then R()",2600);
+document.querySelectorAll("#tb [data-t]").forEach(b=>b.onclick=()=>launch(b.dataset.t));
+function launch(k){const A=AW();
+ if(k==="doll"){const used=S.wins.filter(w=>w.k==="doll"),free=Object.keys(MECHS).find(m=>!used.some(w=>w.mech===m));
+  if(!free){toast("EVERY MECH ALREADY HAS A DOLL WINDOW");return}
+  let acc=0;while(used.some(w=>w.acc===acc))acc++;const n=used.length;
+  const w=nw({k:"doll",mech:free,acc,mode:"lr",x:r3(.12+.03*n),y:r3(.04+.04*n),w:r3(Math.max(480,A*.32)/A),h:.58,P:["doll","bus"]});render();focusWin(w.id);toast("DOLL WINDOW // "+free+(S.seen[free]?" (mirror)":" (not yet viewed)"));return}
+ const ex=S.wins.find(w=>w.k===k);if(ex){restore(ex.id);return}
+ const D={sheet:{mech:"@live",P:["frame","arms"],x:.6,y:.05,w:.25,h:.5},console:{P:["log"],x:.6,y:.5,w:.3,h:.45},roster:{r:"compact",P:["roster"],x:0,y:0,w:0,h:.6}}[k];
+ const w=nw(Object.assign({k},D));render();focusWin(w.id)}
+$("#panBtn").onclick=ev=>{const p=$("#pop");if(p.classList.toggle("on")){
+ p.innerHTML=`<div class="hdr">OPEN AS WINDOW // ⛓ LINKED (${S.live})</div>`+Object.keys(PT).filter(t=>PT[t].m).map(t=>{const h=liveHost(t);return `<button class="b" data-pt="${t}">${PT[t].n}${h?`  ·  live in ${esc(chipT(h.w))}`:""}</button>`}).join("");
+ const r=ev.currentTarget.getBoundingClientRect();p.style.left=r.left+"px"}};
+$("#pop").addEventListener("click",ev=>{const b=ev.target.closest("[data-pt]");if(!b)return;$("#pop").classList.remove("on");const t=b.dataset.pt,h=liveHost(t);
+ if(h){h.w.min=false;renderWin(h.w);focusWin(h.w.id);toast(PT[t].n+" is already live in "+chipT(h.w)+" // one live host per panel");return}
+ const f=nw({k:"float",mech:"@live",mode:"col",x:.35,y:.2,w:r3(300/AW()),h:.34,P:[t]});render();focusWin(f.id);toast("PANEL WINDOW // "+PT[t].n)});
+document.addEventListener("pointerdown",ev=>{if(!ev.target.closest("#pop,#panBtn"))$("#pop").classList.remove("on")});
+/* hotkeys avoid browser Alt+1..9 / F6: Ctrl+Alt+1..5 load, Ctrl+Alt+Shift+1..5 save, Ctrl+Alt+N new doll */
+document.addEventListener("keydown",ev=>{if(!(ev.ctrlKey&&ev.altKey))return;const dg=/^Digit([1-5])$/.exec(ev.code);
+ if(dg){ev.preventDefault();ev.shiftKey?saveSlot(+dg[1]):loadSlot(+dg[1]);return}
+ if(ev.code==="KeyN"){ev.preventDefault();launch("doll")}});
+window.addEventListener("resize",()=>S.wins.forEach(w=>{const e=EL(w.id);if(e)place(e,w)}));
+setInterval(()=>{$("#clock").textContent=hhmm()},1000);
+
+/* ---------- boot ---------- */
+(function boot(){const q=new URLSearchParams(location.search);
+ try{slots=JSON.parse(localStorage.getItem(SLK)||"{}")||{};if(typeof slots!=="object")slots={}}catch(e){slots={}}
+ let msg="";
+ if(q.get("preset"))preset(q.get("preset"));
+ else{let raw=null;try{raw=localStorage.getItem(LSK)}catch(e){}
+  if(raw==null)preset("def");
+  else{let st=null;try{st=JSON.parse(raw)}catch(e){}const r=sanitize(st);
+   if(r.ok)S=r.L;else{preset("def");hold=true;msg="STORED LAYOUT "+r.why+" // DEF loaded, store left untouched"}}}
+ if(q.get("demo")==="slots"&&!Object.keys(slots).length){saveSlot(1,true);sel=1}
+ render();$("#clock").textContent=hhmm();if(msg)toast(msg,3500)})();
+
+</script>
+</body>
+</html>
