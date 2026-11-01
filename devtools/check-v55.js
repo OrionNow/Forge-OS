@@ -1,8 +1,8 @@
-// FORGE-OS 5.4 browser checks (solo sheet, 1280px). Usage: node check-v54.js [url] [shotdir]
+// FORGE-OS 5.5 browser checks (solo sheet, 1280px). Usage: node check-v55.js [url] [shotdir]
 const { chromium } = require('/workspace/pw/node_modules/playwright-core');
 const fs = require('fs');
 const url = process.argv[2] || 'http://localhost:8080/terminal.html';
-const shots = process.argv[3] || '/workspace/forge-os/out-v5.4/shots';
+const shots = process.argv[3] || '/workspace/forge-os/out-v5.5/shots';
 const fixture = fs.readFileSync('/workspace/forge-os/tests/musha-brittle.manifest.txt', 'utf8');
 let fails = 0; const ok = (c, m) => { console.log((c ? 'PASS ' : 'FAIL ') + m); if (!c) fails++; };
 const wait = ms => new Promise(r => setTimeout(r, ms));
@@ -13,7 +13,7 @@ const wait = ms => new Promise(r => setTimeout(r, ms));
   const errs = []; p.on('pageerror', e => errs.push('pageerror: ' + e.message)); p.on('console', m => { if (m.type() === 'error') errs.push('console: ' + m.text()); });
   await p.goto(url); await p.waitForTimeout(2500);
   ok(errs.length === 0, 'boot: no console errors ' + JSON.stringify(errs));
-  ok(await p.evaluate(() => APP_VERSION) === '5.4.0', 'APP_VERSION 5.4.0');
+  ok(await p.evaluate(() => APP_VERSION) === '5.5.0', 'APP_VERSION 5.5.0');
   // setup: MUSHA + blade (RH), shield (LH), 30mm ROF 5 (L shoulder), 90mm ROF 1 (R shoulder)
   await p.evaluate(async (fx) => {
     login(4);
@@ -44,7 +44,7 @@ const wait = ms => new Promise(r => setTimeout(r, ms));
   ok(rv.full && ![rv.ok, rv.dmg, rv.crit].includes(rv.full) && rv.satFull < rv.satTheme, 'full-health paper doll: theme color, desaturated, distinct from ok/dmg/crit ' + JSON.stringify([rv.full, rv.theme, rv.ok]));
   ok(!rv.rad && !rv.radBtn, 'RAD tracker UI removed');
   ok(await p.evaluate(() => { S.pilot.rad = '40'; R(); return cleanPilot(S.pilot).rad === '40' && !document.querySelector('.radbox'); }), 'stored rads stay harmless (kept in data, not shown)');
-  await p.screenshot({ path: shots + '/v54-top-1280.png', clip: { x: 0, y: 0, width: 1280, height: 330 } });
+  await p.screenshot({ path: shots + '/v55-top-1280.png', clip: { x: 0, y: 0, width: 1280, height: 330 } });
   // ---- ITEMS: no dropdown; left-click a weapon binds the targeter; right-click = Info + station ----
   ok(await p.locator('select.mountsel').count() === 0, 'hand/station dropdown removed');
   const idx = await p.evaluate(() => { const W = weapons(), SH = shields(); const f = x => S.items.indexOf(x); return { mel: f(W.find(w => /MELEE/.test(wLab(w)))), sh: f(SH[0]), r5: f(W.find(w => wRof(w) === 5)), r1: f(W.find(w => hasRng(w) && wRof(w) === 1)) }; });
@@ -52,7 +52,7 @@ const wait = ms => new Promise(r => setTimeout(r, ms));
   ok(await p.evaluate(() => S.info == null && S.view === 'sortie'), 'left-click on a non-weapon item no longer opens its catalogue entry');
   ok(await p.evaluate(() => !document.querySelector('.tgdrop') && ![...document.querySelectorAll('.shh')].some(e => /TARGETER/.test(e.textContent))), 'no TARGETER section; no panel until a weapon is selected');
   await p.locator(`[data-item="${idx.r5}"] .nm`).click(); await wait(300);
-  const b5 = await p.evaluate((i) => ({ k: awK(), want: weapons().indexOf(S.items[i]), head: (document.querySelector('.tgdrop .tgdt') || {}).textContent, under: (() => { const r = document.querySelector('[data-item="' + i + '"]'); return !!r && r.nextElementSibling && r.nextElementSibling.classList.contains('tgdrop'); })(), hx: !!document.querySelector('.tgdrop .hxchk'), aw: document.querySelector('[data-item="' + i + '"]').classList.contains('aw'), cur: document.querySelector('[data-item="' + i + '"]').getAttribute('aria-current'), max: document.querySelector('.tgv input[max]:not([min="0"])') && [...document.querySelectorAll('.tgv input')].find(x => x.title && /Rate of fire/.test(x.title)).max, aoa: !!document.querySelector('.aoabtn') }), idx.r5);
+  const b5 = await p.evaluate((i) => ({ k: awK(), want: weapons().indexOf(S.items[i]), head: (document.querySelector('.tgdrop .tgdt') || {}).textContent, under: (() => { const r = document.querySelector('[data-item="' + i + '"]'); return !!r && r.nextElementSibling && r.nextElementSibling.classList.contains('tgdrop'); })(), hx: !!document.querySelector('.tgdrop .hxbtn'), aw: document.querySelector('[data-item="' + i + '"]').classList.contains('aw'), cur: document.querySelector('[data-item="' + i + '"]').getAttribute('aria-current'), max: document.querySelector('.tgv input[max]:not([min="0"])') && [...document.querySelectorAll('.tgv input')].find(x => x.title && /Rate of fire/.test(x.title)).max, aoa: !!document.querySelector('.aoabtn') }), idx.r5);
   ok(b5.k === b5.want && /TARGETER \/\/ 30mm/i.test(b5.head) && b5.under && b5.hx && b5.aw && b5.cur === 'true' && b5.aoa, 'left-click a weapon opens its targeter as a dropdown right under the row (RoF, mods, Heat, AoA) ' + JSON.stringify(b5));
   ok(b5.max === '5', 'RoF input max = weapon ROF 5: ' + b5.max);
   // right-click menu on an item
@@ -60,7 +60,7 @@ const wait = ms => new Promise(r => setTimeout(r, ms));
   const im = await p.locator('#tabmenu button').allTextContents();
   ok(im.includes('Info') && im.some(t => /Station: L\.HAND/.test(t)) && im.some(t => /Station: none/.test(t)), 'item menu: Info + stations ' + JSON.stringify(im));
   ok(await p.locator('#tabmenu button[aria-checked=true]').count() === 1 && /L\.HAND/.test(await p.locator('#tabmenu button[aria-checked=true]').textContent()), 'current station is checked');
-  await p.screenshot({ path: shots + '/v54-item-menu.png', clip: { x: 640, y: 120, width: 640, height: 600 } });
+  await p.screenshot({ path: shots + '/v55-item-menu.png', clip: { x: 640, y: 120, width: 640, height: 600 } });
   await p.locator('#tabmenu button', { hasText: 'Station: none' }).click(); await wait(300);
   ok(await p.evaluate((i) => !S.items[i].mount, idx.sh), 'menu changes the station (shield stowed)');
   // keyboard: Shift+F10 on the focused row, Escape returns focus, Info opens the dossier
@@ -98,7 +98,7 @@ const wait = ms => new Promise(r => setTimeout(r, ms));
   await p.locator('.aoabtn').click({ button: 'right' }); await wait(200);
   const mm = await p.locator('#tabmenu button').allTextContents();
   ok(mm.length === 6 && mm.some(t => /STRONG/.test(t)) && mm.some(t => /FEINT/.test(t)) && !mm.some(t => /SUPPRESSION/.test(t)), 'melee AoA menu: Off + Determined/Double/Feint/Strong/Long ' + JSON.stringify(mm));
-  await p.screenshot({ path: shots + '/v54-aoa-menu.png', clip: { x: 640, y: 120, width: 640, height: 560 } });
+  await p.screenshot({ path: shots + '/v55-aoa-menu.png', clip: { x: 640, y: 120, width: 640, height: 560 } });
   await p.locator('#tabmenu button', { hasText: 'STRONG' }).click(); await wait(200);
   ok(await p.evaluate(() => aoaNow() === 4), 'menu sets Strong');
   await p.evaluate((i) => itemClick(i), idx.r5); await wait(200);
@@ -114,8 +114,8 @@ const wait = ms => new Promise(r => setTimeout(r, ms));
   await p.evaluate((i) => { itemClick(i); setAoa(1); }, idx.r5); await wait(200);
   ok(await p.evaluate(() => /AOA DETERMINED \+1/.test(document.getElementById('sitsum').textContent)), 'Determined shows +1 on the ranged weapon');
   await p.evaluate(() => { window.scrollTo(0, 0); }); await wait(2000);
-  { const tg = await p.locator('.tgv').boundingBox(); const ac = await p.locator('.aoactl').boundingBox();
-    await p.screenshot({ path: shots + '/v54-targeter-aoa.png', clip: { x: Math.max(0, tg.x - 12), y: Math.max(0, tg.y - 40), width: tg.width + 24, height: ac.y + ac.height - tg.y + 52 } }); }
+  { const tg = await p.locator('.tgv').boundingBox(); const ac = await p.locator('.tgdrop').boundingBox();
+    await p.screenshot({ path: shots + '/v55-targeter-aoa.png', clip: { x: Math.max(0, tg.x - 12), y: Math.max(0, tg.y - 40), width: tg.width + 24, height: ac.y + ac.height - tg.y + 52 } }); }
   await p.locator('.aoabtn').click(); await wait(200);
   ok(await p.evaluate(() => aoaNow() === 0 && !document.querySelector('.defbtn').disabled), 'AoA button toggles off, defenses back');
   // ---- DEFENSE in PILOTING: one button, right-click type, Retreat, All-Out Defense ----
@@ -138,7 +138,7 @@ const wait = ms => new Promise(r => setTimeout(r, ms));
   const dm2 = await p.locator('#tabmenu button').allTextContents(); await p.keyboard.press('Escape');
   ok(!dm2.some(t => /BLOCK/.test(t)), 'Block only listed with a usable (held) shield ' + JSON.stringify(dm2));
   await p.evaluate((i) => setMount(i, 'LH'), idx.sh); await wait(1500);
-  { const pb = await p.locator('.pdef').boundingBox(); await p.evaluate(() => window.scrollTo(0, 0)); await p.locator('.pdef').scrollIntoViewIfNeeded(); await wait(600); const bb = await p.locator('.pdef').boundingBox(); await p.screenshot({ path: shots + '/v54-defense-piloting.png', clip: { x: 0, y: Math.max(0, bb.y - 120), width: 660, height: 220 } }); }
+  { const pb = await p.locator('.pdef').boundingBox(); await p.evaluate(() => window.scrollTo(0, 0)); await p.locator('.pdef').scrollIntoViewIfNeeded(); await wait(600); const bb = await p.locator('.pdef').boundingBox(); await p.screenshot({ path: shots + '/v55-defense-piloting.png', clip: { x: 0, y: Math.max(0, bb.y - 120), width: 660, height: 220 } }); }
   // ---- regressions from 5.2.x ----
   const rg = await p.evaluate(() => {
     const o = {}, W = weapons(), kr = W.findIndex(w => wRof(w) === 5), w = W[kr], L = locs();
@@ -148,12 +148,12 @@ const wait = ms => new Promise(r => setTimeout(r, ms));
     const said = [], _s = say; say = function (m) { said.push(String(m)); return _s.apply(this, arguments) }; rollW(kr); o.used = said.some(m => /already rolled/.test(m));
     Math.random = () => 0.999; atkRoll(kr); rollW(kr); o.miss = said.some(m => /missed/.test(m)); say = _s; Math.random = R0;
     S.core = S.core || {}; S.core.R = structuredClone(DB.find(x => x.c == 'R' && /HEAT:10 VENT:2/.test(x.s))); R();
-    S.pilot.eng = '3'; S.tel.heat = 5; Math.random = () => 0.999; heatVent(); o.ventFail = 5 - S.tel.heat; S.pilot.eng = '4'; S.tel.heat = 5; Math.random = () => 0; heatVent(); o.ventOk1 = 5 - S.tel.heat; Math.random = R0; R();
+    S.pilot.eng = '3'; S.tel.heat = 5; Math.random = () => 0.999; heatVent(); o.ventFail = 5 - S.tel.heat; S.pilot.eng = '4'; o.slE = slOf('full|eng'); o.vlab = (document.querySelector('.heatbox button[onclick="heatVent()"]') || {}).textContent; S.tel.heat = 5; Math.random = () => 0; heatVent(); o.ventOk1 = 5 - S.tel.heat; Math.random = R0; R();
     return o;
   });
   ok(rg.hitCore === 0, 'Core to-hit +0');
   ok(rg.hitRolls === rg.hitExpect && rg.used && rg.miss, 'damage rolls = 1 + degrees; used and missed refuse ' + JSON.stringify(rg));
-  ok(rg.ventFail === 1 && rg.ventOk1 === 2, 'vent floors 1 / 2');
+  ok(rg.ventFail === 2 && rg.ventOk1 === Math.max(3, 2 + Math.max(0, rg.slE - 3)), 'VENT 2 reactor: fail vents VENT (2); success vents max(VENT+1, VENT+DoS) ' + JSON.stringify([rg.ventFail, rg.ventOk1, rg.slE]));
   await wait(2500);
   const untitled = await p.evaluate(() => { document.querySelectorAll('button').forEach(b => b.offsetParent && b.dispatchEvent(new PointerEvent('pointerover', { bubbles: true }))); return [...document.querySelectorAll('button')].filter(b => !b.title && b.offsetParent).map(b => b.textContent.trim()); });
   ok(untitled.length === 0, 'every visible button has a tooltip ' + JSON.stringify(untitled));
@@ -194,7 +194,7 @@ const wait = ms => new Promise(r => setTimeout(r, ms));
   await p.locator(`#log .rc[data-rcid="${c1.id}"]`).click(); await wait(200);
   const c2 = await p.evaluate((id) => { const el = document.querySelector(`#log .rc[data-rcid="${id}"]`), d = el.nextElementSibling; return { exp: el.getAttribute('aria-expanded'), det: d && d.classList.contains('rcd') ? d.textContent : '' }; }, c1.id);
   ok(c2.exp === 'true' && /3d6 \[1, 1, 1\] = 3 vs SL/.test(c2.det) && /SUCCESS BY/.test(c2.det) && /DEGREES OF SUCCESS/.test(c2.det), 'click expands the individual rolls (to-hit, SL, margin, degrees) ' + JSON.stringify(c2));
-  await p.screenshot({ path: shots + '/v54-console-cards.png', clip: { x: 0, y: 0, width: 1280, height: 900 } });
+  await p.screenshot({ path: shots + '/v55-console-cards.png', clip: { x: 0, y: 0, width: 1280, height: 900 } });
   await p.locator(`#log .rc[data-rcid="${c1.id}"]`).focus(); await p.keyboard.press('Enter'); await wait(200);
   ok(await p.evaluate((id) => { const el = document.querySelector(`#log .rc[data-rcid="${id}"]`); return el.getAttribute('aria-expanded') === 'false' && !(el.nextElementSibling && el.nextElementSibling.classList.contains('rcd')); }, c1.id), 'Enter on the focused line collapses it');
   await p.keyboard.press(' '); await wait(200);
@@ -227,8 +227,36 @@ const wait = ms => new Promise(r => setTimeout(r, ms));
     await p.evaluate((k) => { awBind(k, 1); weapons()[k].am = 30; const R0 = Math.random; Math.random = () => 0.15; atkRoll(k); rollW(k); Math.random = R0; }, kr5); await wait(4500);
     const dl = await p.evaluate((seen) => [...document.querySelectorAll('#log .rc')].filter(e => !seen.includes(e.dataset.rcid)).map(e => e.textContent).pop() || '', seenD);
     ok(/DMG \d+(, \d+)+/.test(dl), 'item 2: a multi-hit attack line shows every shot ' + JSON.stringify(dl.slice(0, 160))); }
-  const hx = await p.evaluate((k) => { awBind(k, 1); R(); const box = document.querySelector('.pgx label.dmgn + label.hxchk input'); const near = !!box && /SKILL MOD/.test(box.closest('label').previousElementSibling.textContent); const t0 = tgtTotal(), s0 = slOf('dod|pil'); setHeatX(true); const o = { near, d: tgtTotal() - t0, s: slOf('dod|pil') - s0, sum: document.getElementById('sitsum').textContent, br: slBreak('dod|pil'), both: document.querySelectorAll('.hxchk input:checked').length }; setHeatX(false); o.off = tgtTotal() - t0; return o; }, kr5);
-  ok(hx.near && hx.d === 2 && hx.s === 2 && hx.off === 0 && /HEAT \+2/.test(hx.br) && hx.both === 2, 'item 3: HEAT +2 box beside SKILL MOD adds +2 to rolls and TOTAL MOD (mirrored in the targeter) ' + JSON.stringify(hx));
+  // ---- v5.5 (Overseer feedback pass 2) ----
+  const hz = await p.evaluate((ix) => { const W = weapons(), kr = W.indexOf(S.items[ix.r5]), kp = W.indexOf(S.items[ix.mel]); itemClick(ix.r5); if (!document.querySelector('.tgdrop')) itemClick(ix.r5); const atk = () => slOf('atk|' + wKey(W[kr]) + '|' + kr), par = () => slOf('def|' + wKey(W[kp])), dod = () => slOf('dod|pil'), tot = () => tgtTotal(); const b = [atk(), par(), dod(), tot()]; setHeatX(true); const sk = [atk() - b[0], par() - b[1], dod() - b[2], tot() - b[3]]; setHeatX(false); setTgHeat(true); const tg = [atk() - b[0], par() - b[1], dod() - b[2], tot() - b[3]]; setTgHeat(false); S.pilot.mod = '3'; const tm = [atk() - b[0], par() - b[1]]; S.pilot.mod = ''; S.pilot.smod = '3'; const sm = [atk() - b[0], par() - b[1], dod() - b[2]]; S.pilot.smod = ''; R(); return { sk, tg, tm, sm }; }, idx);
+  ok(JSON.stringify(hz.sk) === '[0,2,2,0]', 'SKILL MOD Heat: +2 to skills and active defenses (Parry, Dodge), not attacks ' + JSON.stringify(hz.sk));
+  ok(JSON.stringify(hz.tg) === '[2,0,0,2]', 'targeter Heat: +2 to attacks and TOTAL MOD only ' + JSON.stringify(hz.tg));
+  ok(JSON.stringify(hz.tm) === '[3,0]' && JSON.stringify(hz.sm) === '[0,3,3]', 'targeter ROLL MOD no longer affects Parry/Block; SKILL MOD does ' + JSON.stringify([hz.tm, hz.sm]));
+  const hb5 = await p.evaluate(() => { const g = () => document.querySelector('.pgx .hxbtn'); const o = { t: g() && g().textContent, off: !document.querySelector('.pgx .hxv') }; setHeatX(true); const v = document.querySelector('.pgx .hxv'); o.on = v && v.textContent; o.gold = !!v && v.classList.contains('n-gd') && getComputedStyle(v).color === getComputedStyle(document.querySelector('.n-gd')).color; o.chk = document.querySelectorAll('.pgx input[type=checkbox][onchange*=setHeatX]').length; o.tgOff = !document.querySelector('.tgdrop .hxv'); setHeatX(false); return o; });
+  ok(hb5.t === '[HEAT]' && hb5.off && hb5.on === '+2' && hb5.gold && hb5.chk === 0 && hb5.tgOff, 'Heat is a [HEAT] button; +2 shows in gold beside it when on; the two toggles are separate ' + JSON.stringify(hb5));
+  const tl = await p.evaluate(() => { const L = document.querySelector('.tgdrop .tgline'); if (!L) return null; const bs = ['.accbtn', '.hxbtn', '.aoabtn'].map(q => L.querySelector(q)); const tops = bs.map(b => { const r = b.getBoundingClientRect(); return (r.top + r.bottom) / 2; }); const a = L.querySelector('.aoabtn'); return { all: bs.every(Boolean), same: Math.max(...tops) - Math.min(...tops) <= 4, desc: !document.querySelector('.tgdrop .aoactl .dim') && !/NO ACTIVE DEFENSE|right-click to choose/.test(L.textContent), tip: a && a.title.length > 40 }; });
+  ok(tl && tl.all && tl.same && tl.desc && tl.tip, 'ACC, targeter Heat and All-Out Attack on one line; AoA description only in the hover title ' + JSON.stringify(tl));
+  const pw = await p.evaluate((ix) => { const o = {}; itemClick(ix.r5); if (!document.querySelector('.tgdrop')) itemClick(ix.r5); S.pilot.rng = '20'; S.pilot.mod = '1'; S.dmgN = 3; S.pilot.thx = '1'; R(); itemClick(ix.r1); o.r1 = [S.pilot.rng, S.pilot.mod, S.dmgN, S.pilot.thx]; S.pilot.rng = '7'; R(); o.one = document.querySelectorAll('.tgdrop').length; itemClick(ix.r5); o.r5 = [S.pilot.rng, S.pilot.mod, S.dmgN, S.pilot.thx]; itemClick(ix.r1); o.r1b = S.pilot.rng; o.saved = !!(shSnap().tgw && Object.keys(shSnap().tgw).length >= 2); itemClick(ix.r5); S.pilot.rng = ''; S.pilot.mod = ''; S.pilot.thx = '0'; S.dmgN = 1; R(); return o; }, idx);
+  ok(JSON.stringify(pw.r1) === '["","",1,"0"]' && JSON.stringify(pw.r5) === '["20","1",3,"1"]' && pw.r1b === '7' && pw.one === 1 && pw.saved, 'each weapon keeps its own targeter settings (saved with the sheet); one dropdown open ' + JSON.stringify(pw));
+  const tc = await p.evaluate((ix) => { itemClick(ix.r5); if (!document.querySelector('.tgdrop')) itemClick(ix.r5); const a = !!document.querySelector('.tgdrop'); itemClick(ix.r5); const b = !document.querySelector('.tgdrop'); itemClick(ix.r5); const c = !!document.querySelector('.tgdrop'); return [a, b, c]; }, idx);
+  ok(tc.every(Boolean), 'clicking the selected weapon again closes the targeter; clicking again reopens ' + JSON.stringify(tc));
+  await p.locator('[data-item="' + idx.r1 + '"]').click({ button: 'right' }); await wait(300);
+  const im5 = await p.locator('#tabmenu button').allTextContents(); await p.keyboard.press('Escape'); await wait(200);
+  ok(im5.length > 0 && !im5.some(t => /targeter/i.test(t)), 'weapon right-click menu has no targeter entry ' + JSON.stringify(im5));
+  const ir = await p.evaluate(() => { S.dmg.d = '200'; S.dmg.dv = '1'; R(); liveCalc(); const r2 = document.querySelector('.damagebox .dmrow2'); return { eff: !!r2 && !!r2.querySelector('#dm_eff') && /EFFECTIVE DR/.test(r2.textContent), rep: !!r2 && !!r2.querySelector('.selbtns button[onclick^="repairComp"]'), stab: /STAB/.test(document.getElementById('dm_eff').textContent) }; });
+  await p.evaluate(() => { S.dmg.d = ''; R(); });
+  ok(ir.eff && ir.rep && !ir.stab, 'IMPACT RESOLUTION line 2: effective DR + REPAIR / REPAIR ALL; no stability threshold ' + JSON.stringify(ir));
+  const vt = await p.evaluate(() => { const c0 = S.core.R; const out = {}; for (const n of ['LIGHT FISSION CELL', 'HEAVY FUSION CORE']) { S.core.R = structuredClone(DB.find(x => x.n === n)); R(); out[n] = [ventBase(), ventAmt(false), ventAmt(true, 0), ventAmt(true, 4), (document.querySelector('.heatbox button[onclick="heatVent()"]') || {}).textContent]; } S.core.R = c0; R(); return out; });
+  ok(JSON.stringify(vt['LIGHT FISSION CELL']) === '[1,1,2,5,"[VENT 1]"]' && JSON.stringify(vt['HEAVY FUSION CORE']) === '[3,3,4,7,"[VENT 3]"]', 'VENT = base heat vented: fail VENT, success max(VENT+1, VENT+DoS) ' + JSON.stringify(vt));
+  const rofl = await p.evaluate(async (ix) => { itemClick(ix.r5); if (!document.querySelector('.tgdrop')) itemClick(ix.r5); const n = document.getElementById('log').children.length; const i = [...document.querySelectorAll('.tgv input')].find(x => /Rate of fire/.test(x.title)); i.value = '3'; i.dispatchEvent(new Event('input', { bubbles: true })); i.dispatchEvent(new Event('change', { bubbles: true })); await new Promise(r => setTimeout(r, 1500)); return [...document.getElementById('log').children].slice(n).map(e => e.textContent).filter(t => /BASE SKILL/.test(t)); }, idx);
+  ok(rofl.length === 0, 'typing RoF logs no stray BASE SKILL line ' + JSON.stringify(rofl));
+  await p.locator('#CI').focus(); await p.locator('#CI').fill('hello table'); await p.keyboard.press('Enter'); await wait(800);
+  const lc = await p.evaluate(() => { const c = [...document.querySelectorAll('#log .chat')].pop(); return c ? { t: c.textContent, col: getComputedStyle(c.querySelector('.cht')).color, cy: getComputedStyle(document.querySelector('header')).color } : null; });
+  ok(lc && /hello table$/.test(lc.t) && lc.col === lc.cy, 'off-table: text without / echoes as chat in the user colour ' + JSON.stringify(lc));
+  const ub5 = await p.evaluate(() => { const b = document.getElementById('rosterBtn'); return { inCon: !!b && !!b.closest('#conhead'), last: !!b && b === document.getElementById('conhead').lastElementChild, notTop: !document.querySelector('header #rosterBtn'), solo: !!b && b.hidden }; });
+  ok(ub5.inCon && ub5.last && ub5.notTop && ub5.solo, 'USERS toggle sits at the right end of the OPERATOR CONSOLE header (hidden solo) ' + JSON.stringify(ub5));
+  const tb = await p.evaluate(() => { const a = document.getElementById('themeBtn').getBoundingClientRect(), w = document.getElementById('who').getBoundingClientRect(), h = document.querySelector('header').getBoundingClientRect(); return { gap: Math.round(w.left - a.right), inside: w.right <= h.right + 1, h: Math.round(h.height), who: document.getElementById('who').textContent.slice(0, 40) }; });
+  ok(tb.gap >= 4 && tb.inside && tb.h < 40, 'top bar at 1280px: [THEME] and CLEARANCE do not collide, one line ' + JSON.stringify(tb));
   const dl5 = await p.evaluate(() => { const o = {}; for (const [k, l] of [['dod', 'DODGE'], ['pry', 'PARRY'], ['tb', 'TURN BLOW'], ['blk', 'BLOCK']]) { o[k] = DEFK[k] === l; } o.txt = document.querySelector('.defbtn').textContent.trim(); return o; });
   ok(dl5.dod && dl5.pry && dl5.tb && dl5.blk && /^\[(DODGE|PARRY|TURN BLOW|BLOCK) \u25be\]$/.test(dl5.txt) && !/DEFENSE/.test(dl5.txt), 'item 5: defense button shows only the type ' + JSON.stringify(dl5));
   ok(await p.evaluate(() => { const one = document.querySelectorAll('.tgdrop').length === 1; const r = document.querySelector('.tgdrop').previousElementSibling; return one && r.classList.contains('aw') && !!document.querySelector('.tgdrop #sitsum') && !!document.querySelector('.tgdrop .tgv') && !!document.querySelector('.tgdrop .aoabtn'); }), 'item 6: one targeter panel, directly under the selected weapon row');
@@ -244,7 +272,7 @@ const wait = ms => new Promise(r => setTimeout(r, ms));
   Object.assign(fid, await p.evaluate(() => { const o = { fcs: !!document.getElementById('fcs'), fid: document.getElementById('fid') && document.getElementById('fid').value }; S.view = window._v0; R(); return o; })); await wait(2500);
   ok(/^MSH-0\d MUSHA (TEST|TWO)$/.test(fid.cur) && !fid.cs && fid.j === 'PB-7 KAGE' && fid.j2 === 'KAGE' && fid.j3 === 'X' && fid.mig === 'OLD-1 MODEL' && fid.mcs === '' && !fid.fcs && fid.fid === 'OLD-1 MODEL' && !/ \/ /.test(fid.tab), 'item 11: Frame Model dropped; old ID + Model join into Frame ID ' + JSON.stringify(fid));
   const hb = await p.evaluate(() => { const b = document.getElementById('rosterBtn'), br = document.querySelector('header .hbrand'); const hs = [...document.querySelectorAll('header > *')].filter(e => e.offsetParent); return { solo: b && b.hidden, before: !!b && !!br && b.compareDocumentPosition(br) === Node.DOCUMENT_POSITION_FOLLOWING, oneLine: new Set(hs.map(e => Math.round(e.getBoundingClientRect().top))).size <= 1 || document.querySelector('header').getBoundingClientRect().height < 40 }; });
-  ok(hb.solo && hb.before && hb.oneLine, 'item 12: roster toggle sits left of CORE EMPIRE (hidden solo); top bar is one line at 1280px ' + JSON.stringify(hb));
+  ok(hb.solo && !hb.before && hb.oneLine, 'item 12 (v5.5): roster toggle no longer in the top bar; top bar is one line at 1280px ' + JSON.stringify(hb));
   await p.evaluate(() => play(null, ['<span class=dim>// FLAVOUR TEST LINE</span>'], '', [])); await wait(1500);
   const lf = await p.evaluate(async () => { const log = document.getElementById('log'); const vis = (e) => getComputedStyle(e).display !== 'none'; const fl = [...log.children].filter(e => e.dataset.k === 'flav'); const keep = [...log.querySelectorAll(':scope > .rc, :scope > .chat')]; toggleLF(); const o = { flav: fl.length, hid: fl.every(e => !vis(e)), keep: keep.length > 0 && keep.every(vis), btn: document.getElementById('lfBtn').textContent, pr: document.getElementById('lfBtn').getAttribute('aria-pressed'), saved: JSON.parse(localStorage.getItem('forge_ui_v1') || '{}').lf }; return o; });
   ok(lf.flav > 0 && lf.hid && lf.keep && lf.btn === '[DATA ONLY]' && lf.pr === 'true' && lf.saved === 1, 'item 13: console filter hides flavour lines, keeps rolls/chat, saved in forge_ui_v1 ' + JSON.stringify(lf));
@@ -253,9 +281,11 @@ const wait = ms => new Promise(r => setTimeout(r, ms));
   await p.reload(); await wait(3000);
   const lf2 = await p.evaluate(() => ({ on: document.getElementById('cb').classList.contains('lf'), btn: document.getElementById('lfBtn').textContent }));
   ok(lf2.on && lf2.btn === '[DATA ONLY]', 'item 13: console filter persists across reload ' + JSON.stringify(lf2));
+  const bootL = await p.evaluate(() => { const L = [...document.getElementById('log').children].filter(e => /KERNEL ONLINE|SYNCING ISB|DECRYPTING SORTIE|ARCHIVE UPLINK/.test(e.textContent)); return { n: L.length, vis: L.filter(e => getComputedStyle(e).display !== 'none').map(e => e.textContent) }; });
+  ok(bootL.n > 0 && bootL.vis.length === 0, 'DATA ONLY hides the boot/transition lines (KERNEL ONLINE etc.) ' + JSON.stringify(bootL));
   await p.evaluate(() => toggleLF());
   await p.evaluate(() => { awBind(weapons().findIndex(w => wRof(w) === 5), 1); R(); window.scrollTo(0, 0); }); await wait(2500);
-  await p.screenshot({ path: shots + '/v54-sheet-full.png', fullPage: false });
+  await p.screenshot({ path: shots + '/v55-sheet-full.png', fullPage: false });
   ok(errs.length === 0, 'no console errors during the run ' + JSON.stringify(errs));
   await b.close();
   console.log(fails ? fails + ' FAILED' : 'ALL PASS');

@@ -2,7 +2,7 @@
 const { chromium } = require('/workspace/pw/node_modules/playwright-core');
 const fs = require('fs');
 const base = process.argv[2] || 'http://localhost:8080';
-const shots = process.argv[3] || '/workspace/forge-os/out-v5.4/shots';
+const shots = process.argv[3] || '/workspace/forge-os/out-v5.5/shots';
 const fx = fs.readFileSync('/workspace/forge-os/tests/musha-brittle.manifest.txt', 'utf8');
 let fails = 0; const ok = (c, m) => { console.log((c ? 'PASS ' : 'FAIL ') + m); if (!c) fails++; };
 const wait = (ms) => new Promise(r => setTimeout(r, ms));
@@ -31,7 +31,7 @@ const wait = (ms) => new Promise(r => setTimeout(r, ms));
   await ptab.click({ button: 'right' }); await wait(200);
   const items = await H.p.locator('#tabmenu button').allTextContents();
   ok(items.some(t => /Assign pilot/.test(t)) && items.some(t => /Duplicate unit/.test(t)) && items.some(t => /holding bay|Deploy/.test(t)) && items.some(t => /Delete unit/.test(t)), 'host menu: ' + JSON.stringify(items));
-  await H.p.screenshot({ path: shots + '/v54-sync-host-tab-menu.png', clip: { x: 0, y: 0, width: 1600, height: 400 } });
+  await H.p.screenshot({ path: shots + '/v55-sync-host-tab-menu.png', clip: { x: 0, y: 0, width: 1600, height: 400 } });
   await H.p.keyboard.press('Escape');
   // pilot edits skills on their own unit -> reaches the table
   await P.p.evaluate(() => { const S = Forge.state(); S.pilot = Object.assign({}, S.pilot, { pil: '15' }); Forge.render(); }); await wait(2500);
