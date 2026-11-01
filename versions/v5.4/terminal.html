@@ -1705,7 +1705,7 @@ function dmgList(atk){const v=atk.map(a=>a.total);let t='DMG '+v.join(', ');if(t
 document.addEventListener('click',e=>{const el=e.target&&e.target.closest&&e.target.closest('#log .rc');if(el){e.stopPropagation();rcToggle(el)}},true);
 document.addEventListener('keydown',e=>{const el=document.activeElement;if(el&&el.classList&&el.classList.contains('rc')&&el.closest('#log')&&(e.key==='Enter'||e.key===' ')){e.preventDefault();e.stopImmediatePropagation();rcToggle(el)}},true);
 
-/* ===== FORGE-OS 5.4: Nicholas feedback pass ===== */
+/* ===== FORGE-OS 5.4: Overseer feedback pass ===== */
 /* Heat checkbox: +2 to every roll, shown in TOTAL MOD */
 const heatX=()=>pNum('hx')==1?2:0;
 function setHeatX(on){S.pilot=S.pilot||{};S.pilot.hx=on?'1':'0';audioEvent(on?'ok':'panelClose');note('[ -- ] HEAT '+(on?'+2 SET :: added to every roll and to TOTAL MOD':'CLEARED'),'dim','HEAT');R()}
