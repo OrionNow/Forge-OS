@@ -1,6 +1,6 @@
 # FORGE-OS
 
-FORGE-OS is an in-world mech sheet and terminal for Overseer's GURPS mecha campaign. It looks and behaves like a research-division database: you build and load frames, track damage, heat and ammo on a paper doll, roll attacks, and run **multiplayer sorties** where the host and pilots share one live table.
+FORGE-OS is an in-world mech sheet and terminal for a GURPS mecha campaign. It looks and behaves like a research-division database: you build and load frames, track damage, heat and ammo on a paper doll, roll attacks, and run **multiplayer sorties** where the host and pilots share one live table.
 
 ## Where things are
 
