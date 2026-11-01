@@ -9,7 +9,7 @@ FORGE-OS is an in-world mech sheet and terminal for a GURPS mecha campaign. It l
 | [`versions/`](versions/) | Every build of the app. Start here. |
 | [`versions/v5.0-stable/`](versions/v5.0-stable/) | **Stable v5.0**: the full app (terminal + server). |
 | [`catalogue/`](catalogue/) | Catalogue items (frames, weapons, systems) and the notes behind them. |
-| [`ui/`](ui/) | UI design passes, proposals (e.g. the desktop-shell idea) and the team's working copy. |
+| [`ui/`](ui/) | UI design notes and proposals (not builds; those are in versions/). |
 | [`devtools/`](devtools/) | The team's build/patch scripts and automated checks. |
 
 ## Which version should I use?
