@@ -19,3 +19,7 @@
 - **Kageboshi Remote Bits:** damage changes from 6dx7(3) to 6dx6(4), with AVG going from 147(588) to 126(504). This follows the TL band review in `reviews/review-tl-bands.md`, where TL10 means 1-3 steps above the comparable core item.
 - **Longbow (5), Particle Lance (5) and Zanshin (-2 EP):** confirmed in band and unchanged.
 - **Held for Overseer:** Skyfall (drop to (3), or retag as TL9), Tachi dulling, the Breaching Torch's comparable core item, and whether the divisor ladder tops out at (5) or (6).
+- **Kagerou Tachi:** keeps (5) at EP 4. The dulling and restore notes are removed per the Overseer's ruling that Reman tech has no such drawbacks, and the label and flavor are updated to match.
+- **Skyfall Railgun:** retagged from TL8 to TL9, keeping its (4) (Overseer ruling). TL9 sits 0-2 steps above core, so it is in band.
+- **Divisor ladder:** tops out at (6) (Overseer ruling).
+- **Still open:** the Breaching Torch's comparable core item.

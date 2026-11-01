@@ -11,7 +11,7 @@ One row per item, in the same order as `batch2-v1-raw.txt`. "Key stats" is abrid
 | IMPACT MAUL | Core Empire | 4 | 8 | `ROF:X DMG:94d(3)` | Toppling knights, breaking formations. The maul was meant to retire with the old foot knights. |
 | 60mm RIPPLE ROCKET BATTERY | Core Empire | 3 | 8 | `ROF:6 DMG:4dx12(4) ACC:5 RNG:75/375 AMMO:12(2) SPARE:0` | Sustained area suppression. Same rocket as the pod in a bigger rack, fired in two salvos, with none of the glamour. |
 | OLEUM BREACHING TORCH [EXP] | Core Empire | 2 | 8 | `ROF:X DMG:76d(4) HEAT:+2/hit` | Breaching hulls and bunkers. Sappers used it on vault doors long before anyone thought to swing it at a knight. |
-| SKYFALL CAPACITOR RAILGUN [EXP] | Crow Republic | 5 | 8 | `ROF:1 DMG:6dx25(4) ACC:5 RNG:200/750 AMMO:3(1) SPARE:0 HEAT:+3/shot` | Long-range kill shots. Rebel railguns are hand-wound and they leak. |
+| SKYFALL CAPACITOR RAILGUN [EXP] | Crow Republic | 5 | 9 | `ROF:1 DMG:6dx25(4) ACC:5 RNG:200/750 AMMO:3(1) SPARE:0 HEAT:+3/shot` | Long-range kill shots. Rebel railguns are hand-wound and they leak. |
 | HAILSTORM 40mm ROTARY CANNON [EXP] | Crow Republic | 4 | 8 | `ROF:5 DMG:6dx11(3) ACC:3 RNG:128/498 AMMO:15(2) SPARE:1 HEAT:+3/burst` | Burst damage at mid range. It spins up like a turbine and empties like a promise. |
 | BREACHER SCATTERGUN | Crow Republic | 3 | 8 | `ROF:6 DMG:6dx6(3) ACC:2 RNG:75/250 AMMO:4(1) SPARE:1` | Flanking, ambushing vehicles. Rebel mechanics call it a door-knocker. |
 | RIPSAW CHAIN BLADE | Crow Republic | 3 | 8 | `ROF:X DMG:83d(3)` | One-handed brawling. Imperial blades sing. |

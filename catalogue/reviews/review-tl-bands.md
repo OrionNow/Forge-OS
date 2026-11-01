@@ -39,7 +39,7 @@ No core item sits at the top step. Every TL10 band therefore fits: (4)-(6) over 
 | 10 | Sunspike Thermite Projector | 8 | 80mm Rocket Launcher (4) | (4) | (4) | ✅ |
 | 11 | Hornet 80mm Alpha Pod | 8 | 80mm Rocket Launcher (4) | (4) | (4) | ✅ |
 | 12 | Salvaged Laser Carbine | 8 | 30mm Autocannon (3) | (3) | (3) | ✅ |
-| 13 | **Kagerou Monomolecular Tachi** | 10 | Vibroblade Heavy (3) | (5), **dulls to (3)** | (4)-(6) | ✅ at (5); ❌ **while dulled** |
+| 13 | **Kagerou Monomolecular Tachi** | 10 | Vibroblade Heavy (3) | (5) | (4)-(6) | ✅ **RESOLVED**: (5) at EP 4, no dulling (Overseer's ruling) |
 | 14 | **Hagane-Yumi Gauss Longbow** | 10 | 90mm Heavy Rifle (3) | (5) | (4)-(6) | ✅ |
 | 15 | Naginata HF Glaive | 10 | Vibroblade Heavy (3) | (4) | (4)-(6) | ✅ |
 | 16 | Wakizashi Guard Blade | 10 | Vibroblade Medium (3) | (4) | (4)-(6) | ✅ |
@@ -58,10 +58,7 @@ The other 46 lines (defensive, utility, frame, reactor, thruster and targeting i
    - **The damage must drop too.** At 6dx7(4), rear output would be 4 × 84.5 = 338 per turn, above the Hailstorm's 320 at the same 4 EP.
    - At 6dx6(4): about 254 per turn from the rear (same as today) and about 4 from the front.
    - EP stays 4.
-3. **KAGEROU TACHI (TL10):** delete `NOTE:edge_dulls_to_(3)_after_3_hits` and its restore note.
-   - Dulled to (3), a TL10 blade sits at +0 against the Heavy Vibro, below the TL10 floor. The counter was also flagged as scope creep in round 1.
-   - Keep **(5)** and **EP 4**.
-   - *If Overseer wants the dulling flavor:* dull to **(4)** instead, which stays in band.
+3. **KAGEROU TACHI (TL10): RESOLVED (Overseer's ruling, Nov 1).** **(5) at EP 4, with no dulling.** Delete `NOTE:edge_dulls_to_(3)_after_3_hits` and its restore note: Reman tech gets no off-brand drawbacks. At (5) it sits +2 over the Heavy Vibro, in band.
 
 ## Rulings on the named items
 - **Skyfall:** out of band at TL8. Move to **(3)**, or retag TL9 to keep (4). Range 200/750, HEAT +3 and SPARE:0 are unchanged.
@@ -71,7 +68,7 @@ The other 46 lines (defensive, utility, frame, reactor, thruster and targeting i
   - That is the intended "TL10 is simply better" case, not domination. My earlier (4) recommendation is withdrawn; it was a GURPS-mapping argument.
 - **Particle Lance:** **keep (5).** +2 over the 90mm (or +1 over the 120mm Rocket Cannon if that is the comparable), in band either way. 250 through, no ammo, +4 heat per shot.
 - **Bits:** out of band. Move to **6dx6(4)**: divisor up, damage down one step to hold output.
-- **Tachi:** **keep (5), EP 4.** Drop the dulling counter, or make it dull to (4). The "(5) costs EP 5" option stays withdrawn.
+- **Tachi: RESOLVED.** (5) at EP 4, with no dulling (Overseer's ruling). The "(5) costs EP 5" option stays withdrawn.
 - **Zanshin:** no divisor, so the band rule doesn't apply. **EP -2 stands** on parity (one ACC step above Linked Melee at -1), not on TL. The v1 changelog already records that change. At -1 it would beat Linked Melee outright for builds without beam weapons.
 
 ## Dominance after the fixes
@@ -85,7 +82,7 @@ With the fixes applied, nothing dominates:
 1. **Skyfall:** (3) at TL8 (my recommendation), or TL9 at (4)?
 2. **Torch's comparable item:** the Pile Bunker (4), which makes it in band (my reading, as a breaching tool), or the Medium Vibro (3), which makes it out of band and would need (3)?
    - At (3) it would be the Medium Vibro plus +2 heat per hit, so it would need its heat cost removed to be worth taking.
-3. **Tachi dulling:** drop it (recommended), or dull to (4)?
+3. ~~Tachi dulling~~: **resolved.** Dropped on the Overseer's ruling.
 4. **Ladder top:** is it (6) or (5)?
    - Under (5), any future TL10 item over a (4) core item is locked at exactly (5).
    - A TL10 item over a (5) item (none exists in core) would have no legal value.

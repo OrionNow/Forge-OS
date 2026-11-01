@@ -254,7 +254,6 @@ body,.mechmap{--c-full:color-mix(in srgb,var(--hpok,var(--ac,#2ee6e6)) 72%,#8a95
 .mtag{border:1px solid var(--line);padding:0 5px;font-size:var(--fs-l);color:var(--cyan);white-space:nowrap}
 .aoactl{display:flex;flex-wrap:wrap;gap:4px 10px;align-items:center;margin:4px 0 var(--sp2)}
 .aoabtn.on{color:var(--bg);background:var(--c-warn,#ffa726);border-color:var(--c-warn,#ffa726)}
-.aodbtn.on{color:var(--cyan);border-color:var(--cyan)}
 .dfctl{display:inline-flex;flex-wrap:wrap;gap:4px 10px;align-items:center}.dfctl .dfb{display:inline-flex;gap:4px;align-items:center;white-space:nowrap}
 .dfctl button[disabled]{opacity:.45;cursor:not-allowed}
 header{flex-wrap:nowrap;white-space:nowrap;align-items:center;overflow:hidden}
@@ -858,7 +857,7 @@ function vehMap(t,L,prev){
 /* ===== multi-sheet tabs (Imperial Intelligence telemetry) ===== */
 const FK=['ch','items','tel','id','cs','dmg','rolls','uiHP','pilot','natk','info','dmgN','core','undo','stab','importReport','importNotesHidden','hitq','own'];
 const shSnap=()=>{const d={};FK.forEach(k=>d[k]=S[k]);return d},shApply=d=>{FK.forEach(k=>{S[k]=d[k]});if(typeof S.importNotesHidden!=='boolean')S.importNotesHidden=true},shSave=()=>{if(S.sheets&&S.sheets[S.cur])S.sheets[S.cur].d=shSnap()};
-function shLabel(i){const sh=S.sheets[i];if(sh.name)return sh.name;const d=i==S.cur?S:sh.d||{};return(d.id||d.cs)?`${d.id||'--'} / ${d.cs||'--'}`:'SHEET '+(i+1)}
+function shLabel(i){const sh=S.sheets[i];if(sh.name)return sh.name;const d=i==S.cur?S:sh.d||{};return fidJoin(d.id,d.cs)||'SHEET '+(i+1)}
 const SH_COL=['','#3aa0ff','#b57bff','#ff5a5a','#ffd23a','#4ade80'],SH_TH=['','navy','sci','talon','remus','crow'];
 function dollTT(){const sh=S.sheets&&S.sheets[S.cur],k=sh?SH_TH[sh.col||0]:'';return k?` data-tt="${k}"`:''}
 function shStatus(i){if(i==S.cur)return frameStatus();const sh=S.sheets[i];if(!sh.d||!sh.d.ch)return['--','dim'];const keep=shSnap();try{shApply(sh.d);return frameStatus()}finally{shApply(keep)}}
@@ -1635,7 +1634,7 @@ function setAoa(v){S.pilot=S.pilot||{};v=Math.floor(+v||0);const w=awW();
  S.pilot.aoa=String(v);if(v)S.pilot.aoal=String(v);audioEvent(v?'ok':'panelClose');
  note(v?'[ -- ] ALL-OUT ATTACK ('+aoaLab(v)+') :: '+esc(aoaTip(v,w))+' :: NO ACTIVE DEFENSE UNTIL CLEARED'+extra:'[ -- ] ALL-OUT ATTACK CLEARED :: ACTIVE DEFENSES AVAILABLE',v?'warn':'dim','AOA');R()}
 function sitSum(){const a=aoaNow(),w=awW(),ab=a==1&&w?aoaHit(w):0;return`<span title="range/speed + cover + size + RoF bonus (capped at the weapon ROF) + roll mod${ab?' + All-Out Attack (Determined)':''}">TOTAL MOD <b class=n-gd>${sg(tgtTotal()+ab)}</b>${a?` <b class=warn>AOA ${aoaLab(a)}${ab?' '+sg(ab):''}</b>`:''}</span>`}
-/* ---- defense: one button (type on right-click), Retreat, All-Out Defense (B366). Stored as numbers in S.pilot ---- */
+/* ---- defense: one button (type on right-click), Retreat (B366). Stored as numbers in S.pilot ---- */
 function defKinds(){const W=weapons(),SH=shields(),usable=x=>!wDisabled(x)&&(!isMech()||heldIn(x)),r=[{c:0,i:-1,l:'DODGE',spec:'dod|pil',kind:'dod',roll:()=>dodgeRoll(),tip:'Dodge: half Piloting + HND (+3 with Retreat, plus the heat-zone bonus)'}];
  if(isMech())r.push({c:1,i:-1,l:'TURN BLOW',spec:'def|pil',kind:'tb',roll:()=>turnBlowRoll(),tip:'Turn Blow: on a success the pilot picks the hit location of the incoming attack'});
  W.forEach((w,k)=>{if(/MELEE/.test(wLab(w))&&usable(w))r.push({c:2,i:k,l:'PARRY '+w.n,spec:'def|'+wKey(w),kind:'pry',roll:()=>parryRoll(k),tip:'Parry with '+w.n+': half weapon skill + HND'})});
@@ -1643,8 +1642,6 @@ function defKinds(){const W=weapons(),SH=shields(),usable=x=>!wDisabled(x)&&(!is
 function defCur(){const K=defKinds(),c=Math.floor(pNum('dft')||0),i=pNum('dfw');return K.find(d=>d.c===c&&(d.i<0||d.i===i))||K.find(d=>d.c===c)||K[0]}
 const kindOfK=k=>k==='pil'?'tb':shields().some(x=>wKey(x)===k)?'blk':'pry';
 /* v5.4: All-Out Defense removed; old sheets may still carry pilot.aod / aodl, which are ignored */
-const aodNow=()=>0;
-const aodBon=()=>0;
 const defMods=k=>(pNum('ret')==1?1:0);
 const DEFK={dod:'DODGE',tb:'TURN BLOW',pry:'PARRY',blk:'BLOCK'};
 function defCtl(){const a=aoaNow(),d=defCur(),off=a?'disabled title="No active defense: All-Out Attack is set this turn"':'',sl=s=>`<span class=dim data-sl="${s}" title="${esc(slBreak(s))}">${slTxt(s)}</span>`;
@@ -1708,7 +1705,7 @@ function dmgList(atk){const v=atk.map(a=>a.total);let t='DMG '+v.join(', ');if(t
 document.addEventListener('click',e=>{const el=e.target&&e.target.closest&&e.target.closest('#log .rc');if(el){e.stopPropagation();rcToggle(el)}},true);
 document.addEventListener('keydown',e=>{const el=document.activeElement;if(el&&el.classList&&el.classList.contains('rc')&&el.closest('#log')&&(e.key==='Enter'||e.key===' ')){e.preventDefault();e.stopImmediatePropagation();rcToggle(el)}},true);
 
-/* ===== FORGE-OS 5.4: Overseer feedback pass ===== */
+/* ===== FORGE-OS 5.4: Nicholas feedback pass ===== */
 /* Heat checkbox: +2 to every roll, shown in TOTAL MOD */
 const heatX=()=>pNum('hx')==1?2:0;
 function setHeatX(on){S.pilot=S.pilot||{};S.pilot.hx=on?'1':'0';audioEvent(on?'ok':'panelClose');note('[ -- ] HEAT '+(on?'+2 SET :: added to every roll and to TOTAL MOD':'CLEARED'),'dim','HEAT');R()}
@@ -1718,7 +1715,7 @@ function tgtDrop(i){const w=awW();if(!w||weapons().indexOf(S.items[i])!==awK())r
 /* Repair buttons (moved out of the removed selected-component box into IMPACT RESOLUTION) */
 function repBtns(t){const i=+S.dmg.loc,m=maxOf(i)||1,v=t.hp[i];return`<span class=selbtns><button type=button onclick="repairComp(${i})" title="Repair the component selected on the paper doll" ${v>=m&&!(sacElig(i)&&t.sac[i])?'disabled':''}>[REPAIR]</button><button type=button onclick="repairAll()" title="Repair every component" ${t.hp.every((h,j)=>h>=(maxOf(j)||1))&&!(hasSac()&&t.sac.some(Boolean))?'disabled':''}>[REPAIR ALL]</button></span>`}
 /* Frame ID only: old ID / MODEL pairs are joined into one Frame ID */
-const fidJoin=(...a)=>a.map(x=>String(x==null?'':x).trim()).filter(x=>x&&x!=='PENDING').join(' ').slice(0,48);
+function fidJoin(...a){return a.map(x=>String(x==null?'':x).trim()).filter(x=>x&&x!=='PENDING').join(' ').slice(0,48)}
 const _R54=R;R=function(){if(S.cs){S.id=fidJoin(S.id,S.cs);S.cs=''}return _R54.apply(this,arguments)};
 /* Console filter: show only load-bearing lines (rolls, results, damage, chat, errors, command output) */
 function toggleLF(){UI.lf=UI.lf?0:1;applyUI();uiSave();audioEvent(UI.lf?'panelOpen':'panelClose')}
