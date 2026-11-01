@@ -39,7 +39,7 @@ The smallest mapping that honours rule 1:
 | **(5)** | (5) | Particle beams (TL10); superfine-vibro blades (TL10); APHD (TL11); X-ray (TL11) |
 | **(6)** | (10), not halved | Hyperdense-vibro (TL11), monowire, nanothorn |
 
-Under this mapping, 38 of the 46 weapons and armor lines already sit correctly. The baseline is untouched (§5).
+Under this mapping, every batch weapon except the three in §3a already sits correctly, and the baseline is untouched (§5).
 
 ## 3. Real problems: one line per fix
 

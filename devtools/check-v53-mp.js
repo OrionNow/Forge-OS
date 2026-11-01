@@ -102,6 +102,7 @@ const wait = (ms) => new Promise(r => setTimeout(r, ms));
   await typeIn(P.p, 'status');
   const hs = await got(H.p, /^PILOTB.*: status$/);
   ok(!!hs, "pilot text without '/' arrives at the host as chat " + JSON.stringify(hs && hs.txt));
+  ok(hs && hs.col !== px.fg && hs.col !== hc.col, 'untinted pilot gets a default seat color, distinct from system text and the host ' + JSON.stringify([hs && hs.col, px.fg, hc && hc.col]));
   const nW = await P.p.evaluate(() => document.getElementById('log').textContent.length);
   await typeIn(P.p, '/mp whoami');
   ok(await logHas(P.p, /YOUR UNITS ::/), "'/mp whoami' runs as a command");
@@ -127,6 +128,24 @@ const wait = (ms) => new Promise(r => setTimeout(r, ms));
   ok(await H.p.evaluate(() => document.querySelectorAll('#log .ts').length === 0), 'no visible timestamps on the remote log');
   await H.p.evaluate(() => { UI.cs = 1; applyUI(); }); await wait(300);
   await H.p.screenshot({ path: shots + '/v53-mp-console.png', clip: { x: 0, y: 0, width: 1600, height: 1000 } });
+
+  // ---- v5.3.1: roll-line forgery, race on a live table ----
+  if (hcard) {
+    const before = await P.p.evaluate((id) => document.querySelector(`#log .rc[data-rcid="${id}"]`).textContent, hcard.id);
+    await H.p.evaluate((id) => window.mpCard({ id, f: 'PB-7 / KAGE', a: 'FORGED', r: 'FORGED 99 HITS', o: 'bad', d: ['forged'] }, true), hcard.id);
+    await wait(4000);
+    const after = await P.p.evaluate((id) => [...document.querySelectorAll(`#log .rc[data-rcid="${id}"]`)].map(e => e.textContent), hcard.id);
+    const hAfter = await H.p.evaluate((id) => [...document.querySelectorAll(`#log .rc[data-rcid="${id}"]`)].map(e => e.textContent), hcard.id);
+    ok(after.length === 1 && after[0] === before && !/FORGED/.test(after.join()) && !/FORGED/.test(hAfter.join()), "another seat cannot rewrite a roll line (server drops it) " + JSON.stringify([after, hAfter]));
+    const cl = await H.p.evaluate((id) => { const before = RC.get(id).r; const res = rcRemote({ id, up: true, a: 'X', r: 'FORGED', d: [] }, 'HOSTA', '', 'X', 'someone-else'); return [res, RC.get(id).r === before]; }, hcard.id);
+    ok(cl[0] === null && cl[1], 'client also refuses a card update whose server-set author differs');
+  }
+  const seenR = await H.p.evaluate(() => [...document.querySelectorAll('#log .rc')].map(e => e.dataset.rcid));
+  await P.p.evaluate((k) => { const W = weapons(); W[k].am = 30; const R0 = Math.random; Math.random = () => 0.15; atkRoll(k); Math.random = R0; }, k[0]);
+  await wait(150);
+  await P.p.evaluate((k) => rollW(k), k[0]);
+  let rc5 = null; { const t0 = Date.now(); while (Date.now() - t0 < 10000) { rc5 = await H.p.evaluate((seen) => [...document.querySelectorAll('#log .rc')].filter(e => !seen.includes(e.dataset.rcid)).map(e => e.textContent), seenR); if (rc5.length && /DMG \d+/.test(rc5[0])) break; await wait(300); } }
+  ok(rc5 && rc5.length === 1 && /HITS · DMG \d+/.test(rc5[0]), 'race on a live table: DMG 150ms after ATK -> one line with DMG on the host ' + JSON.stringify(rc5));
   await P.p.evaluate(() => { const S = Forge.state(); S.pilot = Object.assign({}, S.pilot, { aoa: '1' }); S.view = 'sortie'; Forge.render(); window.scrollTo(0, 0); }); await wait(3000);
   await P.p.screenshot({ path: shots + '/v53-mp-aoa-tag.png', clip: { x: 0, y: 0, width: 1600, height: 560 } });
   ok(errs.length === 0, 'no console errors on any seat ' + JSON.stringify(errs.slice(0, 5)));

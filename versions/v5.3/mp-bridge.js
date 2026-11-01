@@ -8,7 +8,8 @@
    no longer blocks every later push; the owner's value wins collisions on their own unit (both sides agree); empty table copies
    never wipe local skills/loadout/heat; seat-mismatch notices; console MP WHOAMI / MP RESYNC / MP RESET-LOCAL.
    v18 (FORGE-OS 5.3): commands need a leading '/', other input is table chat (data, rendered with textContent);
-   roll cards travel as structured data (rc) and are rebuilt with esc() on every seat; no log timestamps. */
+   roll cards travel as structured data (rc) and are rebuilt with esc() on every seat; no log timestamps.
+   v19 (FORGE-OS 5.3.1): card updates accepted only from the card's author (server actorId); default seat colors. */
 (function () {
   if (!window.Forge || window.__forgeMP) {
     if (!window.Forge) {
@@ -466,7 +467,7 @@
         continue;
       }
       if (r.rc && r.rc.k === "roll" && typeof rcRemote === "function") {
-        const card = rcRemote(r.rc, r.actor, actorColor(r.actor, r.color), r.unit);
+        const card = rcRemote(r.rc, r.actor, actorColor(r.actor, r.color), r.unit, r.actorId || "");
         if (card !== "") {
           if (card) speakRemote(card, safeTone(r.tone), catchup);
           if (!catchup && / DMG \d/.test(" " + String(r.rc.r || "")) && typeof announceHit === "function") { try { announceHit(String(r.actor || "Another seat")); } catch (e) { /* best effort */ } }
@@ -1424,16 +1425,36 @@
     return safeHex(m.color) || safeHex(MP.tints && MP.tints[m.id]) || "";
   }
 
+  // v5.3.1: untinted pilots get a default seat color (same on every screen: slot from the seat id, collisions
+  // resolved in seat-id order), so chat and roll lines never look like system text. The host keeps amber.
+  const SEAT_PAL = ["#5fd7ff", "#ff87d7", "#d7afff", "#87afff", "#5fffd7", "#ffaf87", "#afd75f", "#ffd7af"];
+  function seatHash(id) { let h = 0; for (const ch of String(id || "")) h = (h * 31 + ch.charCodeAt(0)) >>> 0; return h % SEAT_PAL.length; }
+  function defaultTint(m) {
+    if (!m || !m.id) return SEAT_PAL[0];
+    const ids = (MP.members || []).filter((x) => x && x.id && x.role !== "host").map((x) => x.id);
+    if (!ids.includes(m.id)) ids.push(m.id);
+    ids.sort();
+    const used = new Set();
+    for (const id of ids) {
+      let slot = seatHash(id);
+      for (let i = 0; i < SEAT_PAL.length && used.has(slot); i++) slot = (slot + 1) % SEAT_PAL.length;
+      used.add(slot);
+      if (id === m.id) return SEAT_PAL[slot];
+    }
+    return SEAT_PAL[seatHash(m.id)];
+  }
+
   function memberColor(m) {
     const tint = memberHex(m);
     if (tint) return tint;
     if (m && m.role === "host") return "#ffb400";
+    if (m) return defaultTint(m);
     return "var(--fg)";
   }
 
   function selfColor() {
     const m = (MP.members || []).find((x) => x.id === MP.selfId);
-    return memberHex(m) || safeHex(MP.tints && MP.tints[MP.selfId]) || "";
+    return memberHex(m) || safeHex(MP.tints && MP.tints[MP.selfId]) || (m ? safeHex(memberColor(m)) : "");
   }
 
   function rememberTint(id, color) {
@@ -1487,7 +1508,7 @@
   window.mpWho = function () {
     if (!(MP.on && MP.ready)) return null;
     const me = meMember();
-    return { u: me ? shownName(me) : (MP.callsign || "YOU"), c: memberColor(me) };
+    return { u: me ? shownName(me) : (MP.callsign || "YOU"), c: memberColor(me), id: MP.selfId || "local" };
   };
   window.mpCard = function (rc, up) {
     if (!rc || !(MP.on && MP.ready && !MP.applying)) return;

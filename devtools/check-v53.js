@@ -13,7 +13,7 @@ const wait = ms => new Promise(r => setTimeout(r, ms));
   const errs = []; p.on('pageerror', e => errs.push('pageerror: ' + e.message)); p.on('console', m => { if (m.type() === 'error') errs.push('console: ' + m.text()); });
   await p.goto(url); await p.waitForTimeout(2500);
   ok(errs.length === 0, 'boot: no console errors ' + JSON.stringify(errs));
-  ok(await p.evaluate(() => APP_VERSION) === '5.3.0', 'APP_VERSION 5.3.0');
+  ok(await p.evaluate(() => APP_VERSION) === '5.3.1', 'APP_VERSION 5.3.1');
   // setup: MUSHA + blade (RH), shield (LH), 30mm ROF 5 (L shoulder), 90mm ROF 1 (R shoulder)
   await p.evaluate(async (fx) => {
     login(4);
@@ -215,6 +215,21 @@ const wait = ms => new Promise(r => setTimeout(r, ms));
   const c4 = await p.evaluate(() => { const els = [...document.querySelectorAll('#log .rc')]; return els[els.length - 1].textContent; });
   ok(/^LOCAL \/ .+ · DODGE · [+-]\d+ Do[SF]/.test(c4), 'other rolls: User / Mech / Action / +n DoS or -n DoF ' + c4);
   ok(await p.evaluate(() => { const r = rollCard53; let out = ''; const _e = rcEmit; rcEmit = (rc) => { out = rc.r }; r('PILOTING (MECHA)', 'pil|x', [6, 6, 6], 18, 12, false, 6, 'FAILURE by 6 :: 1 DEGREE OF FAILURE'); rcEmit = _e; return out === 'CRIT FAIL · -1 DoF'; }), 'crit fail is called out on the line');
+
+  // ---- v5.3.1 ----
+  const seen1 = await p.evaluate(() => [...document.querySelectorAll('#log .rc')].map(e => e.dataset.rcid));
+  const n1 = await p.evaluate(() => document.getElementById('log').children.length);
+  await p.evaluate((k) => { weapons()[k].am = 30; const R0 = Math.random; Math.random = () => 0.15; atkRoll(k); Math.random = R0; }, kr5);
+  await wait(150);
+  await p.evaluate((k) => rollW(k), kr5); await wait(4500);
+  const race = await p.evaluate(([seen, n1]) => { const kids = [...document.getElementById('log').children].slice(n1); const els = [...document.querySelectorAll('#log .rc')].filter(e => !seen.includes(e.dataset.rcid)); return { cards: els.map(e => e.textContent), echo: kids.filter(k => /^\s*CE\/\/FORGE>/.test(k.textContent)).map(k => k.textContent), lines: kids.length }; }, [seen1, n1]);
+  ok(race.cards.length === 1 && /HITS · DMG \d+/.test(race.cards[0]), 'race: DMG 150ms after ATK still lands on the attack line ' + JSON.stringify(race.cards));
+  ok(race.echo.length === 0 && race.lines === 1, "an attack + DMG is one log line (no 'PILOT ATTACK' / 'ROLL' echoes) " + JSON.stringify(race));
+  ok(await p.evaluate(() => ['.defbtn', '.aodbtn', '.aoabtn'].every(q => !document.querySelector(q) || /\u25be/.test(document.querySelector(q).textContent))), 'DEFENSE / ALL-OUT DEFENSE / ALL-OUT ATTACK show the \u25be right-click hint');
+  ok(await p.evaluate(() => { const c = cleanPilot({ dft: '2', dfw: '1', aod: '3', aodl: '3', aoa: '1', aoal: '4', junk: 'x' }); return c.dft === '2' && c.dfw === '1' && c.aod === '3' && c.aodl === '3' && c.aoal === '4' && !c.junk; }), 'cleanPilot keeps the defense type, All-Out Defense and the last AoA type');
+  ok(await p.evaluate(() => { chatShow('LOCAL', '', 'X'.repeat(400)); const c = [...document.querySelectorAll('#log .chat')].pop(); const st = getComputedStyle(c.querySelector('.cht')); return st.overflowWrap === 'anywhere' && c.scrollWidth <= document.getElementById('log').clientWidth + 1; }), 'long unbroken chat words wrap');
+  const twin = await p.evaluate((k) => { const w = weapons()[k]; const copy = Object.assign(structuredClone(w), { mount: '' }); S.items.push(copy); R(); const W = weapons(), kc = W.indexOf(W.find(x => x.n === w.n && !x.mount)); const said = [], _n = note; note = function (m) { said.push(String(m)); return _n.apply(this, arguments) }; awBind(kc); note = _n; const t1 = awTitle(); awBind(W.indexOf(W.find(x => x.n === w.n && x.mount))); const t2 = awTitle(); let a = ''; const _e = rcEmit; rcEmit = (rc) => { a = rc.a }; rollCard53('ATTACK :: ' + w.n, 'atk|' + wKey(w) + '|' + W.indexOf(W.find(x => x.n === w.n && x.mount)), [3, 3, 3], 9, 14, true, 5, 'SUCCESS by 5'); rcEmit = _e; S.items.splice(S.items.indexOf(copy), 1); R(); return { t1, t2, a, warn: said.some(m => /STOWED COPY/.test(m)) }; }, kr5);
+  ok(/\[STOWED\]/.test(twin.t1) && /\[[A-Z.]+\]/.test(twin.t2) && /\[[A-Z.]+\]$/.test(twin.a) && twin.warn, 'two copies of one weapon: station in the targeter title and roll line; binding the stowed copy warns ' + JSON.stringify(twin));
   await p.evaluate(() => { awBind(weapons().findIndex(w => wRof(w) === 5), 1); R(); window.scrollTo(0, 0); }); await wait(2500);
   await p.screenshot({ path: shots + '/v53-sheet-full.png', fullPage: false });
   ok(errs.length === 0, 'no console errors during the run ' + JSON.stringify(errs));

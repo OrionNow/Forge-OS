@@ -717,6 +717,16 @@ function applyPush(snap: Snapshot, msg: z.infer<typeof pushSchema>, member: Memb
     const sheet = line.uid ? snap.sheets.find((s) => s.uid === line.uid) : undefined;
     if (line.uid && !sheet) continue;
     if (sheet?.hidden && member.role !== "host") continue;
+    // v5.3.1: a roll card id belongs to the seat that first sent it. Another seat reusing the id is dropped
+    // (no rewriting someone else's line); the author's update replaces the stored card instead of adding a copy.
+    if (line.rc && line.rc.k === "roll" && line.rc.id) {
+      const cid = line.rc.id;
+      const at = snap.rolls.findIndex((r) => r.rc && r.rc.k === "roll" && r.rc.id === cid);
+      if (at >= 0) {
+        if (snap.rolls[at].actorId !== member.member_id || !line.rc.up) continue;
+        snap.rolls.splice(at, 1);
+      }
+    }
     snap.rollSeq += 1;
     snap.rolls.push({
       seq: snap.rollSeq,

@@ -266,6 +266,7 @@ header #who{flex:0 0 auto;margin-left:auto;padding-left:8px}
 #log .rc.ok .rcr{color:var(--c-ok)}#log .rc.bad .rcr{color:var(--c-crit)}
 #log .rcd{margin:2px 0 4px 2ch;padding-left:8px;border-left:1px solid var(--line);color:var(--muted);white-space:pre-wrap}
 #log .chat .chn{font-weight:bold}
+#log .chat,#log .chat .cht,#log .rcd{overflow-wrap:anywhere;word-break:break-word}
 </style></head><body><div id=sr class=sr-only aria-live=polite></div><div id=sra class=sr-only aria-live=assertive></div><div id=hudfx aria-hidden=true></div><div id="wrap">
 <header><span class=hbrand title="CORE EMPIRE // SCIENCE CORPS R+D // FORGE-OS"><b>CORE EMPIRE</b>&nbsp;<span class=hsub>// SCIENCE CORPS R+D</span><span class=hb2>&nbsp;// FORGE-OS v<span id="ver" class="verlink" onclick="openLog()" title="Open the changelog">5.1.0</span> // TL8</span></span><span class=hctl><button id="muteBtn" class="audio-btn" type="button" onclick="toggleMute()" title="Toggle terminal audio feedback (muted by default)">[AUDIO: MUTED]</button> <button id="themeBtn" class="audio-btn" type="button" onclick="cycleTheme()" title="Cycle color theme (current: IMPERIAL NAVY)">[THEME: IMPERIAL NAVY]</button> <span id="clk" class="dim clk" title="Sector standard time">c 120.10.23 13:40:16</span></span><span id="who"></span></header>
 <div id="bar"></div><main><div class="panel" id="con"><div id="tb"></div><div id="out"></div></div><div id="rt"><div class="panel sheet" id="sh"></div><div class="panel cs1" id="cb"><div id="conhead" class="conhead"><span id="conmark" onclick="toggleCon()" title="Minimize / maximize the console">[-]</span><span class="ctitle" onclick="toggleCon()">// OPERATOR CONSOLE</span></div><div id="log" role="log" aria-live="off" aria-label="operator console log" onclick="if(UI.cs==0)toggleCon()"></div><div id="pr" onclick="$('CI').focus()"><span class="ok">CE//FORGE&gt;</span> <span id="typed"></span><span class="blink">_</span><input id="CI" autocomplete="off" spellcheck="false" aria-label="operator console command input"></div><div id="hint" class="dim"></div></div></div></main></div>
@@ -390,7 +391,7 @@ extraLines=x=>`<br><span class=l>TECH LEVEL </span> <span class=v>TL${x.tl>=0?x.
 const fmt=(s,h)=>s.split(' ').map(t=>{const i=t.indexOf(':');if(i<1)return h?`<span class=v>${esc(t)}</span>`:t;const l=t.slice(0,i),v=t.slice(i+1).replace(/_/g,' ');return h?`<span class=l>${esc(l)}</span> <span class=v>${esc(v)}</span>`:`${l} ${v}`}).join(h?' <span class=sp>|</span> ':' | ');
 const fmtChassis=(s,h)=>{const rules=['ST/HP','DR','MOVE','SM','HND/SR'];return s.split(' ').map(t=>{const key=rules.find(k=>t.startsWith(k)&&t.length>k.length);if(!key)return h?`<span class=v>${esc(t)}</span>`:t;const v=t.slice(key.length);return h?`<span class=l>${esc(key)}</span><span class=v>${esc(v)}</span>`:`${key} ${v}`}).join(h?' <span class=sp>|</span> ':' | ')};
 
-const APP_VERSION='5.3.0';
+const APP_VERSION='5.3.1';
 const canEdit=()=>['GUEST','MECHANIC','OVERSEER'].includes(S.role),isMechanic=()=>S.role=='MECHANIC',isResearch=()=>S.role=='RESEARCH STAFF';
 const dl=(text,fn,type='text/plain')=>{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([text],{type}));a.download=fn;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),1000)};
 
@@ -736,7 +737,7 @@ function selectDamageTarget(i){S.dmg.loc=+i;S.dmg.calc=null;S.echo='TARGET '+loc
 function rollW(k,c){const w=weapons()[k];if(!w)return reject('[FAIL] ARMAMENT INDEX INVALID :: no weapon exists at that index.');if(wDisabled(w))return sysFail(w.n);if(isMech()&&!heldIn(w)){audioEvent('fail');return reject('[FAIL] DAMAGE INTERLOCK :: '+esc(w.n)+' must be held in a hand'+(w.sd?' or mounted on a shoulder':'')+' to roll damage; assign it to a station first.')}if(ammoDry(w)&&!w.pd){audioEvent('ammoEmpty');say(`[ -- ] OUT OF AMMO :: ${esc(w.n)} has no rounds loaded; reload with [R]`,'dim');return R()}const tk=w.s.split(' ').find(x=>x.startsWith('DMG:')),m=/^(\d+)d(?:x(\d+))?\((\d+)\)/.exec((tk||'').slice(4));if(!m)return reject('[FAIL] BALLISTICS RECORD UNREADABLE :: damage field is missing or does not match the supported dice notation: '+esc(tk||'none'));
  const n=+m[1],mult=+m[2]||1,dv=+m[3],cid=((S.hitq||{})[k]||{}).c,cnt=dmgCount(w,c,k),sb=aoaDmg(w,n),atk=[];if(!cnt){w.pd=0;audioEvent('fail');return reject('[FAIL] NO HITS TO ROLL :: '+DMGWHY)}
  for(let j=0;j<cnt;j++){const rolls=Array.from({length:n},()=>1+Math.floor(Math.random()*6)),sum=rolls.reduce((a,b)=>a+b,0);atk.push({rolls,sum,total:(sum+sb)*mult})}
- S.rolls[k]={n,mult,dv,atk};w.pd=0;S.echo='ROLL '+w.n+(cnt>1?' x'+cnt:'');audioEvent('dice');
+ S.rolls[k]={n,mult,dv,atk};w.pd=0;if(S.echo==null)S.echo='';audioEvent('dice');
  const ln=atk.map((a,j)=>`<span class=roll-detail>${esc(w.n)}${cnt>1?' :: ATK '+(j+1)+'/'+cnt:''} :: ${n}d6${mult>1?' x '+mult:''} = [${a.rolls.join(', ')}] = ${a.sum}${sb?' +'+sb+' STRONG':''} : </span><span class=roll-total>${a.total}</span>`);
  if(cnt>1)ln.push(`<span class=roll-detail>${cnt} ATTACKS :: TOTAL DAMAGE </span><span class=roll-total>${atk.reduce((s,a)=>s+a.total,0)}</span>`);
  dmgCard53(w,cid,n,mult,sb,atk,DMGWHY);R()}
@@ -863,7 +864,7 @@ function shClose(i){shSave();const nm=shLabel(i);S.sheets.splice(i,1);S.shEdit=-
 function selCard(t,L){const i=+S.dmg.loc,n=L[i]||'',v=t.hp[i],m=maxOf(i)||1,c=cond(v,m),hm=hitMod(n);
  return`<div class=selcard><svg class=sci viewBox="0 0 40 40"><circle cx=20 cy=20 r=11 style="fill:none;stroke:#ffb400;stroke-width:2"/><circle cx=20 cy=20 r=3 style="fill:#ffb400"/><path d="M20 2V10M20 30V38M2 20H10M30 20H38" style="stroke:#ffb400;stroke-width:2"/></svg><div><div class=sl1><span class=sn>${esc(dn(n))}</span> &nbsp;<span class=stt-${statKey(t,i)}>${v}/${m} HP</span></div><div class=\"dim sl2\">${isMech()?`TO-HIT ${hm>=0?'+':''}${hm} &nbsp;|&nbsp; `:''}DR ${armorOf(n)} &nbsp;|&nbsp; <span class=dim title="damage over this in one hit triggers a stability check">STAB &gt;${+(m/2).toFixed(1)}</span> &nbsp;|&nbsp; <span class=\"stat s-${c} c-${c}\">${CL[c]}${heldTag(t,i)}</span></div></div><span class=selbtns><button onclick="repairComp(${i})" ${v>=m&&!(sacElig(i)&&t.sac[i])?'disabled':''}>[REPAIR]</button><button onclick="repairAll()" ${t.hp.every((h,j)=>h>=(maxOf(j)||1))&&!(hasSac()&&t.sac.some(Boolean))?'disabled':''}>[REPAIR ALL]</button></span></div>`}
 /* ===== v4.2 PILOT SKILL ROLLS (prototype) ===== */
-function cleanPilot(p){const r={};if(p&&typeof p=='object')for(const k of Object.keys(p)){if(/^(w_[A-Z0-9_]{1,40}|eng|sen|ew|pil|mod|smod|rng|acc|vt|spd|cov|ret|tsm|fd|rad|aoa)$/.test(k)&&p[k]!==''&&p[k]!=null&&Number.isFinite(+p[k]))r[k]=String(+p[k])}if(r.w_ROCKET!==undefined){if(r.w_ROCKET_MISSILE===undefined)r.w_ROCKET_MISSILE=r.w_ROCKET;delete r.w_ROCKET}return r}
+function cleanPilot(p){const r={};if(p&&typeof p=='object')for(const k of Object.keys(p)){if(/^(w_[A-Z0-9_]{1,40}|eng|sen|ew|pil|mod|smod|rng|acc|vt|spd|cov|ret|tsm|fd|rad|aoa|aoal|aod|aodl|dft|dfw)$/.test(k)&&p[k]!==''&&p[k]!=null&&Number.isFinite(+p[k]))r[k]=String(+p[k])}if(r.w_ROCKET!==undefined){if(r.w_ROCKET_MISSILE===undefined)r.w_ROCKET_MISSILE=r.w_ROCKET;delete r.w_ROCKET}return r}
 const chStats=()=>{const eb=S.ch?effBase():'';return memo('cs',eb,()=>{const m=/HND\/SR([+-]?\d+)\/(\d+)/.exec(eb);return{ok:!!m,hnd:m?+m[1]:0,sr:m?+m[2]:null}})};
 const wKey=x=>'w_'+subtypeKey(subtypeOf(x)).replace(/[^A-Z0-9]/g,'_'),wLab=x=>subtypeKey(subtypeOf(x))||'GENERAL',heldIn=x=>['LH','RH','BH'].includes(x.mount)||(!!x.sd&&['BL','BR'].includes(x.mount));
 const pNum=k=>{const s=S.pilot&&S.pilot[k];if(s===undefined||s===null||s==='')return null;const v=parseFloat(s);return Number.isFinite(v)?v:null};
@@ -931,6 +932,7 @@ function togRetreat(on){S.pilot=S.pilot||{};S.pilot.ret=on?'1':'0';audioEvent(on
 function sheet(){return S.view=='chassis'?sheetPreview():realSheet()}
 
 const CHANGELOG=[
+{v:'5.3.1',items:['Roll lines can only be updated by the seat that rolled them. An attack is one line (no extra echoes). Every seat has a default chat color. DMG right after ATK always lands on the attack line.','DEFENSE, ALL-OUT DEFENSE and ALL-OUT ATTACK show a ▾ (right-click for the type). Two copies of one weapon show their station; binding a stowed copy warns.','Exported manifests keep the defense type, All-Out Defense and the last All-Out Attack type. Long chat words wrap.']},
 {v:'5.3.0',items:['Reverted the v5.1 font and the HUD sortie header: original Consolas stack and sizes, one-line readout. Full-health paper doll back to the theme color (slightly desaturated).','Removed the RAD tracker from the pilot box.','Items: right-click for Info and the hand/station (the dropdown is gone). Left-click a weapon to open its targeter and All-Out Attack; the targeter RoF max is that weapon\'s ROF.','All-Out Attack is one button in the targeter (right-click for the type, only types valid for the weapon). DEFENSE and ALL-OUT DEFENSE buttons are in PILOTING (right-click for the type). Retreat gives +1 to Parry, Block and Turn Blow.','Console: commands start with / (for example /undo, /mp whoami); anything else is chat to the table in your seat color. Each roll is one line (user / frame / action / result) that expands on click or Enter. No timestamps, no CLEAR/COPY LOG buttons, no hint text under the command line.']},
 {v:'5.2.1',items:['Fixes: the hit count from an attack is kept with the sheet, so a live-table sync or a refresh no longer loses it; [DMG] refuses after a miss and after the hits are rolled.','The targeter RoF is capped at the weapon ROF for rounds, hits and the RoF to-hit bonus.','Melee-only All-Out Attack options are greyed out without a held melee weapon; the active choice shows in the sortie readout.','MP RESET-LOCAL and MP RESYNC send pending changes first and ask for confirmation; an oversized update is reported, trimmed and retried with backoff. VENT tooltip corrected.']},
 {v:'5.2.0',items:['Sheet tabs: right-click a tab (or focus it and press Shift+F10 / the Menu key) for its actions with full labels: rename, duplicate, close, hold/deploy, assign. Escape closes the menu.','DEFENSE // ALL-OUT ATTACK: Dodge (with Retreat), Turn Blow, Parry and Block are grouped in one section under the targeter. All-Out Attack is one choice per turn (Determined, Double, Feint, Strong, Long, Suppression Fire at RoF 5+); Determined feeds the attack SL, Strong adds to melee damage, and any option shows NO ACTIVE DEFENSE.','Attacks: a hit now records 1 + degrees of success (margin / Recoil), capped at the rounds fired; [DMG] rolls that many damage rolls.','Core to-hit is +0, and disabled arms or legs no longer add a bonus.','Vent: at least 1 heat on a failed roll and at least 2 on a success.','More hover tooltips on buttons. Live table: a seat that cannot write to its unit is told so; console MP WHOAMI, MP RESYNC and MP RESET-LOCAL.']},
@@ -1005,7 +1007,7 @@ function skillRoll(label,spec,win,inc,tag,finc,fail){{const q=spec.split('|'),mk
  if(ok){let ds,why;if(inc>0){ds=Math.floor(marg/inc);why=inc==1?'':(tag||'INCREMENT')+' '+(tag=='RECOIL'?nRC(inc):nSL(inc))}else{ds=marg}
   res='SUCCESS by '+marg+(ds==null?'':' :: '+ds+' DEGREE'+(ds==1?'':'S')+' OF SUCCESS'+(why?' ('+why+')':''))+(win?' :: '+win(ds):'')}
  else{const fi=tag=='RECOIL'?1:(finc>0?finc:0),dg=Math.ceil(marg/(fi||Math.max(1,cs.sr||0)));res='FAILURE by '+marg+' :: '+dg+' DEGREE'+(dg>1?'S':'')+' OF FAILURE'+(fi?'':' (STABILITY '+nST(cs.sr||0)+')')}
- if(!ok&&fail)res+=' :: '+fail();audioEvent('dice');S.echo='PILOT '+label.split(' :: ')[0];
+ if(!ok&&fail)res+=' :: '+fail();audioEvent('dice');if(S.echo==null)S.echo='';
  rollCard53(label,spec,r,tot,sl,ok,marg,res);R()}
 function atkRoll(k){const w=weapons()[k];if(!w)return reject('[FAIL] ARMAMENT INDEX INVALID :: no weapon exists at that index.');if(aodNow()){audioEvent('fail');return reject('[FAIL] ALL-OUT DEFENSE :: no attack this turn; switch All-Out Defense off in PILOTING first.')}if(awK()!==k)awBind(k);if(wDisabled(w))return sysFail(w.n);if(isMech()&&!heldIn(w)){audioEvent('fail');return reject('[FAIL] ATTACK INTERLOCK :: '+esc(w.n)+' must be held in a hand'+(w.sd?' or mounted on a shoulder':'')+' to attack; assign it to a station first.')}
  const am=ammoInfo(w);let ammoTag='';if(am){if(am.cur<=0){audioEvent('ammoEmpty');S.echo='ATTACK '+w.n;say(`[ -- ] OUT OF AMMO :: ${esc(w.n)} has no rounds loaded; reload with [R]`,'dim');return R()}const spec0='atk|'+wKey(w)+'|'+k;if(slOf(spec0)==null)return skillRoll('ATTACK :: '+w.n,spec0);const want=effRof(w),use=Math.min(want,am.cur);w.am=am.cur-use;w.pd=1;HITCAP.set(w,use);setTimeout(()=>audioEvent(w.am>0?'ammo':'ammoEmpty'),300);ammoTag=' [AMMO '+w.am+'/'+am.mag+(use<want?' // ONLY '+use+' OF '+want+' RDS LEFT':'')+']'}
@@ -1596,15 +1598,16 @@ function rofClamp(v){return Math.max(1,Math.min(rofMax(),Math.floor(+v||1)))}
 function awBind(k,quiet){const w=weapons()[k];if(!w)return;const was=awK();UI.aw=UI.aw||{};UI.aw[awKey()]={k,n:w.n};UI.sh.TG=true;
  const n0=Math.floor(+S.dmgN||1),n1=rofClamp(n0);if(n1!==n0)S.dmgN=n1;
  const a=aoaNow();let msg='';if(a&&!aoaValid(w).includes(a)){S.pilot.aoa='0';msg=' // ALL-OUT ATTACK ('+AOA[a][1]+') CLEARED: not valid for this weapon'}
- if(was!==k&&!quiet)note('[ -- ] TARGETER BOUND :: '+esc(w.n)+' // RoF MAX '+rofMax()+(n1!==n0?' // RoF '+n0+' -> '+n1:'')+msg,msg?'warn':'dim','TARGETER');else if(msg)note('[ -- ]'+msg,'warn','AOA')}
-const awTitle=()=>{const w=awW();return w?' // '+esc(w.n):''};
+ if(was!==k&&isMech()&&!w.mount&&mountable(w)){const h=weapons().find(x=>x!==w&&x.n===w.n&&x.mount);note('[ !! ] STOWED COPY :: this '+esc(w.n)+' is not held, so it cannot attack'+(h?'; the held copy is at '+esc(wStn(h)):'')+'. Right-click the row to assign a station.','warn','TARGETER')}
+ if(was!==k&&!quiet)note('[ -- ] TARGETER BOUND :: '+esc(wName(w))+' // RoF MAX '+rofMax()+(n1!==n0?' // RoF '+n0+' -> '+n1:'')+msg,msg?'warn':'dim','TARGETER');else if(msg)note('[ -- ]'+msg,'warn','AOA')}
+const awTitle=()=>{const w=awW();return w?' // '+esc(wName(w)):''};
 function tgtBody(){const w=awW();if(!w)return`<div class="tgv tghint" onclick="event.stopPropagation()"><span class=dim>${weapons().length?'No weapon selected :: left-click a weapon in ARMAMENT to open its targeter and All-Out Attack.':'No weapons in this loadout.'}</span></div>`;
  return tgtGrid()+aoaCtl(w)}
 /* ---- All-Out Attack (B365): one button, right-click for the type. Melee: Determined/Double/Feint/Strong/Long; ranged: Determined, Suppression if ROF 5+ ---- */
 const aoaValid=w=>!w?[]:hasRng(w)?[1].concat(wRof(w)>=5?[6]:[]):[1,2,3,4,5];
 const aoaLab=v=>v==1?'DETERMINED':AOA[v][1];
 function aoaTip(v,w){if(v==1)return w&&hasRng(w)?'Determined: +1 to hit at range':'Determined: +4 to hit in melee';return AOA[v][2]}
-function aoaCtl(w){const a=aoaNow(),dis=!!aodNow();return`<div class=aoactl onclick="event.stopPropagation()"><button type=button class="aoabtn${a?' on':''}" data-menu=aoa aria-haspopup=menu aria-pressed=${a?'true':'false'} onclick="aoaToggle()" title="${a?'All-Out Attack ('+aoaLab(a)+') is set: click to switch it off. ':'Click: All-Out Attack ('+aoaLab(aoaPick(w))+'). '}Right-click or Shift+F10: choose the type. Any All-Out Attack removes your active defenses.">[ALL-OUT ATTACK: ${a?aoaLab(a):'OFF'}]</button> <span class=dim>${a?esc(aoaTip(a,w))+' // <b class=bad>NO ACTIVE DEFENSE</b>':'right-click to choose the type'+(dis?' // All-Out Defense is set':'')}</span></div>`}
+function aoaCtl(w){const a=aoaNow(),dis=!!aodNow();return`<div class=aoactl onclick="event.stopPropagation()"><button type=button class="aoabtn${a?' on':''}" data-menu=aoa aria-haspopup=menu aria-pressed=${a?'true':'false'} onclick="aoaToggle()" title="${a?'All-Out Attack ('+aoaLab(a)+') is set: click to switch it off. ':'Click: All-Out Attack ('+aoaLab(aoaPick(w))+'). '}Right-click or Shift+F10: choose the type. Any All-Out Attack removes your active defenses.">[ALL-OUT ATTACK: ${a?aoaLab(a):'OFF'} \u25be]</button> <span class=dim>${a?esc(aoaTip(a,w))+' // <b class=bad>NO ACTIVE DEFENSE</b>':'right-click to choose the type'+(dis?' // All-Out Defense is set':'')}</span></div>`}
 function aoaPick(w){const v=Math.floor(pNum('aoal')||0),ok=aoaValid(w);return ok.includes(v)?v:1}
 function aoaToggle(){const w=awW();if(aoaNow())return setAoa(0);setAoa(aoaPick(w))}
 function aoaMenu(el,x,y){const w=awW();if(!w)return;const a=aoaNow(),items=[{l:'Off (normal attack)',on:!a,tip:'Normal attack: active defenses allowed',run:()=>setAoa(0)}];
@@ -1630,9 +1633,9 @@ const aodNow=()=>{const v=Math.floor(pNum('aod')||0);return v>=1&&v<=5?v:0};
 const aodBon=kind=>{const v=aodNow();return v>=1&&v<=4&&AOD[v][2]===kind?2:0};
 const defMods=k=>(pNum('ret')==1?1:0)+aodBon(kindOfK(k));
 function defCtl(){const a=aoaNow(),d=defCur(),o=aodNow(),off=a?'disabled title="No active defense: All-Out Attack is set this turn"':'',sl=s=>`<span class=dim data-sl="${s}" title="${esc(slBreak(s))}">${slTxt(s)}</span>`;
- return`<span class=dfctl onclick="event.stopPropagation()"><span class=dfb><button type=button class=defbtn data-menu=def aria-haspopup=menu onclick="defRoll()" ${off||`title="${esc(d.tip)}. Click: roll it. Right-click or Shift+F10: choose Dodge, Turn Blow, Parry or Block."`}>[DEFENSE: ${esc(d.l)}]</button>${sl(d.spec)}</span>`
+ return`<span class=dfctl onclick="event.stopPropagation()"><span class=dfb><button type=button class=defbtn data-menu=def aria-haspopup=menu onclick="defRoll()" ${off||`title="${esc(d.tip)}. Click: roll it. Right-click or Shift+F10: choose Dodge, Turn Blow, Parry or Block."`}>[DEFENSE: ${esc(d.l)} \u25be]</button>${sl(d.spec)}</span>`
  +`<label class="fxchk rtr" title="Retreat: +3 to Dodge, +1 to Parry, Block and Turn Blow">RETREAT<input type=checkbox ${pNum('ret')==1?'checked':''} ${a?'disabled':''} onchange="togRetreat(this.checked)"><span class=bx></span></label>`
- +`<button type=button class="aodbtn${o?' on':''}" data-menu=aod aria-haspopup=menu aria-pressed=${o?'true':'false'} onclick="aodToggle()" ${off||`title="All-Out Defense (B366): no attack this turn. Click: ${o?'switch it off':'set '+AOD[aodPick()][1]}. Right-click or Shift+F10: choose Increased Defense (+2 to one defense) or Double Defense."`}>[ALL-OUT DEFENSE: ${o?AOD[o][1]:'OFF'}]</button>`
+ +`<button type=button class="aodbtn${o?' on':''}" data-menu=aod aria-haspopup=menu aria-pressed=${o?'true':'false'} onclick="aodToggle()" ${off||`title="All-Out Defense (B366): no attack this turn. Click: ${o?'switch it off':'set '+AOD[aodPick()][1]}. Right-click or Shift+F10: choose Increased Defense (+2 to one defense) or Double Defense."`}>[ALL-OUT DEFENSE: ${o?AOD[o][1]:'OFF'} \u25be]</button>`
  +(a?' <b class=bad>NO ACTIVE DEFENSE (ALL-OUT ATTACK)</b>':o==5?' <span class=dim>if a defense fails, roll a different one against the same attack</span>':'')+`</span>`}
 function defRoll(){if(aoaNow()){audioEvent('fail');return reject('[FAIL] NO ACTIVE DEFENSE :: All-Out Attack is set this turn; switch it off in the TARGETER first.')}defCur().roll()}
 function defMenu(el,x,y){if(aoaNow())return;const d=defCur(),items=defKinds().map(k=>({l:k.l,on:k.c===d.c&&k.i===d.i,tip:k.tip,run:()=>{S.pilot.dft=String(k.c);S.pilot.dfw=String(Math.max(0,k.i));audioEvent('ok');note('[ -- ] DEFENSE SET :: '+esc(k.l),'dim','DEFENSE');R()}}));
@@ -1660,8 +1663,8 @@ function chatShow(name,color,text){const d=document.createElement('div'),c=colOk
  const a=document.createElement('span');a.className='chn';a.style.color=c;a.textContent=String(name||'?')+': ';const b=document.createElement('span');b.className='cht';b.style.color=c;b.textContent=String(text||'').slice(0,500);d.append(a,b);logAppend(d);try{audioEvent('outLine')}catch(e){}}
 const RC=new Map();
 let _rcN=0;const rcId=()=>{const b=new Uint32Array(2);crypto.getRandomValues(b);return 'rc'+b[0].toString(36)+b[1].toString(36).slice(0,4)+(++_rcN).toString(36)};
-function rcWho(){try{if(typeof window.mpWho==='function'){const w=window.mpWho();if(w&&w.u)return w}}catch(e){}return{u:'LOCAL',c:''}}
-function rcNew(a,r,o,d){const w=rcWho();let f='';try{f=idline()}catch(e){}return{id:rcId(),u:w.u,c:w.c,f,a,r,o,d}}
+function rcWho(){try{if(typeof window.mpWho==='function'){const w=window.mpWho();if(w&&w.u)return w}}catch(e){}return{u:'LOCAL',c:'',id:'local'}}
+function rcNew(a,r,o,d){const w=rcWho();let f='';try{f=idline()}catch(e){}return{id:rcId(),u:w.u,c:w.c,by:w.id||'local',f,a,r,o,d}}
 function rcSum(rc){return`<span class=rcu style="color:${colOk(rc.c)||'var(--cyan)'}">${esc(rc.u)}</span><span class=dim> / </span><span class=rcf>${esc(rc.f)}</span><span class=dim> \u00b7 </span><span class=rca>${esc(rc.a)}</span><span class=dim> \u00b7 </span><b class=rcr>${esc(rc.r)}</b>`}
 function rcHtml(rc){return`<div class="rc ${safeT(rc.o)}" data-rcid="${esc(rc.id)}" tabindex=0 role=button aria-expanded=false title="Click, Enter or Space: show the individual rolls">${rcSum(rc)} <span class=rcx aria-hidden=true>[+]</span></div>`}
 const safeT=o=>['ok','bad','warn','dim'].includes(o)?o:'dim';
@@ -1670,12 +1673,21 @@ function rcRefresh(id){const rc=RC.get(id);if(!rc)return false;const els=[...doc
 function rcToggle(el){const rc=RC.get(el.dataset.rcid);if(!rc)return;const open=el.getAttribute('aria-expanded')==='true',nx=el.nextElementSibling;if(open){if(nx&&nx.classList.contains('rcd'))nx.remove();el.setAttribute('aria-expanded','false')}else{{const dd=rcDetails(rc);el.after(dd);try{dd.scrollIntoView({block:'nearest'})}catch(e){}}el.setAttribute('aria-expanded','true');el.setAttribute('aria-controls','rcd-'+rc.id)}const x=el.querySelector('.rcx');if(x)x.textContent=open?'[+]':'[-]';try{audioEvent(open?'panelClose':'panelOpen')}catch(e){}}
 function rcEmit(rc,up){RC.set(rc.id,rc);if(up){rcRefresh(rc.id)}else say(rcHtml(rc),rc.o);try{if(typeof window.mpCard==='function')window.mpCard(rc,!!up)}catch(e){}}
 /* remote cards arrive as data (never HTML); every string is escaped on render */
-function rcRemote(d,actor,color,unit){if(!d||typeof d!=='object'||!/^rc[a-z0-9]{1,20}$/.test(d.id||''))return'';const s=(v,n)=>String(v==null?'':v).slice(0,n);
- const rc={id:d.id,u:s(actor,40),c:colOk(color),f:s(d.f||unit,80),a:s(d.a,160),r:s(d.r,80),o:safeT(d.o),d:Array.isArray(d.d)?d.d.slice(0,40).map(x=>s(x,300)):[]};
- const had=RC.has(rc.id);RC.set(rc.id,rc);if(d.up&&had&&rcRefresh(rc.id))return null;return rcHtml(rc)}
+/* v5.3.1: a card can only be rewritten by its author. `by` is the server-set seat id (actorId), never a client field. */
+function rcRemote(d,actor,color,unit,by){if(!d||typeof d!=='object'||!/^rc[a-z0-9]{1,20}$/.test(d.id||''))return'';const s=(v,n)=>String(v==null?'':v).slice(0,n);
+ const rc={id:d.id,u:s(actor,40),c:colOk(color),by:s(by,64),f:s(d.f||unit,80),a:s(d.a,160),r:s(d.r,80),o:safeT(d.o),d:Array.isArray(d.d)?d.d.slice(0,40).map(x=>s(x,300)):[]};
+ const had=RC.get(rc.id);
+ if(had){if(!rc.by||had.by!==rc.by)return null;if(d.up){RC.set(rc.id,rc);rcRefresh(rc.id)}return null}
+ RC.set(rc.id,rc);return rcHtml(rc)}
+/* v5.3.1 race fix: a card queued behind the typewriter is drawn from the latest RC entry when it reaches the log */
+const _lp53=logPost;logPost=function(d){const out=_lp53.apply(this,arguments);try{d.querySelectorAll('.rc[data-rcid]').forEach(el=>{const rc=RC.get(el.dataset.rcid);if(rc){el.innerHTML=rcSum(rc)+' <span class=rcx aria-hidden=true>[+]</span>';el.className='rc '+safeT(rc.o)}})}catch(e){}return out};
+/* v5.3.1: two copies of one weapon are told apart by station */
+function wTwin(w){return!!w&&weapons().filter(x=>x!==w&&x.n===w.n).length>0}
+const wStn=w=>w&&w.mount?SL[w.mount]||w.mount:'STOWED';
+const wName=w=>w?w.n+(wTwin(w)?' ['+wStn(w)+']':''):'';
 const _isCrit=(tot,sl)=>tot<=4||(tot==5&&sl>=15)||(tot==6&&sl>=16)?'CRIT SUCCESS':(tot==18||(tot==17&&sl<=15)||tot-sl>=10)?'CRIT FAIL':'';
 function rollCard53(label,spec,r,tot,sl,ok,marg,res){const q=spec.split('|'),crit=_isCrit(tot,sl),parts=String(label).split(' :: ');let a,rr,k=-1,w=null;
- if(q[0]=='atk'){k=+q[2];w=weapons()[k];a=w?w.n:parts.slice(1).join(' ');const h=(S.hitq||{})[k]||{};rr=ok?(h.n||1)+' HIT'+(h.n==1?'':'S'):'MISS'}
+ if(q[0]=='atk'){k=+q[2];w=weapons()[k];a=w?wName(w):parts.slice(1).join(' ');const h=(S.hitq||{})[k]||{};rr=ok?(h.n||1)+' HIT'+(h.n==1?'':'S'):'MISS'}
  else{a=parts.map(x=>x.replace(/\s*\((MOD|RETREAT|HEAT|ALL-OUT|DOUBLE)[^)]*\)/g,'')).filter(Boolean).join(' \u00b7 ');const m=/(\d+) DEGREES? OF (SUCCESS|FAILURE)/.exec(res);const d=m?+m[1]:marg;rr=ok?'+'+d+' DoS':'-'+d+' DoF'}
  if(crit)rr=crit+' \u00b7 '+rr;
  const det=['ROLL: '+String(label).replace(/<[^>]*>/g,''),'3d6 ['+r.join(', ')+'] = '+tot+' vs SL '+sl+(crit?' ('+crit+')':''),(ok?'SUCCESS':'FAILURE')+' BY '+marg];
@@ -1684,11 +1696,11 @@ function rollCard53(label,spec,r,tot,sl,ok,marg,res){const q=spec.split('|'),cri
 function dmgCard53(w,cid,n,mult,sb,atk,why){const tot=atk.reduce((s,a)=>s+a.total,0),lines=atk.map((a,j)=>'DAMAGE'+(atk.length>1?' '+(j+1)+'/'+atk.length:'')+': '+n+'d6'+(mult>1?' x '+mult:'')+' = ['+a.rolls.join(', ')+'] = '+a.sum+(sb?' +'+sb+' STRONG':'')+' -> '+a.total);
  if(atk.length>1)lines.push('TOTAL DAMAGE: '+tot);if(why)lines.unshift('DAMAGE ROLLS: '+String(why).replace(/<[^>]*>/g,''));
  const old=cid&&RC.get(cid);if(old){old.d=old.d.concat(lines);old.r=old.r.replace(/ \u00b7 DMG .*$/,'')+' \u00b7 DMG '+tot;rcEmit(old,true);return}
- rcEmit(rcNew(w.n+' DAMAGE',(atk.length>1?atk.length+' ROLLS \u00b7 ':'')+'DMG '+tot,'dim',lines))}
+ rcEmit(rcNew(wName(w)+' DAMAGE',(atk.length>1?atk.length+' ROLLS \u00b7 ':'')+'DMG '+tot,'dim',lines))}
 document.addEventListener('click',e=>{const el=e.target&&e.target.closest&&e.target.closest('#log .rc');if(el){e.stopPropagation();rcToggle(el)}},true);
 document.addEventListener('keydown',e=>{const el=document.activeElement;if(el&&el.classList&&el.classList.contains('rc')&&el.closest('#log')&&(e.key==='Enter'||e.key===' ')){e.preventDefault();e.stopImmediatePropagation();rcToggle(el)}},true);
 
 </script>
 <script src="forge-hook.js?v=8"></script>
-<script src="mp-bridge.js?v=18"></script>
+<script src="mp-bridge.js?v=19"></script>
 </body></html>

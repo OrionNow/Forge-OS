@@ -21,4 +21,27 @@ r = await call({ op: "push", ...T, baseRevision: s.revision, logs: [{ nonce: "n"
 ok(r.status === 400, "card with a malformed id refused: " + r.status);
 r = await call({ op: "push", ...T, baseRevision: s.revision, logs: [{ nonce: "n" + tag + "d", tone: "dim", html: "x", rc: { k: "chat", t: "y".repeat(501) } }] });
 ok(r.status === 400, "chat over 500 chars refused: " + r.status);
+
+// v5.3.1: card ids belong to their author; the author's update replaces the stored card (one copy in history)
+const E2 = await call({ op: "enter", callsign: "D" + tag });
+ok(E2.status === 200, "second seat for the forgery check: " + E2.status);
+if (E2.status === 200) {
+  const T2 = { code: "TABLE", token: E2.body.token };
+  const rid = "rc" + tag.toLowerCase() + "z";
+  const push = async (TT, line) => { const v = (await call({ op: "poll", ...TT, since: -1 })).body; return call({ op: "push", ...TT, baseRevision: v.revision, logs: [line] }); };
+  const cards = async () => { const b = (await call({ op: "poll", ...T, since: -1 })).body; return ((b.snapshot && b.snapshot.rolls) || b.rolls || []); };
+  const cardsOf = async () => (await cards()).filter((x) => x.rc && x.rc.id === rid);
+  await push(T, { nonce: "n" + tag + "e", uid: null, tone: "ok", html: "GUN :: 2 HITS", rc: { k: "roll", id: rid, a: "GUN", r: "2 HITS", o: "ok", d: ["a"] } });
+  let c = await cardsOf();
+  ok(c.length === 1 && c[0].actorId === A.you.id, "author's card stored once");
+  r = await push(T2, { nonce: "n" + tag + "f", uid: null, tone: "bad", html: "FORGED", rc: { k: "roll", id: rid, a: "GUN", r: "FORGED", o: "bad", d: ["x"], up: true } });
+  c = await cardsOf();
+  ok(r.status === 200 && c.length === 1 && c[0].rc.r === "2 HITS" && c[0].actorId === A.you.id, "another seat's update to that card id is dropped " + JSON.stringify(c.map((x) => x.rc.r)));
+  r = await push(T2, { nonce: "n" + tag + "g", uid: null, tone: "bad", html: "FORGED", rc: { k: "roll", id: rid, a: "GUN", r: "FORGED", o: "bad", d: ["x"] } });
+  c = await cardsOf();
+  ok(c.length === 1 && c[0].rc.r === "2 HITS", "another seat cannot re-use the card id as a new card");
+  await push(T, { nonce: "n" + tag + "h", uid: null, tone: "ok", html: "GUN :: 2 HITS DMG 40", rc: { k: "roll", id: rid, a: "GUN", r: "2 HITS · DMG 40", o: "ok", d: ["a", "b"], up: true } });
+  c = await cardsOf();
+  ok(c.length === 1 && c[0].rc.r === "2 HITS · DMG 40" && c[0].rc.d.length === 2, "author's DMG fold replaces the stored card (no second copy) " + JSON.stringify(c.map((x) => x.rc.r)));
+}
 console.log(fails ? fails + " FAILED" : "ALL PASS"); process.exit(fails ? 1 : 0);
