@@ -66,7 +66,7 @@ The other weapons all check out:
 
 **(b) EP surcharges that exist only because of TL or faction**
 
-5. **KAGEROU TACHI:** drop the "(5) needs EP 5" surcharge. It is my own round-1 preference and is now withdrawn under rule 2. **EP 4** is the mass rule (1.8 t gives 3.35, rounded up for the TL10 edge… no: delete that rationale; EP 4 holds on blade parity with HEAVY VIBRO at 3 EP plus one step of damage).
+5. **KAGEROU TACHI:** drop the "(5) needs EP 5" surcharge. It is my own round-1 preference and is now withdrawn under rule 2. Keep **EP 4**, justified on blade parity: the HEAVY VIBRO's 3 EP plus one step of damage. The mass rule alone gives 3.35 → 3, so EP 4 is a damage price, not a TL price.
 6. **ZANSHIN PREDICTIVE LINK:** delete "FORGE charges -2 for the Reman edge" (concepts-batch2.md l.751), but **keep -2 EP**, re-justified as one ACC step above LINKED (MELEE) at -1. Taking the surcharge off (-1) would make it beat Linked Melee outright for any build without beam weapons (+3 against +2 melee, same penalties).
 
 I found no other TL surcharge. Every other TL10 item's EP comes from its mass, kW, frame, reactor or thruster rule. Kitsune (4 EP for about 8 kW) and Shrine Shielding (3 EP for 3.5 t) are if anything *under* their formulas. That isn't a TL surcharge, so I haven't flagged it.
@@ -99,4 +99,4 @@ One baseline item needs Overseer's call:
 2. **The shaped-charge cap.** GURPS-honest is (10) ÷ 2 for laminate = **(5)**. That would raise every rocket, the Mortar, the Sunspike and the Torch one step, baseline included. I recommend keeping the house **(4)**.
 3. **Skyfall:** (3) at TL8, or keep (4) and make it TL9?
 4. **Pile Bunker:** (3) as kinetic, or (4) as explosive?
-5. **The TL label scale.** FORGE "TL8" mecha weapons are built from 3/51's TL10 tables, and Overseer's Roll20 list runs (3) at almost every TL. If he intends FORGE TL8 to equal GURPS TL10, the Skyfall's (4) becomes correct as is, and the Longbow should go to (4) anyway.
+5. **The TL label scale.** FORGE "TL8" mecha weapons are built from 3/51's TL10 tables, and Overseer's Roll20 list runs (3) at almost every TL. If he intends FORGE TL8 to equal GURPS TL10, the whole ladder shifts up two TLs. The Skyfall's (4) becomes correct, and the Longbow's (5) becomes defensible as TL12. Fixes 1-3 then reverse. **This is the root decision; answer it first.**

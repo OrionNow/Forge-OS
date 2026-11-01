@@ -3,7 +3,7 @@
 | Folder | Status | What it is |
 |---|---|---|
 | `v5.0-stable/` | **Stable** | The complete app (terminal + server), as it was in the MECHA project's Main chat. Setup: `SETUP.txt`. |
-| `v5.2/` | Playtest build | Basic pass on the playtest feedback, plus the desync fixes. Changelog: `changelogs/CHANGELOG-v5.2.md`. |
+| `v5.2/` | Playtest build | Basic pass on the playtest feedback, plus the desync fixes. Changelog inside the folder. |
 | `v5.3/` | In progress | The next round of UI feedback. Not reviewed or approved yet. |
 
 ## Using a newer build
