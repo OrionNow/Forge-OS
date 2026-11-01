@@ -4,6 +4,9 @@ Desktop branch build on v5.5.1-D1, implementing Hikari's approved M2 spec (ui/pr
 
 **Status: shipped UNTESTED at the Overseer's request.** The automated suites (v5.5.1 regression, check-desktop-m1, check-desktop-d2) were not run for this build. Only syntax checks (node --check on desk.js and mp-bridge.js) were done. Use [CLASSIC] in the header to fall back to the exact v5.5.1 layout if anything misbehaves.
 
+## Patch: classic by default
+Fresh installs and first-time D2 layouts now open in **classic** view (`[DESK]` in the header turns the desktop on). An existing saved preference is kept. D1 layouts only stay on the desktop if that D1 session had desktop explicitly on.
+
 ## What's in it
 - **Several paper dolls:** [+ DOLL] (Ctrl+Alt+N) opens one window per mech, each with its own accent colour. Exactly one doll is LIVE. The others are read-only MIRRORs or NOT YET VIEWED placeholders, and become live only through ◆ MAKE LIVE. The sheet tab strip sits at the top of the live doll window.
 - **Bottom taskbar:** replaces the left module bay. It has launchers (+ DOLL, SHEET, CONSOLE, USERS, PANELS ▴) and a chip for each window.

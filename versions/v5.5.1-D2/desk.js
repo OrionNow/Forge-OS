@@ -92,7 +92,7 @@ body.desk #mpassign,body.desk #mptint{z-index:1300}body.desk #clog{z-index:1500}
   function D() {
     if (!UI.desk2 || typeof UI.desk2 !== "object" || UI.desk2.v !== 2) {
       const old = UI.desk && UI.desk.v === 1 ? UI.desk : null; // D1, read-only
-      UI.desk2 = { v: 2, on: old ? old.on !== false : true, L: {}, slots: {} };
+      UI.desk2 = { v: 2, on: old ? old.on === true : false, L: {}, slots: {} };
       if (old && old.L) for (const p of ["solo", "table"]) if (old.L[p]) UI.desk2.L[p] = migrate(old.L[p]);
     }
     if (!UI.desk2.L || typeof UI.desk2.L !== "object") UI.desk2.L = {};
@@ -559,7 +559,7 @@ body.desk #mpassign,body.desk #mptint{z-index:1300}body.desk #clog{z-index:1500}
   function boot() {
     let bad = false;
     try { const raw = JSON.parse(localStorage.getItem(typeof UIKEY !== "undefined" ? UIKEY : "forge_ui_v1") || "null"); if (raw && raw.desk2 && (typeof raw.desk2 !== "object" || raw.desk2.v > 2)) bad = true; } catch (e) { bad = true; }
-    if (bad) { noWrite = true; UI.desk2 = { v: 2, on: true, L: {}, slots: {} }; setTimeout(() => toast2("DESK LAYOUT :: stored layout unreadable or from a newer build; default loaded, store untouched until you SAVE or press DEF"), 1500); }
+    if (bad) { noWrite = true; UI.desk2 = { v: 2, on: false, L: {}, slots: {} }; setTimeout(() => toast2("DESK LAYOUT :: stored layout unreadable or from a newer build; default loaded, store untouched until you SAVE or press DEF"), 1500); }
     else { const p = prof(), d = D(); if (d.L[p]) { const r = sanitize(d.L[p]); d.L[p] = r.L || preset("def"); } }
     build(); ready = true;
     if (D().on) setOn(true); else paint();
