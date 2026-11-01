@@ -23,7 +23,7 @@ One row per item, in the same order as `batch2-v1-raw.txt`. "Key stats" is abrid
 | NAGINATA HIGH-FREQUENCY GLAIVE | Reman | 3 | 10 | `ROF:X DMG:80d(4)` | Two-handed melee damage. The naginata keeps the enemy where the Reman wants them: one step too far away to answer. |
 | WAKIZASHI GUARD BLADE | Reman | 2 | 10 | `ROF:X DMG:67d(4)` | Off-hand parrying. The short sword is the one a Reman keeps when everything else is gone. |
 | HIKARI PARTICLE LANCE [EXP] | Reman | 5 | 10 | `ROF:1 DMG:5dx20(5) ACC:6 RNG:120/400 HEAT:+4/shot` | Heavy beam fire. Light, the Remans call it, and they do not mean it poetically. |
-| KAGEBOSHI REMOTE BITS [EXP] | Reman | 4 | 10 | `ROF:4 DMG:6dx7(3) ACC:4 RNG:100/400 AMMO:16(2) SPARE:0 HEAT:+2/turn_used` | Attacking from every angle. Shadow-children, the Reman pilots call them. |
+| KAGEBOSHI REMOTE BITS [EXP] | Reman | 4 | 10 | `ROF:4 DMG:6dx6(4) ACC:4 RNG:100/400 AMMO:16(2) SPARE:0 HEAT:+2/turn_used` | Attacking from every angle. Shadow-children, the Reman pilots call them. |
 
 ## Defense (D)
 

@@ -1,5 +1,8 @@
 # Divisor proposals: not applied (catalogue v1)
 
+> **Superseded (Nov 1):** Overseer ruled that FORGE TL8 is the core catalogue's own base, and that additions step up from the comparable core item (TL9 by 0-2 divisor steps, TL10 by 1-3). Columns A and B below no longer apply; see `../reviews/review-tl-bands.md`.
+
+
 **Status:** proposals only. Every line in `items/` keeps its batch-2 v0 divisor until Overseer answers the root question:
 
 > **Does FORGE "TL8" equal GURPS TL8 as labeled (A), or GURPS TL10, the basis of the 3/51 tables (B)?** Under B, FORGE TL10 = GURPS TL12.
