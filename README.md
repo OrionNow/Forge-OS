@@ -14,7 +14,7 @@ FORGE-OS is an in-world mech sheet and terminal for a GURPS mecha campaign. It l
 
 ## Which version should I use?
 
-- **Stable:** [`versions/v5.0-stable/`](versions/v5.0-stable/), the copy from the MECHA project's Main chat.
+- **Stable:** [`versions/v5.0-stable/`](versions/v5.0-stable/)
 - **Latest:** the highest number in [`versions/`](versions/). Newer builds contain only the files that changed (`terminal.html`, `mp-bridge.js`, `forge-hook.js`, `server/room.server.ts`) and are dropped into a copy of v5.0-stable. See [`versions/README.md`](versions/README.md).
 
 ## Running the app
