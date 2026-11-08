@@ -15,7 +15,9 @@
    v21 (FORGE-OS 5.5): players view other units read-only (no rolls, skills or tab menu); chat carries the sender color
    (seat id fallback) and echoes locally off-table; the USERS list opens inside the operator console.
    v22 (FORGE-OS 5.5.1): chat lines that arrive without their chat card (rc stripped) still render as chat in the
-   sender colour (the old fallback tinted only the name and left the text in the grey .dim tone); roster LINK header removed. */
+   sender colour (the old fallback tinted only the name and left the text in the grey .dim tone); roster LINK header removed.
+   v25 (FORGE-OS 5.5.3 revision): reuse saved usernames, authorized roster renaming,
+   chat across terminal sections, and single-line roster location crawls. */
 (function () {
   if (!window.Forge || window.__forgeMP) {
     if (!window.Forge) {
@@ -38,6 +40,7 @@
     selfId: "",
     callsign: "",
     rev: -1,
+    chatRev: -1,
     rollSeq: 0,
     shadow: [],
     sheetFp: "",
@@ -247,7 +250,7 @@
   let queued = false;
 
   function schedule() {
-    if (!MP.on || !MP.ready || MP.applying) return;
+    if (!MP.linked || (MP.on && !MP.ready) || MP.applying) return;
     clearTimeout(MP.kick);
     MP.kick = setTimeout(() => { flush().catch((e) => { MP.error = String((e && e.message) || e); }); }, Math.max(220, (MP.holdUntil || 0) - Date.now()));
   }
@@ -260,6 +263,9 @@
       body: JSON.stringify(body),
     });
     const data = await res.json().catch(() => ({ error: "bad response" }));
+    // Chat follows the latest table revision even while the frame editor keeps
+    // its original revision for a safe merge when it returns to the sortie.
+    if (data && Number.isInteger(data.revision)) MP.chatRev = data.revision;
     if (data && Array.isArray(data.features)) MP.features = new Set(data.features);
     else if (data && data.ok && !Array.isArray(data.features)) MP.features = new Set();
     if (res.status === 409 && data && data.snapshot) {
@@ -275,6 +281,7 @@
       err.status = res.status;
       throw err;
     }
+    absorbIdentity(data);
     return data;
   }
 
@@ -350,6 +357,14 @@
   }
 
   function buildPush() {
+    // A linked user can chat from any section without publishing the local builder.
+    if (!MP.on) {
+      const logs = MP.logs.filter((line) => line.rc && line.rc.k === "chat").slice(0, 8);
+      if (!MP.linked || !logs.length) return null;
+      return { op: "push", code: MP.code, token: MP.token, baseRevision: Math.max(0, MP.chatRev >= 0 ? MP.chatRev : MP.rev),
+        rollSeq: MP.rollSeq, impacts: [], logs, rests: [], states: [], meta: null, paints: [],
+        order: null, upserts: [], drops: [], clear: false };
+    }
     if (!MP.ready || MP.rev < 0) return null;
     restoreUnowned();
     const local = localSheets();
@@ -460,7 +475,7 @@
     void run();
   }
 
-  function drainRolls(rolls) {
+  function drainRolls(rolls, chatOnly) {
     if (!rolls) return;
     const catchup = !MP.heard;
     for (const r of rolls) {
@@ -468,6 +483,9 @@
       MP.rollSeq = r.seq;
       if (catchup && rolls.length - rolls.indexOf(r) > 30) continue;
       if (r.nonce && MP.nonces.has(r.nonce)) continue;
+      const isChat = r.rc && r.rc.k === "chat";
+      const legacyChat = !r.rc && !r.uid && safeTone(r.tone) === "dim" && !/[<>]/.test(String(r.html || ""));
+      if (chatOnly && !isChat && !legacyChat) continue;
       // v5.3: structured console data. Chat and roll cards are rebuilt from plain strings (textContent/esc), never from HTML.
       if (r.rc && r.rc.k === "chat") {
         if (typeof chatShow === "function") chatShow(String(r.actor || "?"), actorColor(r.actor, r.color, r.actorId), String(r.rc.t || ""));
@@ -503,6 +521,19 @@
       } catch (e) { /* announcements are best effort */ }
     }
     if (catchup) MP.heard = true;
+  }
+
+  function absorbLinkedView(view) {
+    if (!view) return;
+    MP.members = view.members || MP.members;
+    absorbMembers(MP.members);
+    noteClear(view);
+    MP.roster = view.roster || MP.roster;
+    MP.hostOnline = !!view.hostOnline;
+    if (!MP.editing && typeof view.revision === "number") MP.rev = view.revision;
+    MP.memFp = stable(MP.members);
+    drainRolls(view.rolls || [], true);
+    paintFriends();
   }
 
   function applyRemote(view) {
@@ -785,13 +816,13 @@
       MP.stuck = false;
       MP.badPush = 0;
       MP.holdUntil = 0;
-      applyRemote(res);
+      if (MP.on) applyRemote(res); else absorbLinkedView(res);
       return true;
     } catch (err) {
       if (err.conflict) {
         MP.confAt = Date.now();
-        applyRemote(err.conflict);
-        rebase(payload);
+        if (MP.on) { applyRemote(err.conflict); rebase(payload); }
+        else absorbLinkedView(err.conflict);
         MP.conflictTries = (MP.conflictTries || 0) + 1;
         if (MP.conflictTries > 4) {
           /* R4: never drop queued hits or lines; keep them and retry on the next tick */
@@ -824,7 +855,7 @@
 
   async function flush(force) {
     if (!force && (MP.holdUntil || 0) > Date.now()) return;
-    if (!MP.ready || pushing) {
+    if (!MP.linked || (MP.on && !MP.ready) || pushing) {
       if (pushing) queued = true;
       return;
     }
@@ -866,7 +897,7 @@
       MP.roster = res.roster || MP.roster;
       MP.hostOnline = !!res.hostOnline;
       if (typeof res.revision === "number" && !MP.on && !MP.editing) MP.rev = res.revision;
-      if (MP.on) drainRolls(res.rolls || []);
+      drainRolls(res.rolls || [], !MP.on);
       const memFp = stable(MP.members);
       if (memFp !== MP.memFp && MP.on && !isTyping()) {
         MP.memFp = memFp;
@@ -954,9 +985,11 @@
     S.authRole = "";
     S.sheets = [];
     S.cur = null;
-    S.view = "mpw";
-    Forge.say("[ -- ] LINK RESET :: RE-ENTER YOUR CALLSIGN TO RE-AUTHENTICATE WITH THE TABLE", "warn");
+    const remembered = savedCallsign();
+    S.view = remembered ? "login" : "mpw";
+    Forge.say(remembered ? "[ -- ] LINK RESET :: RECONNECTING SAVED USERNAME" : "[ -- ] LINK RESET :: ENTER A USERNAME TO CONNECT", "warn");
     Forge.render();
+    if (remembered) void window.mpAuth(remembered);
   };
 
   function mpLine(m, k) { MP.applying = true; try { Forge.say(m, k || "dim"); } finally { MP.applying = false; } }
@@ -1217,7 +1250,7 @@
       try { view = Forge.state().view || ""; role = Forge.state().role || ""; } catch (e) { view = ""; }
       const pre = !role || ["login", "pw", "researchPw", "mpw", "deny", "lock"].includes(view);
       // v5.3: only "/..." is a command; anything else is chat to the table
-      if (t && t[0] !== "/" && !pre && MP.on && MP.ready) { sendChat(t); return; }
+      if (t && t[0] !== "/" && !pre && MP.linked && (!MP.on || MP.ready)) { sendChat(t); return; }
       if (t && t[0] !== "/" && !pre && typeof chatShow === "function") {
         const me = MP.linked ? meMember() : null;
         chatShow(me ? shownName(me) : (MP.callsign || "LOCAL"), (MP.linked && selfColor()) || "var(--cyan)", t.slice(0, 500));
@@ -1792,15 +1825,23 @@
       const nameStyle = tint ? ` style="color:${tint}"` : "";
       const synced = where === "Sortie" && (m.id === MP.selfId ? MP.status === "online" : !!m.online);
       const inSortie = !away && synced;
-      const place = away ? `<div class=bad>[OFFLINE]</div>` : inSortie ? `<div class=onl>[ONLINE]</div>` : `<div class=dim>[${esc(where)}]</div>`;
+      const state = away ? "bad" : inSortie ? "onl" : "dim";
+      const location = away ? "OFFLINE" : inSortie ? "ONLINE" : where;
+      const place = `<div class="mp-place ${state}" title="${esc(location)}"><span class=mp-place-text>[${esc(location)}]</span></div>`;
     const canTint = MP.role === "host" || m.id === MP.selfId;
-    const click = canTint ? ` onclick="mpTint(event,'${m.id}')" title="Change this seat's color (seat ${seatTag(m.id)})"` : ` title="Seat ${seatTag(m.id)}"`;
+    const click = canTint ? ` onclick="mpTint(event,'${m.id}')" tabindex=0 role=button aria-haspopup=menu title="Click to change color; right-click to change username (seat ${seatTag(m.id)})"` : ` title="Seat ${seatTag(m.id)}"`;
     const tintClass = canTint ? " tint" : "";
-    return `<div class="mprow${host}${dark}"><b class="${tintClass}"${nameStyle}${click}>${esc(name)}</b>${you}${place}</div>`;
+    return `<div class="mprow${host}${dark}"><b data-member="${m.id}" class="${tintClass}"${nameStyle}${click}>${esc(name)}</b>${you}${place}</div>`;
     }).join("");
     const sync = syncHtml();
     const html = `${MP.seatsOpen ? `<div class=mpbody>${rows || `<div class=dim>no seats</div>`}</div>` : ""}`;
-    if (box.innerHTML !== html) box.innerHTML = html;
+    // Crawl classes/styles change the live markup. Compare the source instead
+    // so an unchanged roster keeps moving across polling intervals.
+    if (box.__forgeRosterHtml !== html) {
+      box.innerHTML = html;
+      box.__forgeRosterHtml = html;
+    }
+    crawlPlaces(box);
     const rb = document.getElementById("rosterBtn");
     if (rb) {
       rb.hidden = false;
@@ -1810,6 +1851,62 @@
       rb.setAttribute("aria-expanded", MP.seatsOpen ? "true" : "false");
     }
   }
+
+  function crawlPlaces(box) {
+    box.querySelectorAll(".mp-place").forEach((line) => {
+      const text = line.querySelector(".mp-place-text");
+      if (!text) return;
+      const distance = text.scrollWidth - line.clientWidth;
+      line.classList.toggle("is-crawling", distance > 2);
+      line.style.setProperty("--mp-crawl-distance", -Math.max(0, distance) + "px");
+      line.style.setProperty("--mp-crawl-duration", Math.max(5, distance / 18) + "s");
+    });
+  }
+  window.addEventListener("resize", () => { const box = document.getElementById("mpfriends"); if (box) crawlPlaces(box); });
+
+  function userMenu(event, anchor) {
+    if (!anchor) return;
+    const id = anchor.dataset.member;
+    if (MP.role !== "host" && id !== MP.selfId) return;
+    event.preventDefault(); event.stopPropagation();
+    const member = (MP.members || []).find((m) => m.id === id);
+    if (!member || typeof ctxOpen !== "function") return;
+    ctxOpen(anchor, shownName(member) + " // USER", [
+      { l: "Change username…", tip: "Change this user's saved table name", run: () => window.mpRenameUser(id) },
+      { l: "Change color…", tip: "Change this user's name color", run: () => window.mpTint(null, id) }
+    ], event.clientX || undefined, event.clientY || undefined, () => document.querySelector('#mpfriends [data-member="' + id + '"]'));
+  }
+  document.addEventListener("contextmenu", (event) => {
+    const anchor = event.target.closest && event.target.closest("#mpfriends [data-member]");
+    if (anchor) userMenu(event, anchor);
+  });
+  document.addEventListener("keydown", (event) => {
+    const anchor = event.target.closest && event.target.closest("#mpfriends [data-member]");
+    if (anchor && (event.key === "ContextMenu" || (event.shiftKey && event.key === "F10"))) userMenu(event, anchor);
+  });
+  window.mpRenameUser = async function (id) {
+    if (!MP.linked || (MP.role !== "host" && id !== MP.selfId)) return;
+    const member = (MP.members || []).find((m) => m.id === id);
+    if (!member) return;
+    const value = window.prompt("CHANGE USERNAME // 1-16 letters, digits, spaces, . _ -", member.callsign || "");
+    if (value == null) return;
+    const name = value.trim();
+    if (!/^[A-Za-z0-9][A-Za-z0-9 ._-]{0,15}$/.test(name) || name.toUpperCase() === "USER UNKNOWN") {
+      Forge.say("[FAIL] USERNAME REJECTED :: use 1-16 letters, digits, spaces, . _ -", "bad");
+      Forge.render(); return;
+    }
+    try {
+      const view = await api({ op: "rename", code: MP.code, token: MP.token, memberId: id, callsign: name });
+      MP.members = view.members || MP.members;
+      absorbMembers(MP.members);
+      MP.memFp = "";
+      paintFriends();
+      if (MP.on && !isTyping()) Forge.render();
+    } catch (err) {
+      Forge.say("[FAIL] USERNAME CHANGE REFUSED :: " + esc(err.message || "channel down"), "bad");
+      Forge.render();
+    }
+  };
 
   window.mpSeats = function () {
     MP.seatsOpen = !MP.seatsOpen;
@@ -2352,6 +2449,22 @@
     } catch (e) { /* private mode */ }
   }
 
+  function absorbIdentity(view) {
+    const you = view && view.you;
+    if (!you || !MP.selfId || you.id !== MP.selfId || !MP.token) return;
+    const name = String(you.callsign || "").trim();
+    if (!/^[A-Za-z0-9][A-Za-z0-9 ._-]{0,15}$/.test(name) || name.toUpperCase() === "USER UNKNOWN") return;
+    const changed = name !== MP.callsign;
+    MP.callsign = name;
+    MP.role = you.role === "host" ? "host" : "player";
+    rememberSeat({ token: MP.token, you }, name);
+    if (changed) {
+      window.__mpDraft = name;
+      const color = selfColor();
+      if (color) cacheSelfTint(color);
+    }
+  }
+
   function startLink(session) {
     MP.linked = true;
     MP.code = String(session.code || "TABLE");
@@ -2394,84 +2507,87 @@
     Forge.render();
   }
 
-  window.mpAuth = async function () {
-    if (MP.busy || MP.on) return;
-    const el = document.getElementById("mpname");
-    const name = (el && el.value ? el.value : "").trim();
-    window.__mpDraft = name;
-    if (!/^[A-Za-z0-9][A-Za-z0-9 ._-]{0,15}$/.test(name) || name.toUpperCase() === "USER UNKNOWN") {
-      Forge.say("[FAIL] CALLSIGN REJECTED :: 1-16 characters. Letters, digits, spaces, periods, underscores or hyphens.", "bad");
-      Forge.render();
-      return;
-    }
-    MP.busy = true;
-    try {
+  async function connectSeat(name) {
+    if (MP.connecting) return MP.connecting;
+    MP.connecting = (async () => {
       const saved = MP.token ? { token: MP.token, id: MP.selfId, role: MP.role } : readSeat();
       let data = null;
       if (saved && saved.token) {
         try {
-          data = await api({ op: "resume", code: "TABLE", token: saved.token, callsign: name });
+          data = await api({ op: "resume", code: "TABLE", token: saved.token });
           data.token = saved.token;
         } catch (err) {
           if (!err.rejected && !err.ended) throw err;
           try { localStorage.removeItem("forge_mp_token_TABLE"); } catch (e) { /* private mode */ }
-          data = null;
         }
       }
       if (!data) data = await api({ op: "enter", callsign: name });
       if (!data.token || !data.you) throw new Error("the channel did not return a seat");
       rememberSeat(data, data.you.callsign || name);
-      if (typeof audioEvent === "function") audioEvent("chassisSelectSuccess", true);
-      enterSortie({
-        code: data.code || "TABLE",
-        token: data.token,
-        id: data.you.id,
-        role: data.you.role === "host" ? "host" : "player",
-        callsign: data.you.callsign || name,
-        members: data.members || [],
-      });
-    } catch (err) {
-      Forge.say("[FAIL] INTERCEPT REFUSED :: " + (err.message || "channel down"), "bad");
-      Forge.render();
-    } finally {
-      MP.busy = false;
+      return { code: data.code || "TABLE", token: data.token, id: data.you.id,
+        role: data.you.role === "host" ? "host" : "player", callsign: data.you.callsign || name,
+        members: data.members || [] };
+    })();
+    try { return await MP.connecting; } finally { MP.connecting = null; }
+  }
+
+  function forgetUnavailableName() {
+    try {
+      localStorage.removeItem("forge_mp_callsign");
+      localStorage.removeItem("forge_mp_token_TABLE");
+    } catch (e) { /* private mode */ }
+    window.__mpDraft = "";
+    if (!MP.linked) { MP.token = ""; MP.selfId = ""; MP.callsign = ""; }
+  }
+
+  window.mpAuth = async function (rememberedName) {
+    if (MP.busy || MP.on) return;
+    const el = document.getElementById("mpname");
+    const name = (typeof rememberedName === "string" ? rememberedName : (el && el.value) || savedCallsign()).trim();
+    window.__mpDraft = name;
+    if (!/^[A-Za-z0-9][A-Za-z0-9 ._-]{0,15}$/.test(name) || name.toUpperCase() === "USER UNKNOWN") {
+      Forge.say("[FAIL] CALLSIGN REJECTED :: 1-16 characters. Letters, digits, spaces, periods, underscores or hyphens.", "bad");
+      Forge.render(); return;
     }
+    MP.busy = true;
+    try {
+      const session = await connectSeat(name);
+      if (typeof audioEvent === "function") audioEvent("chassisSelectSuccess", true);
+      enterSortie(session);
+    } catch (err) {
+      if (err.status === 409 && !err.conflict && !MP.linked) {
+        forgetUnavailableName();
+        const S = Forge.state();
+        S.role = ""; S.authRole = ""; S.view = "mpw";
+      }
+      Forge.say("[FAIL] INTERCEPT REFUSED :: " + esc(err.message || "channel down"), "bad");
+      Forge.render();
+    } finally { MP.busy = false; }
   };
 
   async function connectQuiet() {
     if (MP.linked || MP.busy) return;
-    /* No silent seats: only a pilot who already holds a seat token and a callsign is reconnected.
-       Everyone else stays local until they choose LIVE DATA INTERCEPT and enter a callsign (mpAuth). */
     const remembered = savedCallsign();
-    const saved = readSeat();
-    if (!saved || !remembered) return;
-    const name = remembered;
+    if (!remembered) return;
     try {
-      let data = null;
-      try {
-        data = await api({ op: "resume", code: "TABLE", token: saved.token, callsign: remembered });
-        data.token = saved.token;
-      } catch (err) {
-        if (!err.rejected && !err.ended) throw err;
-        try { localStorage.removeItem("forge_mp_token_TABLE"); } catch (e) { /* private mode */ }
-        return;
-      }
-      if (!data.token || !data.you) throw new Error("no seat");
-      const kept = data.you.callsign || name;
-      rememberSeat(data, kept);
-      startLink({
-        code: data.code || "TABLE",
-        token: data.token,
-        id: data.you.id,
-        role: data.you.role === "host" ? "host" : "player",
-        callsign: kept,
-        members: data.members || [],
-      });
+      startLink(await connectSeat(remembered));
+      MP.quietFails = 0;
     } catch (e) {
+      // An unavailable saved name needs a new name, not endless auto-connects.
+      if (e.status === 409) { forgetUnavailableName(); return; }
+      if (e.rejected) return;
       MP.quietFails = (MP.quietFails || 0) + 1;
       setTimeout(connectQuiet, Math.min(30000, 2000 * Math.pow(2, MP.quietFails - 1)));
     }
   }
+
+  // A remembered username is applied directly; the entry form is for a new user.
+  Forge.wrap("login", (prev) => function (n) {
+    if (+n !== 6) return prev.apply(this, arguments);
+    const remembered = savedCallsign();
+    if (!remembered) return prev.apply(this, arguments);
+    void window.mpAuth(remembered);
+  });
 
   function boot() {
     document.documentElement.classList.remove("mp-wait");

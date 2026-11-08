@@ -44,8 +44,8 @@ function check(ok, label) {
     check(!/id="uxbar"|id="uxhelp"/.test(exported) && !/src="terminal-ui\.js|href="terminal-ui\.css/.test(exported), 'catalogue HTML export embeds the UI and clears live toolbar state');
     await page.route('**/exported-553.html', route => route.fulfill({ contentType: 'text/html', body: exported }));
     await page.goto(base + '/exported-553.html');
-    await page.waitForSelector('#uxbar');
-    check(await page.locator('#uxbar').count() === 1 && await page.locator('[data-ux-row]').count() === 6, 'exported HTML reopens with one usable clearance screen');
+    await page.waitForSelector('[data-ux-row]');
+    check(await page.locator('#uxbar').count() === 0 && await page.locator('[data-ux-row]').count() === 6, 'exported HTML reopens with one usable clearance screen');
 
     const fixture = fs.readFileSync(path.join(__dirname, 'tests/musha-brittle.manifest.txt'), 'utf8');
     await page.evaluate(async fixture => {
@@ -61,14 +61,14 @@ function check(ok, label) {
 
     for (const width of [390, 320]) {
       await page.setViewportSize({ width, height: 844 });
-      await page.locator('.ux-panes button[data-pane=workspace]').click();
-      check(await page.locator('#con').isVisible() && !await page.locator('#sh').isVisible(), width + 'px workspace shows damage controls without the hidden loadout taking space');
-      await page.locator('#uxDamageTarget').selectOption('1');
-      check(await page.evaluate(() => S.dmg.loc === 1), width + 'px component selector changes the incoming target');
-      await page.locator('.ux-panes button[data-pane=sheet]').click();
-      check(await page.locator('#sh').isVisible() && !await page.locator('#con').isVisible(), width + 'px loadout is reachable in one action');
-      await page.locator('.ux-panes button[data-pane=console]').click();
-      check(await page.locator('#cb').isVisible() && await page.evaluate(() => document.activeElement.id === 'CI'), width + 'px console opens with command focus');
+      await page.locator('.damagebox').scrollIntoViewIfNeeded();
+      check(await page.locator('#con').isVisible() && await page.locator('#sh').isVisible(), width + 'px stacked workspace and loadout are both available');
+      await page.locator('.mlab[data-loc="1"]').first().click();
+      check(await page.evaluate(() => S.dmg.loc === 1), width + 'px paper-doll selection changes the incoming target');
+      await page.locator('#sh').scrollIntoViewIfNeeded();
+      check(await page.locator('#sh').isVisible() && await page.locator('#con').isVisible(), width + 'px loadout remains visible without a panel switcher');
+      await page.locator('#pr').click();
+      check(await page.locator('#cb').isVisible() && await page.evaluate(() => document.activeElement.id === 'CI'), width + 'px console accepts command focus');
       check(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), width + 'px encounter fits the viewport');
     }
     check(errors.length === 0, 'builder, export and encounter flows have no page errors');

@@ -167,14 +167,10 @@ function check(condition, message, evidence) {
     const tabState = await page.evaluate(() => { const id = S.id; shGo(0); const first = S.id; shGo(1); return { first, restored: S.id === id, skill: S.pilot.pil }; });
     check(/MSH-01/.test(tabState.first) && tabState.restored && tabState.skill === '14', 'switching sheets preserves independent identity and edited skill', tabState);
 
-    // Discoverable 5.5.3 controls invoke the same authoritative game handlers.
-    await page.locator('#uxDamageTarget').selectOption('1');
-    check(await page.evaluate(() => S.dmg.loc) === 1, 'component dropdown selects the intended impact zone');
-    await page.getByRole('button', { name: 'Repair or apply damage to the selected component', exact: true }).click();
-    check(await page.locator('#tabmenu button', { hasText: 'Repair component' }).count() === 1, 'visible component Actions button opens the repair menu');
-    await page.keyboard.press('Escape');
-    await page.locator('.ux-item-menu').first().click();
-    check(await page.locator('#tabmenu button', { hasText: 'Info' }).count() === 1, 'visible equipment options button opens the equipment menu');
+    check(await page.locator('.ux-menu,.ux-item-menu,#uxDamageTarget,#sheetMenu').count() === 0, 'extra menu triggers, target selector and sheet-actions button are absent');
+    check(await page.locator('#con>.pane-head,#sh>.pane-head').count() === 0, 'sortie numbered section headers are absent');
+    await page.locator('.defbtn').click({ button: 'right' });
+    check(await page.locator('#tabmenu').count() === 1, 'main defense button retains its right-click menu');
     await page.keyboard.press('Escape');
 
     const ui = await context.newPage();
@@ -187,12 +183,7 @@ function check(condition, message, evidence) {
     await frameChoice.waitFor();
     await frameChoice.focus(); await ui.keyboard.press('Space');
     check(await ui.evaluate(() => cfg().ch !== null || !!S.ch), 'keyboard Enter opens Guest and Space selects a chassis');
-    await ui.locator('#uxDisplay').click();
-    await ui.locator('#tabmenu button', { hasText: 'Roomy controls' }).click();
-    const roomy = await ui.evaluate(() => document.body.dataset.density);
-    await ui.reload();
-    await ui.waitForSelector('#uxDisplay');
-    check(roomy === 'roomy' && await ui.evaluate(() => document.body.dataset.density) === 'roomy', 'Roomy display preference persists across reload');
+    check(await ui.locator('#uxbar,#uxDisplay,#uxHelp').count() === 0, 'location/display/help toolbar is absent');
     const overflow = [];
     for (const width of [1920, 1280, 1024, 768, 390, 320]) {
       await ui.setViewportSize({ width, height: 900 });

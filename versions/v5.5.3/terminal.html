@@ -342,7 +342,6 @@ body::after {
   background:repeating-linear-gradient(transparent 0 3px,#000 3px 4px);
   opacity:.055;
 }
-body[data-density="roomy"] { --ctl-h:32px; }
 #wrap {
   width:100%;
   max-width:1440px;
@@ -401,38 +400,6 @@ main {
   font:inherit;
   letter-spacing:.03em;
 }
-.uxbar {
-  display:flex;
-  flex-shrink:0;
-  align-items:center;
-  flex-wrap:wrap;
-  gap:6px 10px;
-  padding:7px 0 0;
-  color:var(--muted);
-  font-size:var(--fs-d);
-}
-.ux-context {
-  flex:1 1 200px;
-  min-width:0;
-  color:var(--cyan);
-  letter-spacing:.05em;
-  overflow-wrap:anywhere;
-}
-.ux-panes { display:none; }
-#uxDisplay,#uxHelp { font-size:var(--fs-d)!important; }
-#uxhelp {
-  flex:none;
-  margin-top:8px;
-  padding:10px 12px;
-  border:1px solid var(--line);
-  border-left:2px solid var(--cyan);
-  background:var(--ux-raised);
-  color:var(--muted);
-  font-size:var(--fs-l);
-}
-#uxhelp[hidden] { display:none; }
-#uxhelp p { margin:4px 0; }
-#uxhelp b,#uxhelp strong,#uxhelp code { color:var(--cyan); }
 #bar>.panel { padding:8px 12px; }
 .gauge { height:6px; background:var(--bg); margin-top:6px; }
 button {
@@ -465,16 +432,21 @@ input::placeholder,textarea::placeholder { color:var(--muted); opacity:.8; }
 .row:hover,.row:focus-visible {
   background:var(--ux-raised);
   border-left-color:var(--cyan);
+  border-bottom-color:var(--cyan);
+  box-shadow:inset 0 -1px 0 var(--cyan);
 }
 .row.on {
   border-left-color:var(--cyan);
   background:var(--hover);
+  border-bottom-color:var(--cyan);
+  box-shadow:inset 0 -1px 0 var(--cyan);
 }
 .row.on::selection { background:var(--panel); }
 .drag-row.aw {
   background:color-mix(in srgb,var(--panel) 78%,var(--bg));
-  box-shadow:inset 3px 0 0 var(--c-gold);
+  box-shadow:inset 3px 0 0 var(--cyan),inset 0 -1px 0 var(--cyan);
 }
+.drag-row.aw .nm { color:var(--cyan); }
 .st { padding-top:2px; }
 .row .rowbtns { margin-left:8px; }
 .sec {
@@ -561,11 +533,6 @@ input::placeholder,textarea::placeholder { color:var(--muted); opacity:.8; }
   #bar .sheet-tools:has(#sheetQuery) { flex:1 1 290px; }
   #bar #sheetEmpty { flex-basis:100%; order:3; }
 }
-.ux-menu {
-  min-width:var(--ctl-h);
-  padding:0 5px!important;
-  font-size:var(--fs-d)!important;
-}
 .stabs { gap:6px; }
 .stab[hidden],#sheetEmpty[hidden] { display:none!important; }
 .stab {
@@ -598,22 +565,6 @@ input::placeholder,textarea::placeholder { color:var(--muted); opacity:.8; }
   border-left:3px solid var(--cyan);
 }
 .damagebox .dbt { font-size:var(--fs-l); letter-spacing:.04em; }
-.damage-target {
-  display:flex;
-  flex:1 1 100%;
-  flex-wrap:wrap;
-  align-items:center;
-  gap:5px 8px;
-  padding-bottom:5px;
-  margin-bottom:1px;
-  border-bottom:1px solid var(--ux-edge);
-  color:var(--muted);
-  font-size:var(--fs-l);
-}
-.damage-target label { flex:0 1 auto; min-width:0; white-space:nowrap; }
-.damage-target select { width:auto; max-width:230px; }
-.damage-target b,.damage-target strong { color:var(--c-gold); }
-.damage-target .ux-menu { margin-left:auto!important; }
 .damagebox #dm_apply:not(:disabled) {
   border-color:var(--c-gold);
   color:var(--c-gold);
@@ -653,9 +604,13 @@ input::placeholder,textarea::placeholder { color:var(--muted); opacity:.8; }
 .conhead .lfbtn { margin-left:0; }
 #cb.cs1 #log { height:140px; min-height:110px; }
 #log>div[data-k="roll"],#log>div[data-k="chat"] {
-  padding:5px 0;
-  border-bottom:1px solid var(--ux-hairline);
+  margin:0;
+  padding:0;
+  border:0;
+  line-height:inherit;
 }
+#log .rc { padding:0; line-height:inherit; }
+#log .rcd { line-height:inherit; }
 #pr {
   min-height:var(--ctl-h);
   margin-top:8px;
@@ -667,7 +622,23 @@ input::placeholder,textarea::placeholder { color:var(--muted); opacity:.8; }
 #toast { max-width:calc(100vw - 24px); box-shadow:0 4px 20px #0008; }
 .tabmenu { max-width:calc(100vw - 16px); max-height:calc(100dvh - 16px); overflow-y:auto; }
 .tabmenu button { min-height:var(--ctl-h)!important; }
-.welcome { padding:24px 8px; gap:6px; }
+body[data-view="login"] #sh {
+  display:flex;
+  flex-direction:column;
+  overflow:hidden;
+  min-height:0;
+}
+body[data-view="login"] #sh>.pane-head { flex:none; }
+.welcome {
+  flex:1 1 auto;
+  height:auto;
+  min-height:0;
+  padding:clamp(8px,2.5vh,24px) 8px;
+  gap:6px;
+}
+.welcome>* { flex-shrink:0; }
+body[data-view="login"] .welcome { justify-content:center; }
+
 .welcome-title { max-width:480px; font-size:18px; line-height:1.45; letter-spacing:.1em; }
 .welcome-sub { margin-top:8px; font-size:var(--fs-l); }
 .ux-mark {
@@ -686,14 +657,6 @@ input::placeholder,textarea::placeholder { color:var(--muted); opacity:.8; }
   box-shadow:inset 0 0 0 5px var(--bg),inset 0 0 0 6px var(--ux-edge);
 }
 .ux-mark svg { display:block; width:60px; height:60px; max-width:80%; max-height:80%; }
-body.mp-view .ux-item-menu { display:none!important; }
-body.ux-reduced::after { display:none; }
-body.ux-reduced *,body.ux-reduced *::before,body.ux-reduced *::after {
-  animation:none!important;
-  transition:none!important;
-  scroll-behavior:auto!important;
-}
-body.ux-reduced #hudfx,body.ux-reduced .blink { display:none!important; }
 .ux-login-note {
   margin:12px 0;
   padding:9px;
@@ -702,8 +665,6 @@ body.ux-reduced #hudfx,body.ux-reduced .blink { display:none!important; }
   color:var(--muted);
   font-size:var(--fs-l);
 }
-body[data-density="roomy"] .row { padding-top:11px; padding-bottom:11px; }
-body[data-density="roomy"] .secrow.shh { padding-top:8px; padding-bottom:8px; }
 @media(min-width:1700px) {
   #wrap { max-width:1440px; }
   main { grid-template-columns:minmax(0,1fr) minmax(0,1fr); }
@@ -723,24 +684,10 @@ body[data-density="roomy"] .secrow.shh { padding-top:8px; padding-bottom:8px; }
 }
 @media(max-width:900px) {
   #wrap { min-height:100dvh; height:auto; padding:8px; }
-  .uxbar { position:sticky; top:0; z-index:30; gap:6px; padding:8px 0 6px; background:var(--bg); }
-  .ux-context { flex-basis:calc(100% - 180px); }
-  .ux-panes { display:flex; flex:1 1 100%; order:3; gap:4px; }
-  .ux-panes button { flex:1 1 0; margin-left:0!important; min-height:32px!important; }
-  .ux-panes button[aria-pressed="true"],.ux-panes button.on {
-    background:var(--hover);
-    border-color:var(--cyan);
-    box-shadow:inset 0 -2px 0 var(--cyan);
-  }
   main { display:block; flex:none; margin-top:10px; }
   #con,#sh { overflow:visible; min-height:50vh; height:auto; }
-  #rt { min-height:50vh; }
-  body[data-pane="workspace"] #rt { display:none!important; }
-  body[data-pane="sheet"] #con,body[data-pane="console"] #con { display:none!important; }
-  body[data-pane="sheet"] #cb { display:none!important; }
-  body[data-pane="console"] #sh { display:none!important; }
-  body[data-pane="console"] #cb { min-height:58vh; }
-  body[data-pane="console"] #cb.cs1 #log { height:48vh; min-height:40vh; }
+  #rt { min-height:0; margin-top:10px; }
+  #cb { flex:none; }
   .panel { padding:10px; }
   .pane-head { margin-bottom:10px; }
   #con,#sh { scroll-padding-top:10px; }
@@ -748,8 +695,7 @@ body[data-density="roomy"] .secrow.shh { padding-top:8px; padding-bottom:8px; }
   #bar>.panel { margin-top:10px!important; padding:8px; }
   .pilot .pg { grid-template-columns:repeat(4,minmax(0,1fr)); }
   .pbot { grid-template-columns:minmax(0,1fr) minmax(0,1fr); }
-  .welcome { min-height:50vh; }
-  .sline { white-space:normal; overflow:visible; overflow-wrap:anywhere; }
+  .sline:not(.ux-line-crawl) { white-space:normal; overflow:visible; overflow-wrap:anywhere; }
   .catalog-tools { position:static; }
   .clogbox { max-height:90dvh; }
 }
@@ -759,9 +705,6 @@ body[data-density="roomy"] .secrow.shh { padding-top:8px; padding-bottom:8px; }
   header .hsub { flex:1 1 auto; }
   header #who { display:flex; flex-wrap:wrap; align-items:center; gap:4px; width:100%; font-size:var(--fs-d); }
   header #who>button { margin-left:auto!important; }
-  .uxbar { font-size:var(--fs-d); }
-  .ux-context { flex-basis:100%; }
-  #uxDisplay,#uxHelp { flex:1 1 auto; }
   button { padding:0 6px!important; }
   .editor-grid { grid-template-columns:minmax(0,1fr); }
   .pilot .pg { grid-template-columns:repeat(2,minmax(0,1fr)); }
@@ -837,8 +780,56 @@ body[data-density="roomy"] .secrow.shh { padding-top:8px; padding-bottom:8px; }
   .welcome-title { font-size:16px; }
   .ux-mark { width:64px; height:64px; font-size:25px; }
 }
+
+/* Single-line telemetry and roster locations retain the complete text on hover. */
+.ux-line-crawl,.mp-place {
+  min-width:0;
+  max-width:100%;
+  overflow:hidden;
+  white-space:nowrap;
+  text-overflow:clip;
+  overflow-wrap:normal;
+  word-break:normal;
+}
+.ux-line-crawl>.ux-line-text,.mp-place>.mp-place-text {
+  display:inline-block;
+  width:max-content;
+  min-width:100%;
+  white-space:nowrap;
+  vertical-align:top;
+}
+.ux-line-crawl.is-crawling>.ux-line-text {
+  animation:ux-line-crawl var(--ux-crawl-duration,12s) linear infinite;
+}
+.mp-place.is-crawling>.mp-place-text {
+  animation:mp-place-crawl var(--mp-crawl-duration,12s) linear infinite;
+}
+.ux-line-crawl:hover>.ux-line-text,.ux-line-crawl:focus-within>.ux-line-text,
+.mp-place:hover>.mp-place-text,.mp-place:focus-within>.mp-place-text {
+  animation-play-state:paused;
+}
+@keyframes ux-line-crawl {
+  0%,15% { transform:translateX(0); }
+  85%,100% { transform:translateX(var(--ux-crawl-distance,0px)); }
+}
+@keyframes mp-place-crawl {
+  0%,15% { transform:translateX(0); }
+  85%,100% { transform:translateX(var(--mp-crawl-distance,0px)); }
+}
+@media(max-width:900px) {
+  body[data-view="login"] #sh { min-height:300px; }
+  body[data-view="login"] .welcome { min-height:240px; }
+}
+@media(min-width:901px) and (max-height:680px) {
+  body[data-view="login"] #wrap { min-height:600px; }
+  body[data-view="login"] .welcome { padding:6px; gap:3px; }
+  body[data-view="login"] .ux-mark { width:48px; height:48px; margin-bottom:5px; }
+  body[data-view="login"] .welcome-title { font-size:15px; line-height:1.3; }
+  body[data-view="login"] .welcome-sub { margin-top:3px; }
+}
 @media(prefers-reduced-motion:reduce) {
   *,*::before,*::after { scroll-behavior:auto!important; }
+  .ux-line-crawl>.ux-line-text,.mp-place>.mp-place-text { animation:none!important; transform:none!important; }
 }
 </style></head><body class=""><div id="sr" class="sr-only" aria-live="polite"></div><div id="sra" class="sr-only" aria-live="assertive"></div><div id="hudfx" aria-hidden="true"></div><div id="wrap">
 <header><span class="hbrand" title="CORE EMPIRE // SCIENCE CORPS R+D // FORGE-OS"><b>CORE EMPIRE</b>&nbsp;<span class="hsub">// SCIENCE CORPS R+D</span><span class="hb2">&nbsp;// FORGE-OS v<span id="ver" class="verlink" onclick="openLog()" title="Open the changelog">5.5.3</span> // TL8</span></span><span class="hctl"><button id="muteBtn" class="audio-btn" type="button" onclick="toggleMute()" title="Toggle terminal audio feedback (muted by default)">[AUDIO: ON]</button> <button id="themeBtn" class="audio-btn" type="button" onclick="cycleTheme()" title="Cycle color theme (current: IMPERIAL NAVY)">[THEME: IMPERIAL NAVY]</button> <span id="clk" class="dim clk" title="Sector standard time">c 120.11.01 19:22:17</span></span><span id="who"></span></header>
@@ -1431,7 +1422,7 @@ function vehMap(t,L,prev){
 const FK=['ch','items','tel','id','cs','dmg','rolls','uiHP','pilot','natk','info','dmgN','core','undo','stab','importReport','importNotesHidden','hitq','own','tgw'];
 const shSnap=()=>{const d={};FK.forEach(k=>d[k]=S[k]);return d},shApply=d=>{FK.forEach(k=>{S[k]=d[k]});if(typeof S.importNotesHidden!=='boolean')S.importNotesHidden=true},shSave=()=>{if(S.sheets&&S.sheets[S.cur])S.sheets[S.cur].d=shSnap()};
 function shLabel(i){const sh=S.sheets[i];if(sh.name)return sh.name;const d=i==S.cur?S:sh.d||{};return fidJoin(d.id,d.cs)||'SHEET '+(i+1)}
-const SH_COL=['','#3aa0ff','#b57bff','#ff5a5a','#ffd23a','#4ade80'],SH_DOLL_COL=['var(--ac)','#2ee6e6','#b86bff','#ff5a5a','#e6b83a','#4fd96a'],SH_TH=['','navy','sci','talon','remus','crow'];
+const SH_COL=['','#2ee6e6','#b57bff','#ff5a5a','#ffd23a','#4ade80'],SH_DOLL_COL=['var(--ac)','#2ee6e6','#b86bff','#ff5a5a','#e6b83a','#4fd96a'],SH_TH=['','navy','sci','talon','remus','crow'];
 function dollTT(){const sh=S.sheets&&S.sheets[S.cur],k=sh?SH_TH[sh.col||0]:'';return k?` data-tt="${k}"`:''}
 function shStatus(i){if(i==S.cur)return frameStatus();const sh=S.sheets[i];if(!sh.d||!sh.d.ch)return['--','dim'];const keep=shSnap();try{shApply(sh.d);return frameStatus()}finally{shApply(keep)}}
 function sheetTabs(){return S.sheets.map((sh,i)=>{const nm=shLabel(i),st=shStatus(i),c=SH_COL[sh.col||0],ed=S.shEdit===i,on=i==S.cur;return`<span class="stab${on?' on':''}" data-i="${i}" tabindex=0 role=button aria-haspopup=menu onmousedown="if(!event.target.closest('input,button'))event.preventDefault()" onselectstart="return false" ${c?`style="border-color:${c};color:${c};${on?`box-shadow:0 0 0 1px ${c},0 0 8px ${c}66`:''}"`:''} ${ed?'':'draggable=true'} onclick="shClick(${i})" ondragstart="shDragStart(event,${i})" ondragover="shDragOver(event)" ondrop="shDrop(event,${i})" ondragend="S.shDrag=-1" title="${esc(st[0])}${on?' :: click again to cycle outline color (also themes the paper doll), drag to reorder':' :: click to open, drag to reorder'} :: right-click or Shift+F10 for sheet actions">`+(ed?`<input id=shn maxlength=28 value="${esc(nm)}" onclick="event.stopPropagation()" onblur="shCommit(${i},this.value)" onkeydown="if(event.key=='Enter')this.blur();if(event.key=='Escape'){S.shEdit=-1;R()}">`:`<span class="stn ${st[1]}" style="color:${c||'var(--muted)'}">${esc(nm)}</span>`)+`<span class=stx data-act=rename data-label="Rename sheet" onclick="event.stopPropagation();shEdit(${i})" title="Rename this sheet">[R]</span><span class=stx data-act=dup data-label="Duplicate sheet" onclick="event.stopPropagation();shDup(${i})" title="Duplicate this sheet into a new tab">[D]</span><span class=stx data-act=close data-label="Close sheet" onclick="event.stopPropagation();shClose(${i})" title="Close this sheet (unsaved sortie state is lost)">[X]</span></span>`}).join('')+'<button onclick=chooseManifest()>[+ LOAD SHEET]</button>'}
@@ -1519,7 +1510,7 @@ function togRetreat(on){S.pilot=S.pilot||{};S.pilot.ret=on?'1':'0';audioEvent(on
 function sheet(){return S.view=='chassis'?sheetPreview():realSheet()}
 
 const CHANGELOG=[
-{v:'5.5.3',items:['Refined terminal surfaces, section hierarchy and selected controls while retaining the original palettes, font and compact combat readout.','Narrow-screen workspace, loadout and console navigation; wrapping headers, readable pilot fields and larger touch controls.','Damage resolution names the selected component and offers a direct component selector and action menu. Weapon, defense, maneuver and sheet menus also have visible buttons.','Builder and clearance choices support Tab, Enter and Space. Sheet filtering, contextual help and saved display preferences improve navigation without changing combat rules.']},
+{v:'5.5.3',items:['Refined terminal surfaces and theme-colored selection states retain the original compact controls and terminal effects.','Saved usernames are reused on connect. Right-click a username in the roster to rename it: the host can rename anyone; clients can rename themselves.','Player chat works across terminal sections. Long roster locations and clipped sortie metadata crawl on one line.','Catalogue tabs render instantly. Skill inputs remain above roll controls, with shorter skill labels.','The welcome crest nests E within C. Added toolbar, sortie section headers, target-selection row and menu-trigger buttons are removed. Existing menus remain available by right-click or keyboard.']},
 {v:'5.5.2',items:['Paper doll: right-click or Shift+F10 on a part to repair it, restore plating, repair all, or apply the entered damage. Weapon DMG right-click forces one damage roll.','Rolls show the assigned mech owner (host-entered names and closed/Unknown names in grey); frame names use paper-doll colors and rolls have no color outline. Expanded descriptions concatenate. Rolls Only includes chat.','Weapon controls indicate ready ATK/DMG in amber; empty magazines leave ATK visible, disabled in red. Rapid Strike no longer replaces degrees of success; Retreat clears after an active-defense roll.','Targeter: head loss limits combined targeting and Aim/Evaluate bonus to +1, Evaluate choices +2/+4/+6; Move+Atk is the first All Out option.','Catalog editing, skill input focus/caret, roster width and ultra-wide layout refined; no console minimize. Compact rolls omit Move+Atk/Rapid. Uncolored tabs and CMD rolls show grey frame names; user color persists across server restarts.']},
 {v:'5.5.1',items:['Targeter header is the accuracy tile (always shown, +0 included); melee gets [EVALUATE +1] (right-click +2/+4/+6) and [RAPID STRIKE -6] (right-click -6/-3, RoF 2). Move and Attack is in the All-Out Attack menu (ranged -2, melee -4 max 9, Dodge/Block only). Closing the targeter clears the weapon highlight. A roll with a Heat toggle on adds +1 heat and switches that Heat off.','Rolls label CRITICAL HIT / CRITICAL FAIL (GURPS B348 on effective skill). The console stays pinned to the newest line when a roll line grows.','Table: remote chat text keeps the sender colour; viewers see All-Out Attack update live; the roster drops its LINK header.']},
 {v:'5.5.0',items:['Targeter: click the weapon again to close it; each weapon keeps its own targeter settings. ACC, Heat and All-Out Attack share one line (descriptions on hover). Separate [HEAT] buttons: SKILL MOD Heat for skills and active defenses, targeter Heat for attacks. Parry and Block use SKILL MOD.','VENT is the base heat vented (VENT on a failure, VENT + degrees of success, at least VENT + 1, on a success). IMPACT RESOLUTION: effective DR on line 2 with REPAIR; no stability threshold.','Table: players can view other units (no rolls or skills) and cannot open their tab menus; chat keeps the sender color on every seat and works off-table; the USERS list opens inside the operator console.']},
@@ -1615,7 +1606,7 @@ function pilotView(){const P=S.pilot||(S.pilot={}),t=tel(),L=locs(),cs=chStats()
  const inp=(k,lab)=>`<label>${lab}<input data-skill="${esc(k)}" type=text inputmode=numeric pattern="[0-9]*" value="${esc(P[k]??'')}" oninput="if(/[^0-9]/.test(this.value))this.value=this.value.replace(/[^0-9]/g,'');S.pilot['${k}']=this.value;pilotLive()" onchange="skillNote(this)"></label>`,sl=s=>`<span class=dim data-sl="${s}" title="${esc(slBreak(s))}">${slTxt(s)}</span>`;
  const groups=new Map();[...DB.filter(x=>(x.c=='A'&&/(^| )DMG:/.test(x.s))||(x.c=='D'&&isShield(x))),...W,...SH].forEach(x=>{if(!groups.has(wKey(x)))groups.set(wKey(x),wLab(x))});
  const vsel=isMech()?'':`<label class=dmgn>VEHICLE CLASS<select onchange="S.pilot.vt=({TANK:1,PLANE:2,HELO:3})[this.value];say('[ OK ] VEHICLE PROFILE SET :: '+this.value+' // piloting and engineering modifiers recalculated','ok');R()">${VCLS.map(c=>`<option value="${c}" ${vehSub()==c?'selected':''}>${c}</option>`).join('')}</select></label>`;
- const stats=inp('pil','PILOTING ('+pilTag()+')')+inp('sen','SENSORS')+inp('ew','ELECTRONIC WARFARE')+inp('eng','ENGINEERING ('+pilTag()+')')+inp('fd','FAST DRAW (AMMO)')+[...groups].map(([k,l])=>inp(k,l+' SKILL')).join('');
+ const stats=inp('pil','PILOTING ('+pilTag()+')')+inp('sen','SENSORS')+inp('ew','ELECTRONIC WARFARE')+inp('eng','ENGINEERING ('+pilTag()+')')+inp('fd','FAST DRAW (AMMO)')+[...groups].map(([k,l])=>inp(k,l)).join('');
  const elig=L.map((n,i)=>[n,i]).filter(([n,i])=>isLimb(n)&&t.hp[i]<=0&&t.hp[i]>-maxOf(i)&&!t.keep[i]);
  const held=L.filter((n,i)=>isLimb(n)&&t.keep[i]&&t.hp[i]<=0&&t.hp[i]>-maxOf(i));
  const eng=(elig.length?elig.map(([n,i])=>`<button onclick="engHold(${i})">[OVERRIDE ${esc(n.toUpperCase())}]</button>`).join('')+sl('full|eng'):(held.length?'':'no disabled limbs to override'))+(held.length?` <span class=stt-ovr>OVERRIDE: ${held.map(esc).join(', ')}</span>`:'');
@@ -1725,7 +1716,7 @@ const isVehF=x=>x.c=='F'&&/VEHICLE/i.test(x.t),isGenF=x=>x.c=='F'&&!isVehF(x)&&/
 const catOf=x=>x.c=='F'?(isKnF(x)?'K':'C'):('RTG'.includes(x.c)?'K':x.c),catCnt=c=>DB.filter(x=>catOf(x)==c).length;
 function catTabsHTML(c){return['A','D','U','K','C'].map(k=>`<button class="${c==k?'on':''}" onclick="catalogTab('${k}')">${k=='K'?'(K)NIGHT FRAME':k=='C'?'(C)HASSIS':HK[k]}</button>`).join('')}
 function chassisCatalogView(c){const K=c=='K';
- return`<div class=nm>RESEARCH STAFF // CATALOGUE EDITOR</div><div class=catactions><button type=button onclick="exportCatalog()">[EXPORT CATALOGUE]</button><span class=dim>Edit components individually, or add a new chassis record below.</span></div><div class=dim>SCIENCE CORPS R+D // ${K?'KNIGHT FRAME REGISTRY. Knight frames and their reactor, thruster and targeting systems share one record format.':'CHASSIS REGISTRY. Vehicles and GC (General Chassis) mechs are complete, non-modular frames.'} Changes remain local until a new terminal package is exported.</div><div class=catalog-tabs>${catTabsHTML(c)}</div><p>${K?`<button type="button" onclick="editComponent(-1,'F','MECH')">[ADD FRAME]</button><button type="button" onclick="editComponent(-1,'R')">[ADD REACTOR]</button><button type="button" onclick="editComponent(-1,'T')">[ADD THRUSTER]</button><button type="button" onclick="editComponent(-1,'G')">[ADD TARGETING]</button>`:`<button type="button" onclick="editComponent(-1,'F','VEHICLE')">[ADD VEHICLE]</button><button type="button" onclick="editComponent(-1,'F','GENERAL')">[ADD GC CHASSIS]</button>`}</p>${chassisParts(c)}`}
+ return`<div class=nm>RESEARCH STAFF // CATALOGUE EDITOR</div><div class=catactions><button type=button onclick="exportCatalog()">[EXPORT CATALOGUE]</button><span class=dim>Edit components individually, or add a new chassis record below.</span></div><div class=dim>SCIENCE CORPS R+D // ${K?'KNIGHT FRAME REGISTRY. Knight frames and their reactor, thruster and targeting systems share one record format.':'CHASSIS REGISTRY. Vehicles and GC (General Chassis) mechs are complete, non-modular frames.'} Changes remain local until a new terminal package is exported.</div><div class=catalog-tabs>${catTabsHTML(c)}</div>${chassisParts(c)}`}
 function chassisParts(c){let h='';const all=DB.map((x,i)=>[x,i]);
  const row=(x,i,k)=>`<div class=row><span class=nm>${esc(x.n)}</span> <span class=ep>[EP ${k=='F'?x.e:epS(x)}]</span>${tagsOf(x)}<div class=st>${fmt(x.s,1)}</div><button onclick="editComponent(${i})">EDIT</button><button onclick="removeComponent(${i})">DELETE</button></div>`;
  const sec=(t,list,k)=>{h+=`<div class=sec>-- ${t} (${list.length})</div>`;for(const [x,i] of list)h+=row(x,i,k)};
@@ -1815,7 +1806,7 @@ function catalogView(){
  let comp='',found=0;for(const grp of listGroups(c)){const g=grp.label,items=grp.items;comp+=`<div class=sec>-- ${esc(g)} (${items.length})</div>`;
    for(const i of items){const x=DB[i],model=modelOf(x);comp+=`<div class="row drag-row" draggable="true" ondragstart="catalogDragStart(event,${i})" ondragover="catalogDragOver(event,${i})" ondragleave="catalogDragLeave(event)" ondrop="catalogDrop(event,${i})" ondragend="catalogDragEnd(event)"><span class=drag-handle title="Reindex this record within its current registry group">[::]</span><span class=nm>${esc(x.n)}</span> <span class=ep>[EP ${epT(x)}]</span>${tagsOf(x)} <span class=dim>${esc(model)}</span>${TIER[x.n]?'<span class=warn> [TIERED]</span>':''}${x.th?'<span class="warn ctag"> [TWO-HANDED]</span>':''}${x.sd?'<span class="warn ctag"> [SHOULDER]</span>':''}<br><button onclick="editComponent(${i})">EDIT</button><button onclick="removeComponent(${i})">DELETE</button></div>`;found++}
  }
- return`<div class=nm>RESEARCH STAFF // CATALOGUE EDITOR</div><div class=catactions><button type=button onclick="editComponent(-1,S.catTab==='K'?'F':S.catTab)">[+ NEW COMPONENT]</button><button type=button onclick="exportCatalog()">[EXPORT CATALOGUE]</button><span class=dim>Select EDIT to modify an entry. Drag to reorder inside its category.</span></div><div class=dim>CATALOGUE WRITE AUTHORITY // Drag records within their current subtype to change index order. Edits and deletions alter this terminal's active registry; build a new HTML package to distribute the revision.</div><div class=catalog-tabs>${catTabsHTML(c)}</div>${catHead()}<div class=sec>-- ${catNames[c]} COMPONENTS (${found})</div>${comp||'<span class=dim>[NO MATCHING RECORDS // REGISTRY QUERY RETURNED EMPTY]</span>'}`}
+ return`<div class=nm>RESEARCH STAFF // CATALOGUE EDITOR</div><div class=catactions><button type=button onclick="exportCatalog()">[EXPORT CATALOGUE]</button><span class=dim>Select EDIT to modify an entry. Drag to reorder inside its category.</span></div><div class=dim>CATALOGUE WRITE AUTHORITY // Drag records within their current subtype to change index order. Edits and deletions alter this terminal's active registry; build a new HTML package to distribute the revision.</div><div class=catalog-tabs>${catTabsHTML(c)}</div>${catHead()}<div class=sec>-- ${catNames[c]} COMPONENTS (${found})</div>${comp||'<span class=dim>[NO MATCHING RECORDS // REGISTRY QUERY RETURNED EMPTY]</span>'}`}
 
 
 function card(i){const x=variant(i,S.tier),n=used()+x.e,over=n>cap(),dup=x.c!='A'&&S.items.some(y=>y.n==x.n);
@@ -1824,7 +1815,7 @@ function card(i){const x=variant(i,S.tier),n=used()+x.e,over=n>cap(),dup=x.c!='A
  <p>NOW ${used()}/${ov()?'UNLIMITED':cap()} &nbsp; AFTER INSTALL <span class="${over?'bad':'ok'}">${n}/${ov()?'UNLIMITED':cap()}</span></p>${over?'<div class=bad>LOAD LIMIT EXCEEDED // this installation will be refused</div>':''}${dup?'<div class=bad>NON-STACKABLE RECORD ALREADY PRESENT // installation will be refused</div>':''}
  <button title="Commit this component to the current frame loadout" onclick="inst(${i})">[1] INSTALL</button>${canEdit()?`<button class=remove-btn onclick="rmSelected()">[2] REMOVE</button>`:''}<button title="Return to the catalogue index without installing" onclick="back()">[0] RETURN TO INDEX</button></div>`}
 function list(){let h=catHead(),k2=0;for(const grp of listGroups(S.tab)){h+=`<div class=sec>-- ${esc(grp.label)}</div>`;for(const i of grp.items){const x=DB[i];h+=`<div class=row onclick="addMech(${i})"><span class=v>[${++k2}]</span> <span class=nm>${x.n}</span> <span class=ep>[EP ${epT(x)}]</span>${tagsOf(x)} <span class=dim>${x.t.split(' // ').slice(1).join(' // ')}</span>${x.th?' <span class="warn ctag">[TWO-HANDED]</span>':''}${x.sd?' <span class="warn ctag">[SHOULDER]</span>':''}<span class=rowbtns><button title="open the dossier" onclick="event.stopPropagation();open_(${i})">[INFO]</button></span><div class=st>${fmt(x.s,1)}</div></div>`}}return h}
-function welcomePanel(){return `<div class=welcome><div class=ux-mark aria-hidden=true><svg viewBox="0 0 96 96" fill="none"><path d="M48 5 86 27v42L48 91 10 69V27Z" stroke="currentColor"/><path d="m48 17 27 16v30L48 79 21 63V33Z" stroke="currentColor" opacity=".35"/><path d="M31 63V33h35M31 47h27M48 47v16" stroke="currentColor" stroke-width="3"/><path d="M5 48h12m62 0h12M48 1v12m0 70v12" stroke="currentColor"/></svg></div><div class=welcome-title>WELCOME TO THE CORE EMPIRE MILITARY DATABASE</div><div class=nm>SCIENCE CORPS // R+D TERMINAL</div><div class=welcome-sub>RESTRICTED TERMINAL // Select the clearance profile that matches your current duty assignment.</div></div>`}
+function welcomePanel(){return `<div class=welcome><div class=ux-mark aria-hidden=true><svg viewBox="0 0 96 96" fill="none"><path d="M48 5 86 27v42L48 91 10 69V27Z" stroke="currentColor" opacity=".3"/><path d="m75 27-12-11H32L18 30v36l14 14h31l12-12" stroke="currentColor" stroke-width="4"/><path d="M62 33H37v30h25M37 48h20" stroke="currentColor" stroke-width="4"/></svg></div><div class=welcome-title>WELCOME TO THE CORE EMPIRE MILITARY DATABASE</div><div class=nm>SCIENCE CORPS // R+D TERMINAL</div><div class=welcome-sub>RESTRICTED TERMINAL // Select the clearance profile that matches your current duty assignment.</div></div>`}
 function shCrawl(){document.querySelectorAll('.shl').forEach(p=>{const i=p.firstElementChild;if(!i||i.dataset.f==null)return;const t=i.dataset.f;i.classList.remove('crawl');i.textContent=t;if(i.scrollWidth-p.clientWidth>2){i.textContent='';const a=document.createElement('span'),g=document.createElement('span'),c=document.createElement('span');a.textContent=t;g.className='shg';c.textContent=t;i.append(a,g,c);const dist=a.getBoundingClientRect().width+g.getBoundingClientRect().width;i.style.setProperty('--shx',-dist+'px');i.style.setProperty('--shd',Math.max(8,dist/28).toFixed(1)+'s');i.classList.add('crawl')}})}
 window.addEventListener('resize',()=>{clearTimeout(window._shc);window._shc=setTimeout(shCrawl,150)});
 function R(){const focusInSheet552=snapshotFocus552();rebuildCH();document.body.classList.toggle('admin',S.role=='OVERSEER');document.body.classList.toggle('research',S.role=='RESEARCH STAFF');$('who').innerHTML=S.role?`CLEARANCE: <b>${S.role=='IMPERIAL INTELLIGENCE'?'IMPERIAL TALONS':S.role}</b> <button title="Terminate this terminal session and revoke the current privilege token" onclick="out()">(L)OGOUT</button>`:'';const noBus=['login','intel','sortie','mechanic','catalog','catalogEdit','pw','researchPw','mpw'];$('bar').innerHTML=(S.view=='sortie'&&S.sheets&&S.sheets.length)?'<div class=panel style="margin-top:12px"><div class=stabs>'+sheetTabs()+'</div></div>':noBus.includes(S.view)?'':'<div class=panel style="margin-top:12px">'+bar()+'</div>';const v=S.view;const researchMode=S.role=='RESEARCH STAFF';const researchEditing=researchMode&&v=='catalogEdit';$('sh').innerHTML=S.view=='login'?welcomePanel():(!S.role?'':(researchMode?(researchEditing?componentEditor():researchTelemetry()):sheet()));restoreFocus552(focusInSheet552);shCrawl();let h='';$('tb').innerHTML='';
@@ -1886,15 +1877,22 @@ let chain=Promise.resolve();
 function animateHpBars(){document.querySelectorAll('.hpfill[data-target]').forEach(el=>{const v=el.dataset.target;requestAnimationFrame(()=>requestAnimationFrame(()=>{el.style.width=v+'%'}))})}
 function anim(final){__focus552=snapshotFocus552();const v=S.view,first=pv===undefined,catSame=!first&&(v=='catalog'||v=='catalogEdit')&&(pv=='catalog'||pv=='catalogEdit')&&S.catTab==pcat&&S.catType==pcty,ch=first||(!catSame&&(v!=pv||S.catEdit!=pce))||S.tab!=pt||S.sel!=ps||S.tier!=pk||S.chTab!=pch||S.catTab!=pcat||S.catType!=pcty,o=$('out');
  $('pr').style.display=(v=='pw'||v=='researchPw'||v=='mpw')?'none':'';$('hint').textContent=HINT();const ms=MQ.splice(0);
+ if(['main','chassis','catalog','catalogEdit'].includes(v)){
+  const sc=$('con'),st=sc?sc.scrollTop:0;o.innerHTML=final;restoreFocus552(__focus552);if(sc)sc.scrollTop=ch?0:st;
+  catFilter();animateHpBars();shCrawl();cwSnap(final);const e=echoTxt(first);
+  pv=v;pt=S.tab;ps=S.sel;pk=S.tier;pch=S.chTab;pcat=S.catTab;pce=S.catEdit;pcty=S.catType;
+  play(null,[],e,ms);return
+ }
+
  if(!ch){const sc=$('con'),st=sc?sc.scrollTop:0;o.innerHTML=final;restoreFocus552(__focus552);if(sc)sc.scrollTop=st;catFilter();if(catSame){pv=v;pce=S.catEdit}animateHpBars();shCrawl();cwRun();const e=takeEcho();if(e||ms.length)play(null,[],e,ms);return}
  const q=seqFor(first),e=echoTxt(first);play(final,q,e,ms);cwSnap(final);pv=v;pt=S.tab;ps=S.sel;pk=S.tier;pch=S.chTab;pcat=S.catTab;pce=S.catEdit;pcty=S.catType}
-async function play(final,q,e,ms){const my=++tok;busy=1;skip=1;await chain;skip=0;const o=$('out'),w=$('log');
+async function play(final,q,e,ms){const my=++tok;busy=1;skip=1;await chain;if(my!==tok)final=null;skip=0;const o=$('out'),w=$('log');
  const logP=chain=(async()=>{if(e)await type(w,`<span class=dim>CE//FORGE&gt; ${e}</span>`);
   for(const s of q){if(typeof s=='string')await type(w,s,'flav');else await bar_(w,s[1],s[2])}
   for(const m of ms)await type(w,`<span class="${m[1]}">${m[0]}</span>`)})();
  let catP=Promise.resolve();
  let shP=Promise.resolve();if(final!=null){o.innerHTML='';const d=document.createElement('div');d.innerHTML=final;o.appendChild(d);restoreFocus552(__focus552);catP=crawl(d,1);if(S.view=='sortie'||S.view=='intel'){const sh=$('sh');if(sh&&sh.textContent.trim())shP=crawl(sh,1)}}
- await Promise.all([logP,catP,shP]);if(final!=null){animateHpBars();shCrawl();catFilter()}if(my==tok){busy=0;if(audioFocus==='chassisNav'||audioFocus==='chassisSelectOnly')audioFocus=null;const ae=document.activeElement;if(S.view!='catalogEdit'&&(!ae||ae===document.body||ae.id==='CI'))focusDefault()}}
+ await Promise.all([logP,catP,shP]);if(final!=null){animateHpBars();shCrawl();catFilter()}if(my==tok){busy=0;shCrawl();if(audioFocus==='chassisNav'||audioFocus==='chassisSelectOnly')audioFocus=null;const ae=document.activeElement;if(S.view!='catalogEdit'&&(!ae||ae===document.body||ae.id==='CI'))focusDefault()}}
 function exec(raw){let c=raw.trim().toLowerCase(),n=/^\d+$/.test(c)?+c:-1,v=S.view,m={a:'A',armament:'A',d:'D',defense:'D',defensive:'D',u:'U',utility:'U'};if(!c)return; S.echo=esc(raw.trim());if(v=='sortie'&&c=='undo')return undoLast();if(v=='chassis'&&S.cfgInfo){if(n==1)return cfgPickOpen();if(n==0)return cfgBack()}
  if(c=='help'||c=='?'){say(S.role=='IMPERIAL INTELLIGENCE'?helpTel():isResearch()?'R+D CONSOLE :: ACO = NEW COMPONENT | ACH = NEW FRAME | E/X = BUILD PACKAGE | A/D/U/K/C = REGISTRY (K = KNIGHT FRAME, C = CHASSIS) | 0 = close session | HELP':isMechanic()?'SERVICE CONSOLE :: LOAD = import a .TXT manifest | 0 = close service session | HELP':'ASSEMBLY CONSOLE :: record number = open dossier | 1 = install | 0 = return | A/D/U = registry section | ID = designation | S = compile manifest | C = change chassis | L = close session | HELP','dim');say('INPUT :: commands start with / (for example /help, /undo, /roll 1 x2, /mp whoami, /mp reset-local confirm) | text without / is a chat message to the table | UP/DOWN = history | TAB = complete | /L or /EXIT = close session | /CLEAR = clear the log (host only on a live table) | /BACK = return','dim');return R()}
  if(S.role&&['main','intel','sortie','mechanic','catalog','chassis'].includes(v)&&(c=='l'||c=='logout'||c=='exit'||c=='quit'||c=='close'))return out();
@@ -2400,21 +2398,13 @@ tgtNoteInner=function(){const w=awW();if(!w)return'';return'<span class=tgline>'
 
 </script>
 <script src="forge-hook.js?v=8"></script>
-<script src="mp-bridge.js?v=24"></script>
+<script src="mp-bridge.js?v=25"></script>
 <script id="forge-ui-553-script">
-/* FORGE-OS 5.5.3: presentation and navigation only.
+/* FORGE-OS 5.5.3: presentation and keyboard access only.
    Existing command, component and multiplayer handlers remain authoritative. */
 (function () {
   'use strict';
-  const storageKey = 'forgeUi553';
-  const smallScreen = matchMedia('(max-width: 900px)');
-  let prefs = { density: 'compact', effects: true };
-  try {
-    const saved = JSON.parse(localStorage.getItem(storageKey) || '{}');
-    if (saved.density === 'roomy') prefs.density = 'roomy';
-    if (saved.effects === false) prefs.effects = false;
-  } catch (_) { /* A private browser can still use all controls. */ }
-  let pane = 'workspace', lastView = '', sheetQuery = '', pendingFocus = null;
+  let lastView = '', sheetQuery = '', pendingFocus = null;
   let scheduled = false;
   const byId = id => document.getElementById(id);
   const cleanExport = cleanExportDOM;
@@ -2432,61 +2422,9 @@ tgtNoteInner=function(){const w=awW();if(!w)return'';return'<span class=tgline>'
     if (text != null) el.textContent = text;
     return el;
   };
-  function button(text, label, run, className = '') {
-    const el = create('button', className, text);
-    el.type = 'button'; el.title = label; el.setAttribute('aria-label', label);
-    el.addEventListener('click', e => { e.stopPropagation(); run(el); });
-    return el;
-  }
-  const toolbar = create('div', 'uxbar'); toolbar.id = 'uxbar';
-  const context = create('span', 'ux-context'); toolbar.append(context);
-  const nav = create('nav', 'ux-panes'); nav.setAttribute('aria-label', 'Terminal panels');
-  const paneLabels = { workspace: 'WORKSPACE', sheet: 'LOADOUT', console: 'CONSOLE' };
-  for (const [name, label] of Object.entries(paneLabels)) {
-    const el = button(label, 'Show ' + label.toLowerCase() + ' panel', () => setPane(name, true));
-    el.dataset.pane = name; el.setAttribute('aria-controls', { workspace: 'con', sheet: 'sh', console: 'cb' }[name]);
-    nav.append(el);
-  }
-  toolbar.append(nav);
-  const display = button('[DISPLAY ▾]', 'Display options: density and terminal effects', openDisplay);
-  display.id = 'uxDisplay'; display.setAttribute('aria-haspopup', 'menu'); toolbar.append(display);
-  const helpButton = button('[HELP]', 'Show help for the current screen', () => {
-    help.hidden = !help.hidden; helpButton.setAttribute('aria-expanded', String(!help.hidden));
-  });
-  helpButton.id = 'uxHelp'; helpButton.setAttribute('aria-expanded', 'false'); helpButton.setAttribute('aria-controls', 'uxhelp');
-  toolbar.append(helpButton);
-  const help = create('div', 'ux-help'); help.id = 'uxhelp'; help.hidden = true;
-  help.setAttribute('role', 'region'); help.setAttribute('aria-label', 'Help for this screen');
-  document.querySelector('#wrap > header').after(toolbar, help);
-
-  function applyDisplay() {
-    document.body.dataset.density = prefs.density;
-    document.body.classList.toggle('ux-reduced', !prefs.effects);
-    try { localStorage.setItem(storageKey, JSON.stringify(prefs)); } catch (_) {}
-  }
-  function openDisplay(anchor) {
-    ctxOpen(anchor, 'DISPLAY OPTIONS', [
-      { l: 'Compact controls', on: prefs.density === 'compact', run: () => { prefs.density = 'compact'; applyDisplay(); } },
-      { l: 'Roomy controls', on: prefs.density === 'roomy', tip: 'Larger controls with more spacing', run: () => { prefs.density = 'roomy'; applyDisplay(); } },
-      { sep: true },
-      { l: 'Terminal effects', on: prefs.effects, tip: 'Typing and scanlines; reduced-motion system preferences still apply', run: () => { prefs.effects = true; applyDisplay(); } },
-      { l: 'Reduced effects', on: !prefs.effects, tip: 'Immediate text, still readouts and no scanlines', run: () => { prefs.effects = false; applyDisplay(); } }
-    ]);
-  }
-  const originalReducedMotion = reducedMotion;
-  reducedMotion = function () { return !prefs.effects || originalReducedMotion(); };
-  applyDisplay();
-
-  function setPane(name, focus) {
-    pane = name;
-    document.body.dataset.pane = pane;
-    for (const el of nav.children) el.setAttribute('aria-pressed', String(el.dataset.pane === pane));
-    if (focus && smallScreen.matches) {
-      const target = byId({ workspace: 'con', sheet: 'sh', console: 'CI' }[pane]);
-      target.focus({ preventScroll: true });
-      toolbar.scrollIntoView({ block: 'start' });
-    }
-  }
+  document.body.removeAttribute('data-density');
+  document.body.removeAttribute('data-pane');
+  document.body.classList.remove('ux-reduced');
   for (const [id, label] of [['con', 'Workspace'], ['sh', 'Frame loadout'], ['cb', 'Operator console']]) {
     const el = byId(id); el.tabIndex = -1; el.setAttribute('role', 'region'); el.setAttribute('aria-label', label);
   }
@@ -2495,24 +2433,6 @@ tgtNoteInner=function(){const w=awW();if(!w)return'';return'<span class=tgline>'
       sortie: 'LIVE SORTIE', intel: 'SORTIE TERMINAL', mechanic: 'SERVICE BAY', catalog: 'CATALOGUE',
       catalogEdit: 'CATALOGUE EDITOR', mpw: 'SHARED TABLE ACCESS', pw: 'DIRECTORATE ACCESS',
       researchPw: 'RESEARCH ACCESS', deny: 'ACCESS DENIED', lock: 'TERMINAL LOCKED' })[S.view] || 'FORGE TERMINAL';
-  }
-  function helpText() {
-    if (S.view === 'login') return 'BUILD A SHEET // Choose GUEST. EDIT A MANIFEST // Choose MECHANIC. RUN AN ENCOUNTER // Choose IMPERIAL INTELLIGENCE for solo play, or LIVE DATA INTERCEPT for a shared table. Tab moves between choices; Enter or Space selects.';
-    if (S.view === 'chassis') return 'ASSEMBLE // Select a frame, reactor, thruster and targeting system, then confirm. The loadout preview updates as you choose. INFO opens the record without selecting it. Tab, Enter and Space work on every choice.';
-    if (S.view === 'main') return 'BUILD // Browse Armament, Defense and Utility. Click a record to install it; INFO opens its full dossier. Search by name, class or tag. Set a designation, then SAVE / COMPILE MANIFEST to download the sheet.';
-    if (S.view === 'sortie') return 'ENCOUNTER // Select a component on the paper doll or in TARGET, enter incoming damage and its armor divisor, then APPLY. ACTIONS opens repair controls. Click a weapon to open its targeter. Gold ATK / DMG marks a ready roll. Small ▾ buttons open additional options. UNDO reverses the last change. On a shared table, use / before console commands; plain text is chat.';
-    if (S.view === 'catalog' || S.view === 'catalogEdit') return 'CATALOGUE // Search to find a record. NEW COMPONENT starts an entry; EDIT opens an existing one. Save each record, then export the catalogue or build a package to keep your changes.';
-    return 'TERMINAL // Import a saved .txt frame manifest to continue. The loadout panel shows the current sheet; the console holds rolls and commands. DISPLAY changes control spacing and terminal effects.';
-  }
-  function updateContext() {
-    document.body.dataset.view = S.view;
-    context.textContent = '// ' + viewName();
-    help.textContent = helpText();
-    nav.querySelector('[data-pane=sheet]').textContent = S.view === 'login' ? 'BRIEFING' : 'LOADOUT';
-    if (lastView !== S.view) {
-      // A navigation action always reveals its destination on a narrow display.
-      setPane('workspace', false); lastView = S.view; sheetQuery = '';
-    } else setPane(pane, false);
   }
   function paneHead(id, title, meta) {
     const parent = byId(id);
@@ -2529,53 +2449,6 @@ tgtNoteInner=function(){const w=awW();if(!w)return'';return'<span class=tgline>'
     });
     const version = byId('ver');
     version.tabIndex = 0; version.setAttribute('role', 'button'); version.setAttribute('aria-label', 'Open version ' + APP_VERSION + ' changelog');
-  }
-  function addMenuButton(anchor, label, run) {
-    if (anchor.dataset.uxMenu) return;
-    anchor.dataset.uxMenu = '1';
-    const el = button('[▾]', label, () => run(anchor), 'ux-menu');
-    el.setAttribute('aria-haspopup', 'menu');
-    anchor.after(el);
-  }
-  function decorateMenus() {
-    document.querySelectorAll('button[data-menu]').forEach(anchor => {
-      const kind = anchor.dataset.menu;
-      const names = { aoa: 'Maneuver options', def: 'Choose active defense', evl: 'Evaluate options', rsm: 'Rapid Strike options', dmg: 'Damage roll options' };
-      if (names[kind] && MENUS[kind]) addMenuButton(anchor, names[kind], el => MENUS[kind](el));
-    });
-    document.querySelectorAll('.row[data-menu=item]').forEach(row => {
-      if (row.querySelector('.ux-item-menu')) return;
-      const name = row.querySelector('.nm'); if (!name) return;
-      const menu = button('[▾]', 'Equipment options for ' + name.textContent, () => MENUS.item(row), 'ux-menu ux-item-menu');
-      menu.setAttribute('aria-haspopup', 'menu'); name.after(menu);
-    });
-  }
-  function decorateDamage() {
-    const box = document.querySelector('.damagebox'); if (!box || box.querySelector('.damage-target')) return;
-    const target = create('div', 'damage-target');
-    const label = create('label', '', 'TARGET // '), select = create('select'); select.id = 'uxDamageTarget';
-    select.setAttribute('aria-label', 'Incoming damage target');
-    locs().forEach((name, i) => { const option = create('option', '', dn(name)); option.value = String(i); select.append(option); });
-    select.value = String(S.dmg.loc || 0);
-    select.addEventListener('change', () => {
-      pendingFocus = { view: S.view, id: 'uxDamageTarget' };
-      selectDamageTarget(+select.value);
-    });
-    label.append(select); target.append(label);
-    const actions = button('[ACTIONS ▾]', 'Repair or apply damage to the selected component', () => {
-      const part = document.querySelector('.mlab[data-loc="' + (+S.dmg.loc || 0) + '"]');
-      if (part) MENUS.part(part);
-    });
-    actions.setAttribute('aria-haspopup', 'menu'); target.append(actions); box.prepend(target);
-    byId('dmgIn').setAttribute('aria-label', 'Incoming damage before armor');
-    const divisor = box.querySelector('input[type=number]:not(#dmgIn)');
-    if (divisor) divisor.setAttribute('aria-label', 'Armor divisor');
-  }
-  function prioritizeChecks() {
-    const pilot = document.querySelector('.pilot');
-    const checks = pilot && pilot.querySelector(':scope > .pbot');
-    // During play, common checks stay above the less frequent skill setup.
-    if (checks && pilot.firstElementChild !== checks) pilot.prepend(checks);
   }
   function filterSheets() {
     const query = sheetQuery.toLocaleLowerCase().trim();
@@ -2602,21 +2475,42 @@ tgtNoteInner=function(){const w=awW();if(!w)return'';return'<span class=tgline>'
         if (e.key === 'Escape') { e.stopPropagation(); sheetQuery = ''; search.value = ''; filterSheets(); }
       }); tools.append(search);
     }
-    const active = tabs.querySelector('.stab.on');
-    if (active && !document.body.classList.contains('mp-view')) {
-      const menu = button('[SHEET ACTIONS ▾]', 'Actions for the active sheet', () => tabMenuOpen(tabs.querySelector('.stab.on')));
-      menu.id = 'sheetMenu'; menu.setAttribute('aria-haspopup', 'menu'); tools.append(menu);
-    }
     tabs.before(tools);
     const empty = create('span', 'dim', 'No matching sheets. Clear the search to show the encounter.'); empty.id = 'sheetEmpty'; empty.hidden = true; tabs.after(empty);
     filterSheets();
   }
+  function crawlFrameLine() {
+    if (S.view !== 'sortie' || busy) return;
+    document.querySelectorAll('#sh .sline').forEach(line => {
+      let track = line.querySelector(':scope > .ux-line-text');
+      if (!track) {
+        const copy = create('span', 'ux-line-copy'); copy.append(...line.childNodes);
+        track = create('span', 'ux-line-text'); track.append(copy); line.append(track);
+        line.classList.add('ux-line-crawl'); line.title = copy.textContent.replace(/\s+/g, ' ').trim();
+      }
+      const source = track.firstElementChild, width = source.getBoundingClientRect().width;
+      const overflows = width > line.clientWidth + 2;
+      line.classList.toggle('is-crawling', overflows);
+      if (!overflows) { [...track.children].slice(1).forEach(el => el.remove()); return; }
+      let gap = track.querySelector('.ux-line-gap');
+      if (!gap) {
+        gap = create('span', 'ux-line-gap', '   //   '); gap.setAttribute('aria-hidden', 'true');
+        const duplicate = source.cloneNode(true); duplicate.setAttribute('aria-hidden', 'true');
+        track.append(gap, duplicate);
+      }
+      const distance = width + gap.getBoundingClientRect().width;
+      track.style.setProperty('--ux-crawl-distance', -distance + 'px');
+      track.style.setProperty('--ux-crawl-duration', Math.max(10, distance / 30).toFixed(1) + 's');
+    });
+  }
+  const originalShCrawl = shCrawl;
+  shCrawl = function () { const result = originalShCrawl.apply(this, arguments); requestAnimationFrame(crawlFrameLine); return result; };
+  window.addEventListener('resize', () => requestAnimationFrame(crawlFrameLine));
   function restorePendingFocus() {
     if (!pendingFocus) return;
     if (pendingFocus.view !== S.view) { pendingFocus = null; return; }
     let target = pendingFocus.id ? byId(pendingFocus.id) : [...document.querySelectorAll('[data-ux-row]')].find(el => el.getAttribute('onclick') === pendingFocus.action);
     if (!target) return;
-    if (smallScreen.matches && target.closest(pane === 'workspace' ? '#rt' : '#con')) { pendingFocus = null; return; }
     target.focus({ preventScroll: true });
     if (pendingFocus.selection && target.setSelectionRange) {
       try { target.setSelectionRange(...pendingFocus.selection); } catch (_) {}
@@ -2625,10 +2519,15 @@ tgtNoteInner=function(){const w=awW();if(!w)return'';return'<span class=tgline>'
   }
   function enhance() {
     scheduled = false;
-    updateContext();
-    paneHead('con', S.view === 'sortie' ? '01 // TELEMETRY & IMPACT' : '01 // ' + viewName(), S.view === 'sortie' ? 'SELECT · RESOLVE · ROLL' : 'CORE EMPIRE / R+D-117');
-    paneHead('sh', S.view === 'login' ? '02 // TERMINAL BRIEFING' : '02 // FRAME LOADOUT', S.view === 'sortie' ? 'EQUIPMENT & TARGETERS' : 'LIVE PREVIEW');
-    decorateRows(); decorateMenus(); decorateDamage(); prioritizeChecks(); decorateSheets(); restorePendingFocus();
+    document.body.dataset.view = S.view;
+    if (lastView !== S.view) { lastView = S.view; sheetQuery = ''; }
+    if (S.view === 'sortie') {
+      document.querySelectorAll('#con > .pane-head, #sh > .pane-head').forEach(el => el.remove());
+    } else {
+      paneHead('con', '01 // ' + viewName(), 'CORE EMPIRE / R+D-117');
+      paneHead('sh', S.view === 'login' ? '02 // TERMINAL BRIEFING' : '02 // FRAME LOADOUT', 'LIVE PREVIEW');
+    }
+    decorateRows(); decorateSheets(); restorePendingFocus(); crawlFrameLine();
   }
   function schedule() { if (!scheduled) { scheduled = true; queueMicrotask(enhance); } }
   const render = R;
@@ -2636,7 +2535,7 @@ tgtNoteInner=function(){const w=awW();if(!w)return'';return'<span class=tgline>'
     const active = document.activeElement;
     if (lastView !== S.view) pendingFocus = null;
     if (lastView === S.view && active && active.closest('#wrap')) {
-      if (['catq', 'fid', 'sheetQuery', 'uxDamageTarget'].includes(active.id)) {
+      if (['catq', 'fid', 'sheetQuery'].includes(active.id)) {
         pendingFocus = { view: S.view, id: active.id, selection: typeof active.selectionStart === 'number' ? [active.selectionStart, active.selectionEnd] : null };
       } else if (active.dataset.uxRow) pendingFocus = { view: S.view, action: active.getAttribute('onclick') };
     }
@@ -2654,7 +2553,7 @@ tgtNoteInner=function(){const w=awW();if(!w)return'';return'<span class=tgline>'
       e.preventDefault(); e.stopImmediatePropagation(); active.click();
     }
   }, true);
-  smallScreen.addEventListener('change', () => setPane(pane, false));
+  document.addEventListener('contextmenu', e => e.preventDefault());
   enhance();
 })();
 </script>

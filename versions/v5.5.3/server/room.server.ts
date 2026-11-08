@@ -23,8 +23,8 @@
  *  - entering with a callsign that is online right now is refused (409) instead of creating a
  *    second seat with the same name that owns nothing
  *  - re-taking by callsign prefers the seat that owns a unit, then the most recently seen
- *  - `resume` with a seat token issued to a different callsign is refused (403), so a shared
- *    browser no longer renames and takes over another pilot's seat
+ *  - username changes use an explicit authorized operation; resume/poll keep the
+ *    stored username, including changes made by the host while a client was away
  *  - `leave` marks the seat offline at once, so the same callsign can re-take it immediately
  */
 import { randomBytes, timingSafeEqual } from "node:crypto";
@@ -46,7 +46,8 @@ const callsignSchema = z
   .trim()
   .min(1)
   .max(16)
-  .regex(/^[A-Za-z0-9][A-Za-z0-9 ._-]{0,15}$/, "use letters, digits, spaces, . _ -");
+  .regex(/^[A-Za-z0-9][A-Za-z0-9 ._-]{0,15}$/, "use letters, digits, spaces, . _ -")
+  .refine((value) => value.toUpperCase() !== "USER UNKNOWN", "choose a username");
 
 const EVID = z.string().regex(/^[A-Za-z0-9_-]{1,40}$/);
 
@@ -152,6 +153,13 @@ const ROOM = "TABLE";
 const createSchema = z.object({ op: z.literal("create"), callsign: callsignSchema });
 const enterSchema = z.object({ op: z.literal("enter"), callsign: callsignSchema });
 const joinSchema = z.object({ op: z.literal("join"), code: CODE, callsign: callsignSchema });
+const renameSchema = z.object({
+  op: z.literal("rename"),
+  code: CODE,
+  token: TOKEN,
+  memberId: MEMBER,
+  callsign: callsignSchema,
+});
 const tokenSchema = z.object({
   op: z.enum(["resume", "poll", "leave", "end"]),
   code: CODE,
@@ -168,7 +176,7 @@ const tokenSchema = z.object({
     .optional(),
 });
 
-const postSchema = z.union([createSchema, enterSchema, joinSchema, pushSchema, tokenSchema]);
+const postSchema = z.union([createSchema, enterSchema, joinSchema, renameSchema, pushSchema, tokenSchema]);
 
 const PLACES = new Set([
   "Welcome",
@@ -189,7 +197,7 @@ const STALE_SEAT_MS = 30 * 60_000;
 /** Impact ids remembered for retry dedupe. */
 const SEEN_CAP = 400;
 /** Optional capabilities, so a client can tell this server from a 5.0 one. */
-const FEATURES = ["pop", "ev", "seat2"];
+const FEATURES = ["pop", "ev", "seat2", "rename"];
 
 export type SheetSnap = {
   uid: string;
@@ -478,18 +486,11 @@ async function loadMembers(sql: Sql, code: string): Promise<Member[]> {
   );
 }
 
-async function touch(sql: Sql, code: string, memberId: string, callsign?: string) {
-  if (callsign) {
-    await sql.query(
-      `update forge_members set last_seen = now(), callsign = $1 where room_code = $2 and member_id = $3`,
-      [callsign, code, memberId],
-    );
-  } else {
-    await sql.query(
-      `update forge_members set last_seen = now() where room_code = $1 and member_id = $2`,
-      [code, memberId],
-    );
-  }
+async function touch(sql: Sql, code: string, memberId: string) {
+  await sql.query(
+    `update forge_members set last_seen = now() where room_code = $1 and member_id = $2`,
+    [code, memberId],
+  );
 }
 
 async function memberByToken(sql: Sql, code: string, token: string): Promise<Member | null> {
@@ -507,12 +508,6 @@ async function memberByToken(sql: Sql, code: string, token: string): Promise<Mem
   );
   const again = await loadMembers(sql, code);
   return again.find((m) => sameToken(m.token, token)) ?? null;
-}
-
-function normalizeCallsign(raw: string | undefined, fallback: string): string | null {
-  if (!raw || !raw.trim()) return fallback;
-  const parsed = callsignSchema.safeParse(raw);
-  return parsed.success ? parsed.data : null;
 }
 
 function canWrite(sheet: SheetSnap, member: Member): boolean {
@@ -810,18 +805,18 @@ async function handleEnter(sql: Sql, callsign: string): Promise<Response> {
   const token = bytes(24);
   const id = bytes(8);
   const inserted = await sql.query<{ code: string }>(
-    `insert into forge_rooms (code, host_token, revision, snapshot)
-     values ($1, $2, 0, $3::jsonb)
-     on conflict (code) do nothing
-     returning code`,
-    [ROOM, token, JSON.stringify(emptySnap())],
+    `with opened as (
+       insert into forge_rooms (code, host_token, revision, snapshot)
+       values ($1, $2, 0, $3::jsonb)
+       on conflict (code) do nothing
+       returning code
+     )
+     insert into forge_members (room_code, member_id, token, callsign, role)
+     select code, $4, $2, $5, 'host' from opened
+     returning room_code as code`,
+    [ROOM, token, JSON.stringify(emptySnap()), id, callsign],
   );
   if (inserted.length) {
-    await sql.query(
-      `insert into forge_members (room_code, member_id, token, callsign, role)
-       values ($1, $2, $3, $4, 'host')`,
-      [ROOM, id, token, callsign],
-    );
     const member: Member = {
       member_id: id,
       token,
@@ -838,7 +833,8 @@ async function handleEnter(sql: Sql, callsign: string): Promise<Response> {
   return handleJoin(sql, ROOM, callsign);
 }
 
-async function handleJoin(sql: Sql, code: string, callsign: string): Promise<Response> {
+async function handleJoin(sql: Sql, code: string, callsign: string, attempt = 0): Promise<Response> {
+  if (attempt >= 8) return json({ error: "link busy, retry" }, 409);
   const room = await loadRoom(sql, code);
   if (!room) return json({ error: "no sortie under that code" }, 404);
   let members = await loadMembers(sql, code);
@@ -888,11 +884,25 @@ async function handleJoin(sql: Sql, code: string, callsign: string): Promise<Res
   if (members.length >= PEER_CAP) return json({ error: "this sortie is full" }, 403);
   const token = bytes(24);
   const id = bytes(8);
-  await sql.query(
-    `insert into forge_members (room_code, member_id, token, callsign, role)
-     values ($1, $2, $3, $4, 'player')`,
-    [code, id, token, callsign],
+  // CAS the room revision and claim the username in one statement. Rename
+  // uses the same revision lock, so concurrent joins/renames cannot claim one name.
+  const inserted = await sql.query<{ revision: number }>(
+    `with changed_room as (
+       update forge_rooms set revision = revision + 1, updated_at = now()
+       where code = $1 and revision = $2
+       returning code, revision
+     ), joined as (
+       insert into forge_members (room_code, member_id, token, callsign, role)
+       select code, $3, $4, $5, 'player' from changed_room
+       where not exists (
+         select 1 from forge_members where room_code = $1 and upper(callsign) = upper($5)
+       )
+       returning member_id
+     )
+     select revision from changed_room where exists (select 1 from joined)`,
+    [code, Number(room.revision), id, token, callsign],
   );
+  if (!inserted.length) return handleJoin(sql, code, callsign, attempt + 1);
   const member: Member = {
     member_id: id,
     token,
@@ -903,9 +913,53 @@ async function handleJoin(sql: Sql, code: string, callsign: string): Promise<Res
   };
   const snap = asSnap(room.snapshot);
   return json({
-    ...envelope(room, snap, member, [...members, member], { includeSnapshot: true, rollSince: 0 }),
+    ...envelope({ ...room, revision: Number(inserted[0].revision) }, snap, member, [...members, member], { includeSnapshot: true, rollSince: 0 }),
     token,
   });
+}
+
+async function handleRename(sql: Sql, msg: z.infer<typeof renameSchema>): Promise<Response> {
+  const actor = await memberByToken(sql, msg.code, msg.token);
+  if (!actor) return json({ error: "link token rejected" }, 403);
+  if (actor.role !== "host" && actor.member_id !== msg.memberId) {
+    return json({ error: "only the host can rename another user" }, 403);
+  }
+  await touch(sql, msg.code, actor.member_id);
+  for (let attempt = 0; attempt < 8; attempt++) {
+    const room = await loadRoom(sql, msg.code);
+    if (!room) return json({ error: "sortie closed" }, 404);
+    const members = await loadMembers(sql, msg.code);
+    if (!members.some((member) => member.member_id === msg.memberId)) {
+      return json({ error: "user no longer at the table" }, 404);
+    }
+    if (members.some((member) => member.member_id !== msg.memberId && member.callsign.toUpperCase() === msg.callsign.toUpperCase())) {
+      return json({ error: "that username is already at the table" }, 409);
+    }
+    const renamed = await sql.query<{ revision: number }>(
+      `with changed_room as (
+         update forge_rooms set revision = revision + 1, updated_at = now()
+         where code = $1 and revision = $2
+         returning code, revision
+       ), renamed as (
+         update forge_members as member set callsign = $4
+         from changed_room
+         where member.room_code = changed_room.code and member.member_id = $3
+         and not exists (
+           select 1 from forge_members as other
+           where other.room_code = $1 and other.member_id <> $3 and upper(other.callsign) = upper($4)
+         )
+         returning member.member_id
+       )
+       select revision from changed_room where exists (select 1 from renamed)`,
+      [msg.code, Number(room.revision), msg.memberId, msg.callsign],
+    );
+    if (!renamed.length) continue;
+    const fresh = await loadMembers(sql, msg.code);
+    const you = fresh.find((member) => member.member_id === actor.member_id);
+    if (!you) return json({ error: "link token rejected" }, 403);
+    return json(envelope({ ...room, revision: Number(renamed[0].revision) }, asSnap(room.snapshot), you, fresh, { includeSnapshot: true, rollSince: 0 }));
+  }
+  return json({ error: "link busy, retry" }, 409);
 }
 
 async function handleRead(
@@ -916,14 +970,6 @@ async function handleRead(
   if (!room) return json({ error: "sortie closed" }, 404);
   const member = await memberByToken(sql, msg.code, msg.token);
   if (!member) return json({ error: "link token rejected" }, 403);
-  if (
-    msg.op === "resume" &&
-    msg.callsign &&
-    msg.callsign.trim() &&
-    msg.callsign.trim().toUpperCase() !== member.callsign.toUpperCase()
-  ) {
-    return json({ error: "this seat token belongs to another callsign" }, 403);
-  }
   if (msg.op === "leave") {
     await sql.query(
       `update forge_members set last_seen = now() - interval '1 minute' where room_code = $1 and member_id = $2`,
@@ -931,9 +977,9 @@ async function handleRead(
     );
     return json({ ok: true, left: true, features: FEATURES });
   }
-  const nextName = normalizeCallsign(msg.callsign, member.callsign);
-  await touch(sql, msg.code, member.member_id, nextName && nextName !== member.callsign ? nextName : undefined);
-  if (nextName) member.callsign = nextName;
+  // A valid seat token identifies the user. A stale local callsign must never
+  // rename the seat back after an explicit host/self rename.
+  await touch(sql, msg.code, member.member_id);
   if (msg.place && PLACES.has(msg.place)) places.set(member.member_id, msg.place);
   if (msg.seatColor) {
     const target = msg.seatColor.id;
@@ -1043,6 +1089,7 @@ export async function handleForge(request: Request): Promise<Response> {
     if (msg.op === "end") return await handleEnd(sql, msg.code, msg.token);
     if (msg.op === "leave") return await handleRead(sql, msg);
     if (msg.op === "push") return await handlePush(sql, msg);
+    if (msg.op === "rename") return await handleRename(sql, msg);
     return await handleRead(sql, msg);
   } catch (error) {
     console.error("[forge] room error:", error);
