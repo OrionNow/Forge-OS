@@ -1,0 +1,35 @@
+// FORGE-OS 5.5.3 server check: roll-card spoofing (Misaki v5.5.2 MUST-FIX). Three seats, fresh dev server (first seat = host).
+const base = (process.argv[2] || "http://localhost:8080") + "/api/forge";
+const call = async (b) => { const r = await fetch(base, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(b) }); return { status: r.status, body: await r.json() }; };
+let fails = 0; const ok = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) fails++; };
+const tag = Date.now().toString(36).slice(-5).toUpperCase();
+const E = await call({ op: "enter", callsign: "H" + tag });
+if (E.status !== 200) { console.log("FAIL enter: " + E.status + " " + JSON.stringify(E.body)); process.exit(1); }
+ok(E.body.you && E.body.you.role === "host", "first seat is the host");
+const H = { code: "TABLE", token: E.body.token };
+const E2 = await call({ op: "enter", callsign: "PILOTB" + tag }), E3 = await call({ op: "enter", callsign: "EVIL" + tag });
+ok(E2.status === 200 && E3.status === 200, "two pilot seats enter");
+const P = { code: "TABLE", token: E2.body.token }, X = { code: "TABLE", token: E3.body.token }, pid = E2.body.you.id, xid = E3.body.you.id;
+const rev = async (T) => (await call({ op: "poll", ...T, since: -1 })).body;
+const push = async (T, extra) => { const v = await rev(T); return call({ op: "push", ...T, baseRevision: v.revision, ...extra }); };
+const rollsOf = async (T) => ((await rev(T)).snapshot.rolls || []);
+const pu = "kage" + tag.toLowerCase() + "01";
+let r = await push(P, { upserts: [{ uid: pu, name: "KAGE", col: 1, hidden: false, closed: false, ownerId: pid, d: { id: "PB-7" } }] });
+ok(r.status === 200, "PILOTB creates KAGE");
+const card = (id, extra = {}) => ({ nonce: "n" + id, uid: pu, tone: "bad", html: "", rc: { k: "roll", id, a: "30mm AUTOCANNON", r: "CRIT FAIL · MISS", ...extra } });
+r = await push(X, { logs: [card("rcevilspoof1")] });
+ok(r.status === 200, "spoof push accepted at HTTP level (line dropped, not an error): " + r.status);
+for (const [T, who] of [[H, "host"], [P, "PILOTB"], [X, "third seat"]]) ok(!(await rollsOf(T)).some((x) => x.rc && x.rc.id === "rcevilspoof1"), "spoofed roll card on PILOTB's KAGE is refused (" + who + " view)");
+r = await push(P, { logs: [card("rcownroll01")] });
+let own = (await rollsOf(H)).find((x) => x.rc && x.rc.id === "rcownroll01");
+ok(own && own.actorId === pid && own.uid === pu, "owner's own roll card on KAGE is stored");
+r = await push(H, { logs: [card("rchostroll1")] });
+own = (await rollsOf(P)).find((x) => x.rc && x.rc.id === "rchostroll1");
+ok(own && own.actorId === E.body.you.id, "host may still post a roll card on a pilot's unit (actorId = host, shown with via)");
+r = await push(X, { logs: [{ nonce: "nchatx1", uid: null, tone: "dim", html: "hi", rc: { k: "chat", t: "hi" } }, { nonce: "nsortx1", uid: null, tone: "dim", html: "", rc: { k: "roll", id: "rcsortie001", a: "SKILL", r: "OK" } }] });
+const all = await rollsOf(H);
+ok(all.some((x) => x.nonce === "nchatx1" && x.actorId === xid), "third seat chat still goes through");
+ok(all.some((x) => x.rc && x.rc.id === "rcsortie001" && x.actorId === xid), "unit-less roll card from the third seat still stored (client names the sending seat)");
+r = await push(X, { logs: [card("rcownroll01", { up: true, r: "EDITED" })] });
+ok(!(await rollsOf(H)).some((x) => x.rc && x.rc.r === "EDITED"), "third seat cannot overwrite the owner's card");
+console.log(fails ? fails + " FAILED" : "ALL PASS"); process.exit(fails ? 1 : 0);

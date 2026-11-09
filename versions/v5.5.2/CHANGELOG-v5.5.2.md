@@ -1,5 +1,9 @@
 # FORGE OS 5.5.2 (Experimental)
 
+> **DEPLOY FIRST: apply `migrations/0003_forge_member_colors.sql` before deploying this build.**
+> The server's member query now selects `color` (`room.server.ts` `loadMembers`). If migration 0003 is skipped, every **enter** and **poll** fails and nobody can join the table. `npm run build` applies it when `DATABASE_URL` is set; local PGLite applies it at startup. On any other database, run the SQL by hand first.
+
+
 Upgrade notes for the 5.5.1 experimental project.
 
 ## Combat and component controls
@@ -51,3 +55,19 @@ Upgrade notes for the 5.5.1 experimental project.
 - Merge the patch files into the project at the same relative paths. Deploy/build normally; `npm run build` applies the new migration when `DATABASE_URL` is configured. Local PGLite applies it at startup.
 - With a persistent PostgreSQL database, seat colors persist across server restarts and seat reconnections. The default in-memory PGLite fallback still resets the entire sortie table on restart; each client's locally saved color is reapplied when they rejoin with the same callsign/browser.
 - Rebuild generated deployment output; a live multiplayer staging session is recommended before production deployment.
+
+## Misaki review fixes
+
+Fixes only, from Misaki's v5.5.2 review (7/10). Same version number; no new features.
+
+- **Roll-line spoofing (must-fix), server:** in the `msg.logs` loop, a roll card (`rc.k === "roll"`) attached to a unit is dropped unless the sending seat owns that unit or is the host. A third seat can no longer post a roll under another pilot's unit. (`server/room.server.ts` and `src/lib/forge/room.server.ts`)
+- **Roll-line spoofing (must-fix), client:** roll lines still name the unit owner, but whenever the sending seat (`r.actorId`) is not the owner, the name gains **"(via SEAT)"** with the actual sender, for example `PILOTB (via HOSTA)`. Host rolls on unassigned units stay unlabelled. A roll card with no unit now names the sending seat instead of the viewer's own current sheet. (`mp-bridge.js` `rollIdentity`)
+- **Solo roll author:** with no owner name set, solo roll lines read **LOCAL** instead of `Unknown /`. In multiplayer the fallback is the sending seat's callsign. Closed frames still read **Unknown**. (`terminal.html` `rcWho`, `mp-bridge.js`)
+- **Right-click DMG (Force 1 damage roll):** reviewed and **kept for everyone, pilots included, by the Overseer's decision**. Behaviour unchanged.
+- **desk.js:** intentionally not loaded in the base build. The desktop shell lives on the separate D branch (**v5.5.1-D2**) and is not part of v5.5.x base builds.
+- **Deployment:** the DEPLOY FIRST note about migration 0003 is at the top of this changelog.
+
+### Tests (fresh dev server for every multiplayer/API suite)
+
+- Solo 119/119 (`check-v552-misaki.js`, adapted from v5.5.1 for the v5.5.2 UI changes), BRITTLE 13/13, two-seat 59/59 (`check-v552-misaki-2seat.js`, adapted), two-seat sync 11/11, two-seat spoof/via/LOCAL browser check 8/8, API 18 + 11 + 10 + 7, three-seat spoof API 12/12. `node --check` clean.
+- New checks: `devtools/server-api-test-v552-misaki.mjs` (three-seat spoof repro, refused) and `devtools/check-v552-misaki-mp.js` (two-seat browser spoof repro refused, "(via SEAT)" label, solo LOCAL).

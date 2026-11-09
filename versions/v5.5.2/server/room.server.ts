@@ -731,6 +731,9 @@ function applyPush(snap: Snapshot, msg: z.infer<typeof pushSchema>, member: Memb
     const sheet = line.uid ? snap.sheets.find((s) => s.uid === line.uid) : undefined;
     if (line.uid && !sheet) continue;
     if (sheet?.hidden && member.role !== "host") continue;
+    // v5.5.3: roll cards are shown under the unit owner's name, so only the owner (or the host) may attach one
+    // to a unit. Another seat pushing a roll card for a unit it does not own is dropped (anti-spoofing).
+    if (line.rc && line.rc.k === "roll" && sheet && !canWrite(sheet, member)) continue;
     // v5.3.1: a roll card id belongs to the seat that first sent it. Another seat reusing the id is dropped
     // (no rewriting someone else's line); the author's update replaces the stored card instead of adding a copy.
     if (line.rc && line.rc.k === "roll" && line.rc.id) {

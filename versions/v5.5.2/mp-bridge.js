@@ -474,7 +474,7 @@
         continue;
       }
       if (r.rc && r.rc.k === "roll" && typeof rcRemote === "function") {
-        const owner = rollIdentity(r.uid);
+        const owner = rollIdentity(r.uid, r.actorId, r.actor);
         const card = rcRemote(r.rc, owner.u, owner.c, r.unit, r.actorId || "", owner.fc);
         if (card !== "") {
           if (card) speakRemote(card, safeTone(r.tone), catchup);
@@ -490,7 +490,7 @@
         chatShow(String(r.actor || "?"), actorColor(r.actor, r.color, r.actorId), ta.value);
         continue;
       }
-      const ident = r.uid ? rollIdentity(r.uid) : null;
+      const ident = r.uid ? rollIdentity(r.uid, r.actorId, r.actor) : null;
       const who = `<span style="color:${ident ? ident.c : actorColor(r.actor, r.color, r.actorId)}">${esc(ident ? ident.u : r.actor)}</span> <span class=dim>//</span> <span style="color:${ident ? ident.fc : unitColor(r.uid)}">${esc(r.unit)}</span> `;
       const body = cleanHtml(r.html || "");
       speakRemote(who + body, safeTone(r.tone), catchup);
@@ -1567,7 +1567,7 @@
   }
   window.mpWho = function () {
     if (!(MP.on && MP.ready)) return null;
-    return { ...rollIdentity(curUid()), id: MP.selfId || "local" };
+    return { ...rollIdentity(curUid(), MP.selfId, MP.callsign), id: MP.selfId || "local" };
   };
   window.mpCard = function (rc, up) {
     if (!rc || !(MP.on && MP.ready && !MP.applying)) return;
@@ -1625,7 +1625,26 @@
 
   // The roll names the mech's assigned owner, not the seat that activated the roll.
   // The seat actorId is still retained by the server to authorize damage-card updates.
-  function rollIdentity(uid) {
+  // v5.5.3: actorId/actorName are the seat that actually sent the line. When it is not the unit's owner the
+  // name gains "(via SEAT)" so a roll pushed by another seat can never pass as the owner's own roll.
+  function rollIdentity(uid, actorId, actorName) {
+    if (actorId && !uid) {
+      // no unit: name the sending seat, never the viewer's own current sheet
+      const m = (MP.members || []).find((x) => x && x.id === actorId);
+      return { u: m ? shownName(m) : String(actorName || "").trim().slice(0, 28) || seatTag(actorId), c: m ? memberColor(m) : "var(--muted)", fc: "var(--muted)" };
+    }
+    const base = rollOwner(uid, actorName);
+    if (!actorId) return base;
+    const S = Forge.state();
+    const sh = (MP.shadow || []).concat(S.sheets || []).find((x) => x && x.uid === uid);
+    const owner = sh ? sh.ownerId || null : null;
+    if (actorId === owner) return base;
+    const seat = (MP.members || []).find((m) => m && m.id === actorId);
+    if (!owner && seat && seat.role === "host") return base; // unassigned units are the host's to roll
+    const via = seat ? shownName(seat) : String(actorName || "").trim().slice(0, 28) || seatTag(actorId);
+    return { ...base, u: base.u + " (via " + via + ")" };
+  }
+  function rollOwner(uid, actorName) {
     const S = Forge.state();
     const sheets = (MP.shadow || []).concat(S.sheets || []);
     const sh = sheets.find((x) => x && x.uid === uid) || (!uid ? (S.sheets || [])[S.cur] : null);
@@ -1635,7 +1654,9 @@
     const owner = (MP.members || []).find((m) => m && m.id === sh.ownerId);
     if (owner) return { u: shownName(owner), c: memberColor(owner), fc };
     const name = String((sh === (S.sheets || [])[S.cur] ? S.own : null) || (sh.d && sh.d.own) || "").trim().slice(0, 28);
-    return { u: name || "Unknown", c: "var(--muted)", fc };
+    // v5.5.3: no owner name set falls back to the sending seat's callsign instead of "Unknown".
+    const seatName = String(actorName || "").trim().slice(0, 28);
+    return { u: name || seatName || "Unknown", c: "var(--muted)", fc };
   }
 
   function tintSpan(text, color) {
