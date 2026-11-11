@@ -207,16 +207,17 @@ input::placeholder,textarea::placeholder { color:var(--muted); opacity:.8; }
 }
 .stabs { gap:6px; }
 .stab[hidden],#sheetEmpty[hidden] { display:none!important; }
+/* v5.5.5 (Overseer): with no custom tab colour the outline is a dull grey; the unit name shows the frame status colour. */
 .stab {
   min-height:var(--ctl-h);
   padding:4px 9px;
-  border-color:var(--ux-edge);
+  border-color:#5f6366;
   background:var(--ux-raised);
 }
 .stab.on {
-  border-color:var(--cyan);
+  border-color:#8a8f93;
   background:var(--hover);
-  box-shadow:inset 0 -2px 0 var(--cyan);
+  box-shadow:inset 0 -2px 0 #8a8f93;
 }
 .sorhead {
   gap:3px 12px;

@@ -176,7 +176,7 @@ const wait = (ms) => new Promise(r => setTimeout(r, ms));
   await H.p.evaluate((hu) => { const S = Forge.state(); S.sheets.find(s => s.uid === hu).col = 2; Forge.render(); }, uids.hu); await wait(3000);
   const oc = async (p) => p.evaluate((hu) => { const t = document.querySelector('.stab[data-uid="' + hu + '"]'), a = t && t.querySelector('.asg, .stx[style]'); return t && a ? { tab: getComputedStyle(t).borderTopColor, txt: getComputedStyle(a).color, s: a.textContent } : null; }, uids.hu);
   const ocH = await oc(H.p), ocP = await oc(P.p);
-  ok(ocH && ocH.txt === 'rgb(138, 154, 166)' && ocP && ocP.txt === 'rgb(138, 154, 166)' && /Kai/.test(ocP.s), 'v5.5.2: host-entered owner text is grey (host and pilot) ' + JSON.stringify({ ocH, ocP }));
+  ok(ocH && ocH.txt === ocH.tab && ocP && ocP.txt === ocP.tab && /Kai/.test(ocP.s), 'v5.5.5 (Overseer): host-entered custom owner text is in the tab colour (host and pilot) ' + JSON.stringify({ ocH, ocP }));
   await P.p.locator('.stab[data-uid="' + uids.hu + '"]').click({ button: 'right' }); await wait(400);
   const rcO = await P.p.evaluate(() => document.querySelectorAll('#tabmenu button').length); await P.p.keyboard.press('Escape'); await wait(200);
   await P.p.locator('.stab[data-uid="' + uids.pu + '"]').click({ button: 'right' }); await wait(400);
@@ -216,7 +216,9 @@ const wait = (ms) => new Promise(r => setTimeout(r, ms));
   const nb = async (p, re) => p.evaluate((src) => { const c = [...document.querySelectorAll('#log .chat')].reverse().find(x => new RegExp(src).test(x.textContent)); if (!c) return null; const n = c.querySelector('.chn'), t = c.querySelector('.cht'); return { name: n && getComputedStyle(n).color, body: t && getComputedStyle(t).color, grey: getComputedStyle(Object.assign(document.createElement('span'), { className: 'dim' })).color }; }, re.source);
   await typeIn(P.p, 'body colour check'); await got(H.p, /body colour check$/);
   const hb1 = await nb(H.p, /body colour check$/);
-  ok(hb1 && hb1.name === memCol && hb1.body === memCol, "receiving seat: chat name and message body both in the sender's colour " + JSON.stringify([memCol, hb1]));
+  // v5.5.5: the sender's colour now follows the tab colour of a unit it owns, which changed since memCol was read; re-read it from the sender's own copy of this line
+  const memCol1 = (await nb(P.p, /body colour check$/) || {}).name;
+  ok(hb1 && hb1.name === memCol1 && hb1.body === memCol1, "receiving seat: chat name and message body both in the sender's colour " + JSON.stringify([memCol1, hb1]));
   // a server that drops the chat card (rc) must still give coloured chat text, not the grey generic line
   const strip = (o) => { if (!o || typeof o !== 'object') return; if (Array.isArray(o.rolls)) o.rolls.forEach(r => { if (r && r.rc && r.rc.k === 'chat') delete r.rc; }); Object.values(o).forEach(strip); };
   await H.p.route('**/api/forge', async (route) => { const res = await route.fetch(); let j; try { j = await res.json(); } catch (e) { return route.fulfill({ response: res }); } strip(j); route.fulfill({ response: res, json: j }); });
@@ -224,7 +226,7 @@ const wait = (ms) => new Promise(r => setTimeout(r, ms));
   const t0s = Date.now(); let hb2 = null; while (Date.now() - t0s < 9000 && !hb2) { hb2 = await nb(H.p, /stripped card check <b>x<\/b>$/); if (!hb2) await wait(300); }
   const raw = await H.p.evaluate(() => !!document.querySelector('#log b') && [...document.querySelectorAll('#log b')].some(b => b.textContent === 'x'));
   await H.p.unroute('**/api/forge');
-  ok(hb2 && hb2.name === memCol && hb2.body === memCol && hb2.body !== hb2.grey && !raw, 'chat line arriving without its card still renders as escaped chat in the sender colour ' + JSON.stringify([memCol, hb2, raw]));
+  ok(hb2 && hb2.name === memCol1 && hb2.body === memCol1 && hb2.body !== hb2.grey && !raw, 'chat line arriving without its card still renders as escaped chat in the sender colour ' + JSON.stringify([memCol1, hb2, raw]));
   // user list: no LINK header
   await P.p.evaluate(() => { const b = document.getElementById('rosterBtn'); if (getComputedStyle(document.getElementById('mpfriends')).display === 'none') b.click(); }); await wait(500);
   const lk = await P.p.evaluate(() => { const f = document.getElementById('mpfriends'); return { mph: !!f.querySelector('.mph'), link: /LINK OK|\bLINK\b/.test(f.textContent), txt: f.textContent.slice(0, 80) }; });

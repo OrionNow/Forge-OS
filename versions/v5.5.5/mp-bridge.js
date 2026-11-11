@@ -1351,6 +1351,16 @@
     });
   }
 
+  // v5.5.5 (Overseer): a custom owner (tab and console) is drawn in the unit's tab colour; with no custom tab colour,
+  // the theme accent. Closed / Unknown stay grey.
+  function ownerTabColor(sh) { return (sh && tabColor(sh.col)) || "var(--cyan)"; }
+  function ownedSheet(id) {
+    if (!id) return null;
+    let sheets = [];
+    try { sheets = (Forge.state().sheets || []).concat(MP.shadow || []); } catch (e) { sheets = MP.shadow || []; }
+    // several units: pick by uid so every seat chooses the same one whatever its local tab order
+    return sheets.filter((s) => s && s.ownerId === id && !s.closed).sort((x, y) => String(x.uid).localeCompare(String(y.uid)))[0] || null;
+  }
   function tabColor(col) {
     const list = Forge.colors || [];
     const c = list[col || 0] || "";
@@ -1392,13 +1402,13 @@
       const who = owner ? shownName(owner) : "";
       const own = !owner && !sh.closed ? ownOf(sh, i) : "";
       const role = sh.closed ? "Closed" : who || own;
-      const roleCol = owner ? memberColor(owner) : "var(--muted)";
+      const roleCol = (owner || own) && !sh.closed ? ownerTabColor(sh) : "var(--muted)"; // v5.5.5: custom owner = tab colour
       const ownEd = MP.role === "host" && MP.ownEdit === sh.uid;
       const canName = MP.role === "host" || sh.ownerId === MP.selfId;
       const ed = S.shEdit === i && canName;
       const titleHtml = ed
         ? `<input id=shn maxlength=28 value="${esc(label)}" onclick="event.stopPropagation()" onpointerdown="event.stopPropagation()" onmousedown="event.stopPropagation()" onblur="mpCommit('${sh.uid}',this.value)" onkeydown="if(event.key=='Enter')this.blur();if(event.key=='Escape'){event.preventDefault();mpCommit('${sh.uid}',null)}">`
-        : `<span class="stn ${st[1]}" style="color:${tabColor(sh.col)||'var(--muted)'}">${esc(label)}</span>`;
+        : `<span class="stn ${st[1]}">${esc(label)}</span>`; // v5.5.5: the name shows the frame status colour
       const rename = !ed && canName
         ? `<span class=stx data-act=rename data-label="Rename unit" title="Rename this unit" onclick="event.stopPropagation();mpRename('${sh.uid}')" onpointerdown="event.stopPropagation()">[R]</span>`
         : "";
@@ -1590,7 +1600,7 @@
   function sendChat(text) {
     const t = String(text).slice(0, 500);
     const me = meMember();
-    if (typeof chatShow === "function") chatShow(me ? shownName(me) : (MP.callsign || "YOU"), memberColor(me), t);
+    if (typeof chatShow === "function") { const os = ownedSheet(MP.selfId); chatShow(me ? shownName(me) : (MP.callsign || "YOU"), os ? ownerTabColor(os) : memberColor(me), t); }
     const nonce = rid();
     MP.nonces.add(nonce);
     const line = { nonce, uid: null, tone: "dim", html: capHtml(esc(t)), rc: { k: "chat", t } };
@@ -1641,6 +1651,9 @@
   }
 
   function actorColor(name, hint, id) {
+    const mm = id ? null : memberByName(name);
+    const os = ownedSheet(id || (mm && mm.id));
+    if (os) return ownerTabColor(os);
     const hinted = safeHex(hint);
     if (hinted) return hinted;
     const byId = id && (MP.members || []).find((x) => x.id === id);
@@ -1686,11 +1699,11 @@
     const fc = sh && sh.col ? (paperDollAccent[sh.col] || "var(--muted)") : "var(--muted)";
     if (!sh || sh.closed) return { u: "Unknown", c: "var(--muted)", fc };
     const owner = (MP.members || []).find((m) => m && m.id === sh.ownerId);
-    if (owner) return { u: shownName(owner), c: memberColor(owner), fc };
+    if (owner) return { u: shownName(owner), c: ownerTabColor(sh), fc };
     const name = String((sh === (S.sheets || [])[S.cur] ? S.own : null) || (sh.d && sh.d.own) || "").trim().slice(0, 28);
     // no owner name set: fall back to the sending seat's callsign instead of "Unknown"
     const seatName = String(actorName || "").trim().slice(0, 28);
-    return { u: name || seatName || "Unknown", c: "var(--muted)", fc };
+    return { u: name || seatName || "Unknown", c: name ? ownerTabColor(sh) : "var(--muted)", fc };
   }
 
   function tintSpan(text, color) {
