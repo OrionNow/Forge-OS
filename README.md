@@ -7,7 +7,7 @@ FORGE-OS is an in-world mech sheet and terminal for a GURPS mecha campaign. It l
 | Folder | What's in it |
 |---|---|
 | [`versions/`](versions/) | Every base build of the app. Start here. |
-| [`versions/v5.5.4/`](versions/v5.5.4/) | **Current / recommended build** (patch overlay onto v5.0-stable). |
+| [`versions/v5.5.5/`](versions/v5.5.5/) | **Current / recommended build** (patch overlay onto v5.0-stable). |
 | [`versions/v5.0-stable/`](versions/v5.0-stable/) | **Stable v5.0**: the full app (terminal + server) that newer builds are applied to. |
 | [`desktop-fork-archived/`](desktop-fork-archived/) | The desktop-style interface fork (v5.5.1-D1, v5.5.1-D2). Paused and abandoned for now. |
 | [`catalogue/`](catalogue/) | Catalogue items (frames, weapons, systems) and the notes behind them. |
@@ -26,16 +26,17 @@ Base builds use plain numbers (v5.5.0, v5.5.1, ...). Desktop-fork builds were na
 | [v5.5.1](versions/v5.5.1/) | Overseer feedback pass 3: targeter accuracy header, Evaluate, auto-ticking Heat, GURPS critical labels, Move and Attack, Rapid Strike. |
 | [v5.5.2](versions/v5.5.2/) | Component right-click actions, Evaluate +2/+4/+6, persistent seat colors (migration 0003), plus Misaki's review fixes (roll-spoofing protection, "(via SEAT)", solo LOCAL). |
 | [v5.5.3](versions/v5.5.3/) | UI pass (refined surfaces, keyboard access, sheet search, narrow layouts) plus username rename and saved-name auto-connect. **Known issues:** branched before the 5.5.2 review fixes, so roll-spoofing protection is missing. All fixed in 5.5.4. |
-| [**v5.5.4**](versions/v5.5.4/) | **Current / recommended.** 5.5.3 plus the Overseer-approved fixes: spoofing protection restored, vent rule, shield DR, Parry degree step, LOST frames can't attack, RoF bonus from rounds fired, gold DoS/damage numbers, phone layouts removed. |
+| [v5.5.4](versions/v5.5.4/) | Previous. 5.5.3 plus the Overseer-approved fixes: spoofing protection restored, vent rule, shield DR, Parry degree step, LOST frames can't attack, RoF bonus from rounds fired, gold DoS/damage numbers, phone layouts removed. |
+| [**v5.5.5**](versions/v5.5.5/) | **Current / recommended.** 5.5.4 plus a responsive layout: below 1103 px the whole UI scales down to fit, 1103–1298 px two stretching columns, above 1298 px the OPERATOR CONSOLE becomes a full-height third column. |
 | [Desktop fork (archived)](desktop-fork-archived/) | v5.5.1-D1 (first desktop window shell) and v5.5.1-D2 (Modular Cockpit, shipped untested). Paused and abandoned for now. |
 
-> **DEPLOY FIRST (v5.5.2 and later, including v5.5.4): apply `migrations/0003_forge_member_colors.sql` before deploying.** The server's member query selects `color`; without the migration every enter and poll fails and nobody can join. `npm run build` applies it when `DATABASE_URL` is set; the local PGLite fallback applies it at startup.
+> **DEPLOY FIRST (v5.5.2 and later, including v5.5.5): apply `migrations/0003_forge_member_colors.sql` before deploying.** The server's member query selects `color`; without the migration every enter and poll fails and nobody can join. `npm run build` applies it when `DATABASE_URL` is set; the local PGLite fallback applies it at startup.
 
-**Changelogs** are inside each version folder (`CHANGELOG-v*.md`; v5.5.3 and v5.5.4 also have a README with install steps). **Zip archives** are not stored in this repo; the complete runnable archives (for example `forge-os-v5.5.4.zip`) are distributed separately by the team.
+**Changelogs** are inside each version folder (`CHANGELOG-v*.md`; v5.5.3, v5.5.4 and v5.5.5 also have a README with install steps). **Zip archives** are not stored in this repo; the complete runnable archives (for example `forge-os-v5.5.5.zip`) are distributed separately by the team.
 
 ## Which version should I use?
 
-- **For play:** [`versions/v5.5.4/`](versions/v5.5.4/). It is a patch overlay: copy [`versions/v5.0-stable/`](versions/v5.0-stable/), copy the v5.5.4 files in as its [README](versions/v5.5.4/README.md) shows, and apply migration 0003 (see DEPLOY FIRST above).
+- **For play:** [`versions/v5.5.5/`](versions/v5.5.5/). It is a patch overlay: copy [`versions/v5.0-stable/`](versions/v5.0-stable/), copy the v5.5.5 files in as its [README](versions/v5.5.5/README.md) shows, and apply migration 0003 (see DEPLOY FIRST above).
 - **Untouched baseline:** [`versions/v5.0-stable/`](versions/v5.0-stable/) on its own. See [`versions/README.md`](versions/README.md) for every build.
 
 ## Running the app

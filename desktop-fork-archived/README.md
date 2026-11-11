@@ -7,4 +7,4 @@
 | [`v5.5.1-D1/`](v5.5.1-D1/) | v5.5.1 | First desktop shell (`desk.js`): telemetry, frame sheet and operator console as draggable windows with a module bay. A CLASSIC/DESK switch in the header restores the v5.5.1 layout. Changelog: `CHANGELOG-v5.5.1-D1.md`. |
 | [`v5.5.1-D2/`](v5.5.1-D2/) | v5.5.1-D1 | Desktop M2 "Modular Cockpit": several paper-doll windows (one live), bottom taskbar, tear-off panels, USERS window, layout slots. **Shipped untested** at the Overseer's request; opens in classic view by default. Changelog: `CHANGELOG-v5.5.1-D2.md`. |
 
-Use a base build from [`../versions/`](../versions/) (currently **v5.5.4**) for play.
+Use a base build from [`../versions/`](../versions/) (currently **v5.5.5**) for play.
