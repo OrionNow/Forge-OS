@@ -2,7 +2,7 @@
 
 > **DEPLOY FIRST: apply `migrations/0003_forge_member_colors.sql` before deploying.** Without it every enter and poll fails (the member query selects `color`).
 
-5.5.5 is 5.5.4 plus a responsive layout: below 1103 px the whole UI scales down to fit; from 1103 to 1298 px the two columns stretch; above 1298 px the OPERATOR CONSOLE becomes a full-height third column. See the [changelog](CHANGELOG-v5.5.5.md).
+5.5.5 is 5.5.4 plus an aspect-ratio layout. Below 17:10 there are two columns (the console sits under the loadout). At 17:10 or wider, and at least 1280 px wide, the OPERATOR CONSOLE becomes a full-height third column with the user list as a strip across its top. Between 963 and 1103 px the layout is zoomed to fit; 963 px is a hard floor, and narrower windows scroll. See the [changelog](CHANGELOG-v5.5.5.md).
 
 ## Installing the overlay
 

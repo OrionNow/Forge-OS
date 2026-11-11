@@ -552,7 +552,11 @@ input::placeholder,textarea::placeholder { color:var(--muted); opacity:.8; }
   padding-bottom:4px;
   border-bottom:1px solid var(--ux-edge);
 }
-.sorhead .nm { flex-basis:100%; }
+/* v5.5.5 (Overseer): line 1 is "LIVE SORTIE TELEMETRY // name" with the ISB LINK status right-aligned on the
+   same line (the name ellipsizes, never overlaps); the other telemetry items wrap onto the next line. */
+.sorhead .nm { order:-3; flex:1 1 0; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.sorhead>.isb { order:-2; flex:none; margin-left:auto; white-space:nowrap; }
+.sorhead::before { content:""; order:-1; flex-basis:100%; height:0; margin-top:-3px; }
 .sorhead>.dim { font-size:var(--fs-l); }
 .sorfoot { flex-wrap:wrap; gap:8px; }
 .sorbtns { display:flex; flex-wrap:wrap; align-items:center; gap:4px; }
@@ -572,13 +576,14 @@ input::placeholder,textarea::placeholder { color:var(--muted); opacity:.8; }
 .damagebox .dmrow2 { margin-top:0; }
 .damagebox .dmrow2:has(.dmeff:empty) { display:none; }
 .pilot { padding:8px; margin-top:8px; }
+/* v5.5.5 (Overseer): expanded SKILL INPUTS = 2 rows of 6 fields; smaller labels, inputs fill their cell and line up. */
 .pilot .pg {
-  grid-template-columns:repeat(4,minmax(0,1fr));
-  gap:6px 10px;
+  grid-template-columns:repeat(6,minmax(0,1fr));
+  gap:5px 6px;
   margin:6px 0;
 }
-.pilot .pg label { min-width:0; white-space:normal; overflow-wrap:anywhere; }
-.pilot .pg input { width:7ch; max-width:100%; }
+.pilot .pg label { min-width:0; white-space:normal; overflow-wrap:break-word; hyphens:manual; justify-content:space-between; font-size:calc(var(--fs-l) * .82); line-height:1.2; letter-spacing:0; }
+.pilot .pg input { width:100%; max-width:100%; min-width:0; box-sizing:border-box; }
 .pilot .pgrow { align-items:flex-start; }
 .pbot { grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:12px; }
 .pact.nw { flex-wrap:wrap!important; }
@@ -665,21 +670,31 @@ body[data-view="login"] .welcome { justify-content:center; }
   color:var(--muted);
   font-size:var(--fs-l);
 }
-/* v5.5.5 responsive widths (CSS px, DPR 1; from the Overseer's reference windows):
-   below 1103px  - the whole UI is laid out at 1103px and zoomed down to fit (terminal-ui.js sets html.ux-scaled);
-   1103-1298px  - the two-column layout stretches;
-   1299px and up - the two columns stop growing (626px each, their size at 1298px) and the
-                   OPERATOR CONSOLE becomes a full-height third column on the right. */
-html.ux-scaled body { overflow-x:hidden; }
+/* v5.5.5 layout (Overseer):
+   - Hard floor: the 963px window (reference v555b-min-floor). From 963 to 1103px the 1103px layout is zoomed
+     to fit, exactly as in that reference (zoom 963/1103 = 0.873 at the floor). Narrower than 963px nothing
+     shrinks further: the page keeps the floor size and the window scrolls (terminal-ui.js sets html.ux-scaled).
+   - Two columns (sheet full height left, loadout manifest over the OPERATOR CONSOLE right) below 17:10.
+   - Three columns at aspect ratio 17:10 or wider and at least 1280px wide: sheet | loadout | console, all full
+     height; sheet and loadout stop growing at 626px; the console keeps at least 300px and shows the user list
+     as a strip across its top. */
 html.ux-scaled #wrap { zoom:var(--ux-z,1); width:var(--ux-vw,100%); max-width:none; height:var(--ux-vh,100dvh); }
-@media(min-width:1299px) {
+@media (min-aspect-ratio:17/10) and (min-width:1280px) {
   #wrap { max-width:none; }
-  main { grid-template-columns:minmax(0,626px) minmax(0,626px) minmax(240px,1fr); }
+  main { grid-template-columns:minmax(0,626px) minmax(0,626px) minmax(300px,1fr); }
   #rt { display:contents; }
   #rt>#sh { grid-column:2; grid-row:1; min-height:0; }
   #rt>#cb { grid-column:3; grid-row:1; min-height:0; display:flex; flex-direction:column; }
   #cb.cs1 #log { flex:1; height:auto; min-height:0; }
   #cb.cs0 #log { flex:none; }
+  #rt>#cb>* { order:2; }
+  #rt>#cb>#conhead { order:0; }
+  #rt>#cb>#mpfriends { order:1; position:static; width:auto; max-height:30%; flex:none; padding:4px 0; border:0;
+    border-bottom:1px solid var(--line); overflow-y:auto; overflow-wrap:normal; }
+  #rt>#cb>#mpfriends .mpbody { display:flex; flex-wrap:wrap; gap:2px 18px; }
+  #rt>#cb>#mpfriends .mprow { display:flex; align-items:baseline; gap:6px; min-width:0; max-width:100%; border:0; padding:2px 0; }
+  #rt>#cb>#mpfriends .mprow .mp-place { flex:0 1 auto; }
+  #cb.users #log,#cb.users #pr,#cb.users #hint { margin-right:0; }
 }
 /* v5.5.4: phone/narrow layouts (max-width 1100/900/560px) removed by the Overseer. */
 
@@ -1410,7 +1425,7 @@ function togRetreat(on){S.pilot=S.pilot||{};S.pilot.ret=on?'1':'0';audioEvent(on
 function sheet(){return S.view=='chassis'?sheetPreview():realSheet()}
 
 const CHANGELOG=[
-{v:'5.5.5',items:['Layout: windows narrower than 1103px show the whole interface scaled down to fit (laid out at 1103px); 1103-1298px keeps the two stretching columns; wider than 1298px the two columns stop growing and the OPERATOR CONSOLE (with the user list) becomes a full-height third column, the loadout manifest taking the height it gave up.']},
+{v:'5.5.5',items:['Layout: two columns (sheet full height left; loadout manifest above the OPERATOR CONSOLE right) below a 17:10 window aspect ratio; at 17:10 or wider (and at least 1280px wide) the console becomes a full-height third column with the user list as a strip across its top. Windows from 1103px down to 963px show the 1103px layout zoomed to fit; 963px is a hard floor: narrower windows keep that size and scroll.','LIVE SORTIE TELEMETRY: the ISB LINK status sits right-aligned on line 1 next to the unit name (long names are cut with an ellipsis), saving a row.','SKILL INPUTS: 2 rows of 6 fields with smaller labels.']},
 {v:'5.5.4',items:['Roll lines: a roll sent by a seat that does not own the unit reads (via SEAT); the server refuses roll cards on another seat\'s unit (host excepted); solo rolls with no owner read LOCAL.','Shields with two DR numbers use the first.','Vent: fail vents VENT; success vents VENT + 1 + degrees of success.','Phone layouts removed.','RoF bonus uses the rounds actually fired (short or empty magazine), same table.','Roll lines: hit counts, signed DoS/DoF values and damage numbers are gold; the labels keep the green/red line colour.','Parry uses the normal degree step (1), like Block.','A LOST frame cannot attack.']},{v:'5.5.3',items:['Refined terminal surfaces and theme-colored selection states retain the original compact controls and terminal effects.','Saved usernames are reused on connect. Right-click a username in the roster to rename it: the host can rename anyone; clients can rename themselves.','Player chat works across terminal sections. Long roster locations and clipped sortie metadata crawl on one line.','Catalogue tabs render instantly. Skill inputs remain above roll controls, with shorter skill labels.','The welcome crest nests E within C. Added toolbar, sortie section headers, target-selection row and menu-trigger buttons are removed. Existing menus remain available by right-click or keyboard.']},
 {v:'5.5.2',items:['Paper doll: right-click or Shift+F10 on a part to repair it, restore plating, repair all, or apply the entered damage. Weapon DMG right-click forces one damage roll.','Rolls show the assigned mech owner (host-entered names and closed/Unknown names in grey); frame names use paper-doll colors and rolls have no color outline. Expanded descriptions concatenate. Rolls Only includes chat.','Weapon controls indicate ready ATK/DMG in amber; empty magazines leave ATK visible, disabled in red. Rapid Strike no longer replaces degrees of success; Retreat clears after an active-defense roll.','Targeter: head loss limits combined targeting and Aim/Evaluate bonus to +1, Evaluate choices +2/+4/+6; Move+Atk is the first All Out option.','Catalog editing, skill input focus/caret, roster width and ultra-wide layout refined; no console minimize. Compact rolls omit Move+Atk/Rapid. Uncolored tabs and CMD rolls show grey frame names; user color persists across server restarts.']},
 {v:'5.5.1',items:['Targeter header is the accuracy tile (always shown, +0 included); melee gets [EVALUATE +1] (right-click +2/+4/+6) and [RAPID STRIKE -6] (right-click -6/-3, RoF 2). Move and Attack is in the All-Out Attack menu (ranged -2, melee -4 max 9, Dodge/Block only). Closing the targeter clears the weapon highlight. A roll with a Heat toggle on adds +1 heat and switches that Heat off.','Rolls label CRITICAL HIT / CRITICAL FAIL (GURPS B348 on effective skill). The console stays pinned to the newest line when a roll line grows.','Table: remote chat text keeps the sender colour; viewers see All-Out Attack update live; the roster drops its LINK header.']},
@@ -1504,7 +1519,7 @@ function engHold(i){const t=tel(),L=locs(),m=maxOf(i);if(!isLimb(L[i])||t.hp[i]>
 const detectRoll=()=>skillRoll('SENSORS :: DETECTION','full|sen',null,1),stealthRoll=()=>skillRoll('ELECTRONIC WARFARE :: STEALTH','full|ew',null,1),maneuverRoll=()=>skillRoll('PILOTING ('+pilTag()+') :: MANEUVER','full|pil'),dodgeRoll=()=>skillRoll('PILOTING ('+pilTag()+') :: DODGE','dod|pil'),turnBlowRoll=()=>skillRoll('PILOTING ('+pilTag()+') :: TURN BLOW','def|pil',()=>'PILOT MAY CHANGE THE HIT LOCATION OF THE INCOMING ATTACK TO THEIR CHOICE');
 function pilotView(){const P=S.pilot||(S.pilot={}),t=tel(),L=locs(),cs=chStats(),W=weapons(),SH=shields();
  const HS=(h)=>`<span class=dim> : ${h?'HND '+nHD(cs.ok?(cs.hnd>=0?'+':'')+cs.hnd:'--')+' &nbsp;|&nbsp; ':''}SR ${nST(cs.sr??'--')}</span>`;
- const inp=(k,lab)=>`<label>${lab}<input data-skill="${esc(k)}" type=text inputmode=numeric pattern="[0-9]*" value="${esc(P[k]??'')}" oninput="if(/[^0-9]/.test(this.value))this.value=this.value.replace(/[^0-9]/g,'');S.pilot['${k}']=this.value;pilotLive()" onchange="skillNote(this)"></label>`,sl=s=>`<span class=dim data-sl="${s}" title="${esc(slBreak(s))}">${slTxt(s)}</span>`;
+ const inp=(k,lab)=>`<label>${/* v5.5.5: break points for the 6-wide skill grid */lab.replace(/\//g,'/<wbr>').replace(/ELECTROMAGNETIC/g,'ELECTRO&shy;MAGNETIC')}<input data-skill="${esc(k)}" type=text inputmode=numeric pattern="[0-9]*" value="${esc(P[k]??'')}" oninput="if(/[^0-9]/.test(this.value))this.value=this.value.replace(/[^0-9]/g,'');S.pilot['${k}']=this.value;pilotLive()" onchange="skillNote(this)"></label>`,sl=s=>`<span class=dim data-sl="${s}" title="${esc(slBreak(s))}">${slTxt(s)}</span>`;
  const groups=new Map();[...DB.filter(x=>(x.c=='A'&&/(^| )DMG:/.test(x.s))||(x.c=='D'&&isShield(x))),...W,...SH].forEach(x=>{if(!groups.has(wKey(x)))groups.set(wKey(x),wLab(x))});
  const vsel=isMech()?'':`<label class=dmgn>VEHICLE CLASS<select onchange="S.pilot.vt=({TANK:1,PLANE:2,HELO:3})[this.value];say('[ OK ] VEHICLE PROFILE SET :: '+this.value+' // piloting and engineering modifiers recalculated','ok');R()">${VCLS.map(c=>`<option value="${c}" ${vehSub()==c?'selected':''}>${c}</option>`).join('')}</select></label>`;
  const stats=inp('pil','PILOTING ('+pilTag()+')')+inp('sen','SENSORS')+inp('ew','ELECTRONIC WARFARE')+inp('eng','ENGINEERING ('+pilTag()+')')+inp('fd','FAST DRAW (AMMO)')+[...groups].map(([k,l])=>inp(k,l)).join('');
@@ -1516,7 +1531,7 @@ function pilotView(){const P=S.pilot||(S.pilot={}),t=tel(),L=locs(),cs=chStats()
  +`<div class=pl>PILOTING (${pilTag()}) <button onclick=pilRoll()>[ROLL]</button> ${sl('full|pil')}</div><div class="pact pdef">${defCtl()}</div></div>`
  +`<div class=pbox><div class=pl>ENGINEERING (${pilTag()}) <button onclick=engRoll()>[ROLL]</button> ${sl('full|eng')}</div>${heatBox()}<div class=pact>${isMech()?eng:'<span class=dim>no limb overrides on vehicles</span>'}</div></div></div></div>`}
 function sortieView(){const t=tel();if(!t)return intelView();const L=locs(),mx=baseHP()||1,st=frameStatus(),prev=S.uiHP&&S.uiHP.length===L.length?S.uiHP.slice():t.hp.slice();S.uiHP=t.hp.slice();const calc=autoCalc();
- const ig=igOf(),igs=ig<34?'crit':ig<67?'warn':'ok',hcp=heatCap(),hz=heatZone();let h=`<div class=sorhead><span class=nm>LIVE SORTIE TELEMETRY // ${esc(idline())}</span><span class=dim>${esc(S.ch[0])} :: BASE HP ${mx}${brittleVal()?` <b class="${brittleOn()?'brtag':'dim'}" title="BRITTLE: ${brittleVal()} SR while Core HP is below half">[BRITTLE ${brittleOn()?'SR'+brittleVal()+' ACTIVE':'SR'+brittleVal()+' BELOW 1/2 HP'}]</b>`:''}</span><span>STATUS <b class="${st[1]}">${st[0]}</b></span>${mnaOn()?`<span><b class=aoatag title="Move and Attack: ranged -2, melee -4 (skill max 9); Dodge or Block only">MOVE+ATK // DODGE/BLOCK ONLY</b></span>`:''}${aoaNow()?`<span><b class=aoatag title="All-Out Attack is set: no active defense until you switch it off in the TARGETER">AOA: ${aoaLab(aoaNow())} // NO DEFENSE</b></span>`:''}<span class=dim>INTEGRITY <b>${igOf()}%</b></span><span class=dim>ISB LINK <b class=lnk id=sync data-s=local>[LOCAL]</b></span></div>`;
+ const ig=igOf(),igs=ig<34?'crit':ig<67?'warn':'ok',hcp=heatCap(),hz=heatZone();let h=`<div class=sorhead><span class=nm>LIVE SORTIE TELEMETRY // ${esc(idline())}</span><span class=dim>${esc(S.ch[0])} :: BASE HP ${mx}${brittleVal()?` <b class="${brittleOn()?'brtag':'dim'}" title="BRITTLE: ${brittleVal()} SR while Core HP is below half">[BRITTLE ${brittleOn()?'SR'+brittleVal()+' ACTIVE':'SR'+brittleVal()+' BELOW 1/2 HP'}]</b>`:''}</span><span>STATUS <b class="${st[1]}">${st[0]}</b></span>${mnaOn()?`<span><b class=aoatag title="Move and Attack: ranged -2, melee -4 (skill max 9); Dodge or Block only">MOVE+ATK // DODGE/BLOCK ONLY</b></span>`:''}${aoaNow()?`<span><b class=aoatag title="All-Out Attack is set: no active defense until you switch it off in the TARGETER">AOA: ${aoaLab(aoaNow())} // NO DEFENSE</b></span>`:''}<span class=dim>INTEGRITY <b>${igOf()}%</b></span><span class="dim isb">ISB LINK <b class=lnk id=sync data-s=local>[LOCAL]</b></span></div>`;
  h+=isMech()?mechMap(t,L,prev):vehMap(t,L,prev);
 
  const rear=S.dmg.rear?'checked':'',chink=S.dmg.chink?'checked':'';
@@ -2413,9 +2428,6 @@ tgtNoteInner=function(){const w=awW();if(!w)return'';return'<span class=tgline>'
   const originalShCrawl = shCrawl;
   shCrawl = function () { const result = originalShCrawl.apply(this, arguments); requestAnimationFrame(crawlFrameLine); return result; };
   window.addEventListener('resize', () => requestAnimationFrame(crawlFrameLine));
-  /* v5.5.5: below the 1103px minimum the page is laid out at 1103px and zoomed to fit.
-     CSS zoom (not transform) keeps clicks, drag, scrolling and fixed-position menus on true coordinates. */
-  const UX_MIN_W = 1103;
   /* While scaled, the real viewport is narrower than the layout, so width/height media queries are
      re-evaluated against the virtual 1103px viewport (vw=0 restores the original queries). */
   const uxMediaRules = [];
@@ -2438,18 +2450,22 @@ tgtNoteInner=function(){const w=awW();if(!w)return'';return'<span class=tgline>'
       if (x.r.media.mediaText !== want) x.r.media.mediaText = want;
     });
   }
+  /* v5.5.5: from 1103px down to the 963px floor the 1103px layout is zoomed to fit (CSS zoom keeps clicks, drag,
+     scrolling and fixed-position menus on true coordinates). Below 963px the zoom stays at the floor value and the
+     page scrolls instead of shrinking further. */
+  const UX_MIN_W = 1103, UX_FLOOR_W = 963;
   function uxFit() {
     const de = document.documentElement, w = window.innerWidth;
     if (!w || w >= UX_MIN_W) {
       if (de.classList.contains('ux-scaled')) { de.classList.remove('ux-scaled'); ['--ux-z', '--ux-vw', '--ux-vh'].forEach(k => de.style.removeProperty(k)); uxMedia(0, 0); }
       return;
     }
-    const z = w / UX_MIN_W;
+    const z = Math.max(w, UX_FLOOR_W) / UX_MIN_W, gutter = w - de.clientWidth;
     de.classList.add('ux-scaled');
-    uxMedia(UX_MIN_W, window.innerHeight / z);
+    uxMedia(UX_MIN_W, de.clientHeight / z);
     de.style.setProperty('--ux-z', z.toFixed(5));
-    de.style.setProperty('--ux-vw', (de.clientWidth / z).toFixed(2) + 'px');
-    de.style.setProperty('--ux-vh', (window.innerHeight / z).toFixed(2) + 'px');
+    de.style.setProperty('--ux-vw', ((Math.max(w, UX_FLOOR_W) - gutter) / z).toFixed(2) + 'px');
+    de.style.setProperty('--ux-vh', (de.clientHeight / z).toFixed(2) + 'px');
   }
   window.addEventListener('resize', () => { uxFit(); requestAnimationFrame(uxFit); });
   uxFit();

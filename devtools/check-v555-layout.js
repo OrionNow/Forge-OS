@@ -1,25 +1,31 @@
-// v5.5.5 responsive screenshots + layout checks (solo and MP, console visible). Usage: node check-v555-layout.js [base] [outdir]
+// v5.5.5 (aspect-ratio layout, 963px hard floor, console user strip) screenshots + layout checks (solo and MP, console visible). Usage: node check-v555-layout.js [base] [outdir]
 const { chromium } = require('/workspace/pw/node_modules/playwright-core'); const fs = require('fs');
-const base = process.argv[2] || 'http://localhost:8080', out = process.argv[3] || '/workspace/forge-os/feedback/v555-shots';
+const base = process.argv[2] || 'http://localhost:8080', out = process.argv[3] || '/workspace/forge-os/feedback/v555b-shots';
 const fx = fs.readFileSync('/workspace/forge-os/tests/musha-brittle.manifest.txt', 'utf8');
 let fails = 0; const ok = (c, m) => { console.log((c ? 'PASS ' : 'FAIL ') + m); if (!c) fails++; };
-const sizes = [['below-min', 900, 700], ['below-min-small', 640, 560], ['between', 1200, 896], ['wide', 1700, 950], ['wide-xl', 2200, 1100]];
+const sizes = [['floor', 963, 904], ['below-floor', 800, 700], ['4x3', 1280, 960], ['ratio-1.68', 1680, 1000], ['ratio-1.70', 1700, 1000], ['16x9', 1920, 1080], ['ultrawide', 2560, 1080]];
+const FLOOR = 963, MIN = 1103; const three = (w, h) => w / h >= 1.7 && w >= 1280;
 const geo = (p) => p.evaluate(() => { const r = s => { const e = document.querySelector(s); if (!e || !e.offsetParent && getComputedStyle(e).display === 'none') return null; const q = e.getBoundingClientRect(); return { l: q.left, t: q.top, r: q.right, b: q.bottom, w: q.width, h: q.height }; };
-  return { vw: innerWidth, vh: innerHeight, cw: document.documentElement.clientWidth, sw: document.documentElement.scrollWidth, sh: document.documentElement.scrollHeight, header: r('header'), con: r('#con'), shp: r('#sh'), cb: r('#cb'), fr: r('#mpfriends'), scaled: document.documentElement.classList.contains('ux-scaled') }; });
+  return { vw: innerWidth, vh: innerHeight, cw: document.documentElement.clientWidth, sw: document.documentElement.scrollWidth, sh: document.documentElement.scrollHeight, header: r('header'), con: r('#con'), shp: r('#sh'), cb: r('#cb'), fr: r('#mpfriends'), log: r('#log'), z: +getComputedStyle(document.getElementById('wrap')).zoom, scaled: document.documentElement.classList.contains('ux-scaled') }; });
 async function check(p, tag, w, mp) {
-  const g = await geo(p);
-  ok(g.sw <= g.cw + 1, `${tag}: no horizontal overflow (scrollWidth ${g.sw} <= ${g.cw})`);
+  const g = await geo(p); const h = g.vh, lim = Math.max(g.cw, FLOOR - (g.vw - g.cw)) + 1;
+  if (w < FLOOR) ok(g.sw > g.cw && g.sw <= FLOOR + 1, `${tag}: below the floor the page keeps the floor width and scrolls (scrollWidth ${g.sw}, window ${g.cw})`);
+  else ok(g.sw <= g.cw + 1, `${tag}: no horizontal overflow (scrollWidth ${g.sw} <= ${g.cw})`);
   ok(g.sh <= g.vh + 1, `${tag}: no vertical page overflow (scrollHeight ${g.sh} <= ${g.vh})`);
-  for (const k of ['header', 'con', 'shp', 'cb']) ok(g[k] && g[k].l >= 0 && g[k].r <= g.cw + 1 && g[k].b <= g.vh + 1 && g[k].w > 100, `${tag}: ${k} inside the window ${g[k] && [g[k].l, g[k].t, g[k].r, g[k].b].map(Math.round)}`);
-  ok(g.scaled === (w < 1103), `${tag}: scaled=${g.scaled}`);
-  if (w >= 1299) {
-    ok(g.cb.l > g.shp.r && g.shp.l > g.con.r, `${tag}: three columns (sheet | loadout | console)`);
+  for (const k of ['header', 'con', 'shp', 'cb']) ok(g[k] && g[k].l >= 0 && g[k].r <= lim && g[k].b <= g.vh + 1 && g[k].w > 100, `${tag}: ${k} inside the layout ${g[k] && [g[k].l, g[k].t, g[k].r, g[k].b].map(Math.round)}`);
+  const zWant = w >= MIN ? 1 : Math.max(w, FLOOR) / MIN;
+  ok(g.scaled === (w < MIN) && Math.abs(g.z - zWant) < 0.002, `${tag}: zoom ${g.z} (expected ${zWant.toFixed(4)})`);
+  if (three(w, h)) {
+    ok(g.cb.l > g.shp.r && g.shp.l > g.con.r, `${tag}: three columns (sheet | loadout | console) at ${(w / h).toFixed(3)}:1`);
     ok(Math.abs(g.con.h - g.cb.h) < 2 && Math.abs(g.shp.h - g.con.h) < 2 && Math.abs(g.con.t - g.cb.t) < 2, `${tag}: sheet, loadout and console all full height`);
-    ok(g.con.w <= 627 && g.shp.w <= 627, `${tag}: sheet/loadout columns capped at 626px (${Math.round(g.con.w)}/${Math.round(g.shp.w)})`);
-  } else ok(Math.abs(g.cb.l - g.shp.l) < 2 && g.cb.t > g.shp.b, `${tag}: two columns, console under the loadout`);
-  if (mp) ok(g.fr && g.fr.r <= g.cb.r + 1 && g.fr.l >= g.cb.l - 1, `${tag}: user list visible inside the console`);
+    ok(g.con.w <= 627 && g.shp.w <= 627 && g.cb.w >= 299, `${tag}: sheet/loadout capped at 626px, console >= 300px (${Math.round(g.con.w)}/${Math.round(g.shp.w)}/${Math.round(g.cb.w)})`);
+    if (mp) ok(g.fr && g.fr.b <= g.log.t + 1 && g.fr.w >= g.cb.w - 30 && g.fr.h < g.cb.h * 0.35, `${tag}: user list is a strip across the top of the console ${g.fr && [g.fr.l, g.fr.t, g.fr.w, g.fr.h].map(Math.round)}`);
+  } else {
+    ok(Math.abs(g.cb.l - g.shp.l) < 2 && g.cb.t > g.shp.b && Math.abs(g.con.h - (g.cb.b - g.shp.t)) < 3, `${tag}: two columns at ${(w / h).toFixed(3)}:1, sheet full height, console under the loadout`);
+    if (mp) ok(g.fr && g.fr.r <= g.cb.r + 1 && g.fr.l > g.cb.l + g.cb.w / 2, `${tag}: user list is the side panel inside the console`);
+  }
   // clicks land on the right element (true coordinates under zoom)
-  const hit = await p.evaluate(() => { const bs = [...document.querySelectorAll('#wrap button')].filter(b => b.offsetParent); let good = 0, n = 0; for (const b of bs.slice(0, 40)) { const q = b.getBoundingClientRect(); if (q.width < 2 || q.bottom > innerHeight || q.top < 0) continue; n++; const e = document.elementFromPoint(q.left + q.width / 2, q.top + q.height / 2); if (e && (e === b || b.contains(e))) good++; } return [good, n]; });
+  const hit = await p.evaluate(() => { const bs = [...document.querySelectorAll('#wrap button')].filter(b => b.offsetParent); let good = 0, n = 0; for (const b of bs.slice(0, 40)) { const q = b.getBoundingClientRect(); if (q.width < 2 || q.bottom > innerHeight || q.top < 0 || q.right > document.documentElement.clientWidth) continue; n++; const e = document.elementFromPoint(q.left + q.width / 2, q.top + q.height / 2); if (e && (e === b || b.contains(e))) good++; } return [good, n]; });
   ok(hit[1] > 5 && hit[0] === hit[1], `${tag}: hit-testing matches button centres (${hit[0]}/${hit[1]})`);
   await p.screenshot({ path: `${out}/${tag}.png` });
 }
@@ -30,7 +36,7 @@ async function check(p, tag, w, mp) {
     const p = await page(w, h, 'solo-' + tag);
     await p.evaluate(async (fx) => { login(4); await loadManifestFile(new File([fx], 'a.txt')); S.view = 'sortie'; R(); }, fx); await p.waitForTimeout(1200);
     await check(p, `solo-${tag}-${w}x${h}`, w, false);
-    if (w < 1103) { // right-click menu opens at the pointer; a real click through the zoom works
+    if (w < MIN) { // right-click menu opens at the pointer; a real click through the zoom works
       const btn = await p.$('#wrap [data-menu]'); if (btn) { const q = await btn.boundingBox(); await p.mouse.click(q.x + q.width / 2, q.y + q.height / 2, { button: 'right' }); await p.waitForTimeout(300);
         const m = await p.evaluate(() => { const e = document.getElementById('tabmenu'); if (!e) return null; const r = e.getBoundingClientRect(); return [r.left, r.top, r.right, r.bottom]; });
         ok(m && Math.abs(m[0] - Math.min(q.x + q.width / 2, w - (m[2] - m[0]) - 8)) < 12 && m[2] <= w, `solo-${tag}: right-click menu opens at the pointer ${m && m.map(Math.round)} vs ${Math.round(q.x + q.width / 2)},${Math.round(q.y + q.height / 2)}`);

@@ -188,11 +188,11 @@ function check(condition, message, evidence) {
     const overflow = [];
     for (const width of [1920, 1280, 1024, 768, 390, 320]) {
       await ui.setViewportSize({ width, height: 900 });
-      await ui.waitForTimeout(150); // v5.5.5: below 1103px the scale is applied on the resize event, one frame later
+      await ui.waitForTimeout(150); // v5.5.5: below 1103px the zoom/floor is applied on the resize event, one frame later
       const bounds = await ui.evaluate(() => ({ viewport: innerWidth, page: document.documentElement.scrollWidth }));
-      if (bounds.page > bounds.viewport + 1) overflow.push(bounds);
+      if (bounds.page > Math.max(bounds.viewport, 963) + 1) overflow.push(bounds); // v5.5.5: below the 963px floor the page keeps the floor width and scrolls
     }
-    check(overflow.length === 0, 'login layout fits widths from 320px to 1920px', overflow);
+    check(overflow.length === 0, 'login layout fits widths from 320px to 1920px (963px floor below that)', overflow);
     check(errors.length === 0, 'no page-level script errors', errors);
   } finally {
     await browser.close();

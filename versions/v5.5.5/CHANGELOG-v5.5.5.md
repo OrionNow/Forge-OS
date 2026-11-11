@@ -3,21 +3,31 @@
 > **DEPLOY FIRST: apply `migrations/0003_forge_member_colors.sql` before deploying this build.**
 > The server's member query selects `color` (`room.server.ts` `loadMembers`). If migration 0003 is skipped, every **enter** and **poll** fails and nobody can join the table. `npm run build` applies it when `DATABASE_URL` is set; local PGLite applies it at startup. On any other database, run the SQL by hand first.
 
-5.5.4 plus a responsive layout. Layout only; no rules, multiplayer or server changes. Everything else is unchanged from 5.5.4: gold numbers with green/red labels, no phone layouts, rename, auto-connect, crawl text and crest, the spoofing fixes and the "(via SEAT)" label, right-click DMG.
+5.5.4 plus a responsive layout. Layout only: no rules, multiplayer or server changes. Everything else is the same as 5.5.4: gold numbers with green/red labels, no phone layouts, rename, auto-connect, crawl text and crest, the spoofing fixes and the "(via SEAT)" label, and right-click DMG.
 
 ## Layout
 
-The widths come from the Overseer's two reference windows: 1103 px (minimum) and 1298 px (maximum). They are CSS pixels at device-pixel-ratio 1. Rendering 5.5.4 at 1103×896 and 1298×897 gives the same layout as the screenshots (41 px header, 529 px / 626 px columns).
+The layout depends on the window's aspect ratio, with a hard floor on width. All values are CSS pixels at device-pixel-ratio 1, taken from the Overseer's reference windows.
 
-| Window width | Layout |
+| Window | Layout |
 |---|---|
-| below 1103 px | The whole UI is laid out at 1103 px and scaled down to fit. It uses CSS `zoom` on `#wrap` (set by `terminal-ui.js`), not `transform`, so clicks, drag, scrolling, tooltips and the right-click menus keep true coordinates. While scaled, the stylesheet's width/height media queries are evaluated against the virtual 1103 px window, so the layout really is the 1103 px layout. |
-| 1103–1298 px | Two columns that stretch, as in 5.5.4. |
-| 1299 px and up | The sheet and loadout columns stop growing at 626 px each, their width at 1298 px. The **OPERATOR CONSOLE** (with the user list) becomes a third column on the right that takes the rest of the width (at least 240 px). The character sheet column (telemetry, paper doll, impact resolution, skills) runs full page height. The loadout manifest takes the height the console gave up. Between 1299 px and about 1550 px the console's 240 px minimum is met by shrinking the other two columns (to about 500 px each at 1299 px). |
+| Narrower than 963 px (hard floor) | Nothing shrinks or squeezes further. The page stays at its 963 px size (reference `v555b-min-floor`), and the window scrolls horizontally. |
+| 963–1103 px | The 1103 px layout is zoomed to fit, from 0.873 at 963 px up to 1.0 at 1103 px. This is how the floor reference was rendered. It uses CSS `zoom`, so clicks, drag, scrolling and the right-click menus keep true coordinates. While zoomed, the stylesheet's width media queries are evaluated against the 1103 px layout. |
+| Aspect ratio below 17:10, at or above the floor | **Two columns.** The sheet (telemetry, paper doll, impact resolution, skills) runs full height on the left. The loadout manifest sits above the OPERATOR CONSOLE on the right, with the user list in the console's side panel. This includes the whole band between 4:3 and 16:9. Above 1464 px the two columns keep the existing 1440 px centred maximum. |
+| `@media (min-aspect-ratio:17/10) and (min-width:1280px)` | **Three columns** (reference `v555b-3col-start`): sheet, then loadout, then OPERATOR CONSOLE, all full height. The sheet and loadout columns stop growing at 626 px each. The console takes the rest, at least 300 px. The user list becomes a strip across the top of the console, under its header. |
 
-The old ≥1700 px rule that capped the page at 1440 px is replaced by the three-column layout. Exported sheets do not carry the scaling class.
+Why 17:10: the switch comes just before a true 16:9 window (1.778). A maximised 1920×1080 browser window, after the browser's own chrome, is often shorter than 16:9. A 1700×1000 window (1.70) is three columns; 1680×1000 (1.68) is two.
 
-Files: `terminal-ui.css`, `terminal-ui.js`, and `terminal.html` (embedded copy regenerated with `tools/embed-v553-ui.cjs`; version, title, header link and changelog entry updated). Version string 5.5.5 (APP_VERSION, header, exported manifests, host package and iframe cache key `terminal.html?v=5.5.5`). `mp-bridge.js`, `forge-hook.js`, `server/room.server.ts` and migration 0003 are the same as in 5.5.4.
+Why 1280 px: it keeps three columns from getting cramped. At 1280 px the console gets its 300 px and the sheet and loadout columns are about 460 px each, the same as the two columns at the floor. Below 1280 px, even a wide aspect ratio (for example 1200×600) stays two columns.
+
+### Telemetry header and skill inputs
+
+- **ISB LINK on line 1.** The ISB LINK status, in every state (LOCAL, LINK OK, OFFLINE · N QUEUED, …), is right-aligned on line 1 of the LIVE SORTIE TELEMETRY header, on the same line as `LIVE SORTIE TELEMETRY // name`. It no longer takes its own row. A long name is cut with an ellipsis and never overlaps it.
+- **SKILL INPUTS: 2 rows of 6.** The expanded grid is 6 fields wide instead of 4. Labels are about 18% smaller and the inputs fill their cells. `ROCKET/MISSILE` and `ELECTROMAGNETIC` break at `/` and `ELECTRO-` rather than mid-word. With the stock catalogue there are 11 skills, so the second row has 5.
+
+The old rule that capped the page at 1440 px from 1700 px up no longer applies in three-column mode. Exported sheets do not carry the zoom.
+
+Files: `terminal-ui.css`, `terminal-ui.js`, and `terminal.html` (embedded copy regenerated with `tools/embed-v553-ui.cjs`; version, title, header link and changelog entry updated). Version string 5.5.5 everywhere: APP_VERSION, header, exported manifests, host package, and the iframe cache key `terminal.html?v=5.5.5`. `mp-bridge.js`, `forge-hook.js`, `server/room.server.ts` and migration 0003 are the same as 5.5.4.
 
 ## Unchanged by decision
 
@@ -31,12 +41,15 @@ Negative limb HP; login tied to the browser; Retreat during Move+Atk; Rapid Stri
 | v5.5.4 fix checks (`check-v555-fixes.js`) | 12/12 |
 | Solo (`check-v555-solo.js`) | 119/119 |
 | BRITTLE (`check-brittle.js`) | 13/13 |
-| Two-seat (`check-v555-2seat.js`) | 59/59 (one run aborted early on a seat-setup timing race; the rerun on a fresh server passed) |
-| Two-seat sync (`check-v555-sync.js`) | 11/11 |
-| Misaki MP (`check-v552-misaki-mp.js`) | 8/8 |
-| Three-seat spoof (`server-api-test-v552-misaki.mjs`) | 12/12 |
+| Two-seat (`check-v555-2seat.js`) / two-seat sync (`check-v555-sync.js`) | 59/59, 11/11 |
+| Misaki MP (`check-v552-misaki-mp.js`) / three-seat spoof (`server-api-test-v552-misaki.mjs`) | 8/8, 12/12 |
 | API: base / v52 / v53 / v55 | 18/18, 9/11 (the 2 are the intended 5.5.3 rename/auto-connect behaviour, same as 5.5.4), 10/10, 7/7 |
 | Branch UI (`check-v555-ui.cjs`) / workflows (`check-v555-workflows.cjs`) | 25/25, 9/9 |
-| Layout and screenshots (`check-v555-layout.js`, solo and two-seat MP at 640, 900, 1200, 1700 and 2200 px) | 166/166 |
+| Layout (`check-v555-layout.js`, solo + two-seat MP at 963×904, 800×700, 1280×960, 1680×1000, 1700×1000, 1920×1080, 2560×1080, one fresh server each) | 231/231 |
+| Close-ups (`check-v555-closeup.js`: ISB LINK on line 1 in every state, long name, skills 2×6, at 963×904 and 1920×1080) | 23/23 |
 
-Test adaptations (intended changes only): the version is 5.5.5 in the v5.5.5 copies. `check-v555-ui.cjs` waits 150 ms after each viewport resize before measuring the login width, because below 1103 px the scale is applied on the resize event. `check-v555-layout.js` is new.
+Test adaptations (intended changes only):
+- The version is 5.5.5 in the v5.5.5 copies.
+- `check-v555-ui.cjs`: below the 963 px floor the login page may be 963 px wide and scroll, and the test waits 150 ms after each resize because the zoom and floor are applied on the resize event.
+- `check-v555-layout.js` asserts the new rules: zoom values, the floor and horizontal scroll, two columns below 17:10, three columns at 17:10 or wider and at least 1280 px, the console user strip, and hit-testing.
+- `check-v555-closeup.js` is new.

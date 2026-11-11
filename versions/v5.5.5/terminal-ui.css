@@ -224,7 +224,11 @@ input::placeholder,textarea::placeholder { color:var(--muted); opacity:.8; }
   padding-bottom:4px;
   border-bottom:1px solid var(--ux-edge);
 }
-.sorhead .nm { flex-basis:100%; }
+/* v5.5.5 (Overseer): line 1 is "LIVE SORTIE TELEMETRY // name" with the ISB LINK status right-aligned on the
+   same line (the name ellipsizes, never overlaps); the other telemetry items wrap onto the next line. */
+.sorhead .nm { order:-3; flex:1 1 0; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.sorhead>.isb { order:-2; flex:none; margin-left:auto; white-space:nowrap; }
+.sorhead::before { content:""; order:-1; flex-basis:100%; height:0; margin-top:-3px; }
 .sorhead>.dim { font-size:var(--fs-l); }
 .sorfoot { flex-wrap:wrap; gap:8px; }
 .sorbtns { display:flex; flex-wrap:wrap; align-items:center; gap:4px; }
@@ -244,13 +248,14 @@ input::placeholder,textarea::placeholder { color:var(--muted); opacity:.8; }
 .damagebox .dmrow2 { margin-top:0; }
 .damagebox .dmrow2:has(.dmeff:empty) { display:none; }
 .pilot { padding:8px; margin-top:8px; }
+/* v5.5.5 (Overseer): expanded SKILL INPUTS = 2 rows of 6 fields; smaller labels, inputs fill their cell and line up. */
 .pilot .pg {
-  grid-template-columns:repeat(4,minmax(0,1fr));
-  gap:6px 10px;
+  grid-template-columns:repeat(6,minmax(0,1fr));
+  gap:5px 6px;
   margin:6px 0;
 }
-.pilot .pg label { min-width:0; white-space:normal; overflow-wrap:anywhere; }
-.pilot .pg input { width:7ch; max-width:100%; }
+.pilot .pg label { min-width:0; white-space:normal; overflow-wrap:break-word; hyphens:manual; justify-content:space-between; font-size:calc(var(--fs-l) * .82); line-height:1.2; letter-spacing:0; }
+.pilot .pg input { width:100%; max-width:100%; min-width:0; box-sizing:border-box; }
 .pilot .pgrow { align-items:flex-start; }
 .pbot { grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:12px; }
 .pact.nw { flex-wrap:wrap!important; }
@@ -337,21 +342,31 @@ body[data-view="login"] .welcome { justify-content:center; }
   color:var(--muted);
   font-size:var(--fs-l);
 }
-/* v5.5.5 responsive widths (CSS px, DPR 1; from the Overseer's reference windows):
-   below 1103px  - the whole UI is laid out at 1103px and zoomed down to fit (terminal-ui.js sets html.ux-scaled);
-   1103-1298px  - the two-column layout stretches;
-   1299px and up - the two columns stop growing (626px each, their size at 1298px) and the
-                   OPERATOR CONSOLE becomes a full-height third column on the right. */
-html.ux-scaled body { overflow-x:hidden; }
+/* v5.5.5 layout (Overseer):
+   - Hard floor: the 963px window (reference v555b-min-floor). From 963 to 1103px the 1103px layout is zoomed
+     to fit, exactly as in that reference (zoom 963/1103 = 0.873 at the floor). Narrower than 963px nothing
+     shrinks further: the page keeps the floor size and the window scrolls (terminal-ui.js sets html.ux-scaled).
+   - Two columns (sheet full height left, loadout manifest over the OPERATOR CONSOLE right) below 17:10.
+   - Three columns at aspect ratio 17:10 or wider and at least 1280px wide: sheet | loadout | console, all full
+     height; sheet and loadout stop growing at 626px; the console keeps at least 300px and shows the user list
+     as a strip across its top. */
 html.ux-scaled #wrap { zoom:var(--ux-z,1); width:var(--ux-vw,100%); max-width:none; height:var(--ux-vh,100dvh); }
-@media(min-width:1299px) {
+@media (min-aspect-ratio:17/10) and (min-width:1280px) {
   #wrap { max-width:none; }
-  main { grid-template-columns:minmax(0,626px) minmax(0,626px) minmax(240px,1fr); }
+  main { grid-template-columns:minmax(0,626px) minmax(0,626px) minmax(300px,1fr); }
   #rt { display:contents; }
   #rt>#sh { grid-column:2; grid-row:1; min-height:0; }
   #rt>#cb { grid-column:3; grid-row:1; min-height:0; display:flex; flex-direction:column; }
   #cb.cs1 #log { flex:1; height:auto; min-height:0; }
   #cb.cs0 #log { flex:none; }
+  #rt>#cb>* { order:2; }
+  #rt>#cb>#conhead { order:0; }
+  #rt>#cb>#mpfriends { order:1; position:static; width:auto; max-height:30%; flex:none; padding:4px 0; border:0;
+    border-bottom:1px solid var(--line); overflow-y:auto; overflow-wrap:normal; }
+  #rt>#cb>#mpfriends .mpbody { display:flex; flex-wrap:wrap; gap:2px 18px; }
+  #rt>#cb>#mpfriends .mprow { display:flex; align-items:baseline; gap:6px; min-width:0; max-width:100%; border:0; padding:2px 0; }
+  #rt>#cb>#mpfriends .mprow .mp-place { flex:0 1 auto; }
+  #cb.users #log,#cb.users #pr,#cb.users #hint { margin-right:0; }
 }
 /* v5.5.4: phone/narrow layouts (max-width 1100/900/560px) removed by the Overseer. */
 

@@ -106,9 +106,6 @@
   const originalShCrawl = shCrawl;
   shCrawl = function () { const result = originalShCrawl.apply(this, arguments); requestAnimationFrame(crawlFrameLine); return result; };
   window.addEventListener('resize', () => requestAnimationFrame(crawlFrameLine));
-  /* v5.5.5: below the 1103px minimum the page is laid out at 1103px and zoomed to fit.
-     CSS zoom (not transform) keeps clicks, drag, scrolling and fixed-position menus on true coordinates. */
-  const UX_MIN_W = 1103;
   /* While scaled, the real viewport is narrower than the layout, so width/height media queries are
      re-evaluated against the virtual 1103px viewport (vw=0 restores the original queries). */
   const uxMediaRules = [];
@@ -131,18 +128,22 @@
       if (x.r.media.mediaText !== want) x.r.media.mediaText = want;
     });
   }
+  /* v5.5.5: from 1103px down to the 963px floor the 1103px layout is zoomed to fit (CSS zoom keeps clicks, drag,
+     scrolling and fixed-position menus on true coordinates). Below 963px the zoom stays at the floor value and the
+     page scrolls instead of shrinking further. */
+  const UX_MIN_W = 1103, UX_FLOOR_W = 963;
   function uxFit() {
     const de = document.documentElement, w = window.innerWidth;
     if (!w || w >= UX_MIN_W) {
       if (de.classList.contains('ux-scaled')) { de.classList.remove('ux-scaled'); ['--ux-z', '--ux-vw', '--ux-vh'].forEach(k => de.style.removeProperty(k)); uxMedia(0, 0); }
       return;
     }
-    const z = w / UX_MIN_W;
+    const z = Math.max(w, UX_FLOOR_W) / UX_MIN_W, gutter = w - de.clientWidth;
     de.classList.add('ux-scaled');
-    uxMedia(UX_MIN_W, window.innerHeight / z);
+    uxMedia(UX_MIN_W, de.clientHeight / z);
     de.style.setProperty('--ux-z', z.toFixed(5));
-    de.style.setProperty('--ux-vw', (de.clientWidth / z).toFixed(2) + 'px');
-    de.style.setProperty('--ux-vh', (window.innerHeight / z).toFixed(2) + 'px');
+    de.style.setProperty('--ux-vw', ((Math.max(w, UX_FLOOR_W) - gutter) / z).toFixed(2) + 'px');
+    de.style.setProperty('--ux-vh', (de.clientHeight / z).toFixed(2) + 'px');
   }
   window.addEventListener('resize', () => { uxFit(); requestAnimationFrame(uxFit); });
   uxFit();
