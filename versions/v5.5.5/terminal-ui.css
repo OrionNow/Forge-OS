@@ -257,7 +257,10 @@ input::placeholder,textarea::placeholder { color:var(--muted); opacity:.8; }
 .pilot .pg label { min-width:0; white-space:normal; overflow-wrap:break-word; hyphens:manual; justify-content:space-between; font-size:calc(var(--fs-l) * .82); line-height:1.2; letter-spacing:0; }
 .pilot .pg input { width:100%; max-width:100%; min-width:0; box-sizing:border-box; }
 .pilot .pgrow { align-items:flex-start; }
-.pbot { grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:12px; }
+.pbot { grid-template-columns:minmax(0,1fr) minmax(min-content,1fr); gap:12px; }
+/* v5.5.5 (Overseer): [-5] [-1] [+1] [+5] [VENT] always stay on one row; the Engineering box is never narrower than that row. */
+.heatbox .hbrow2 { flex-wrap:nowrap; }
+.heatbox .hbrow2 button { flex:none; white-space:nowrap; }
 .pact.nw { flex-wrap:wrap!important; }
 .pact.nw .dim { white-space:normal; }
 .pgx { flex-wrap:wrap; }
@@ -348,12 +351,15 @@ body[data-view="login"] .welcome { justify-content:center; }
      shrinks further: the page keeps the floor size and the window scrolls (terminal-ui.js sets html.ux-scaled).
    - Two columns (sheet full height left, loadout manifest over the OPERATOR CONSOLE right) below 17:10.
    - Three columns at aspect ratio 17:10 or wider and at least 1280px wide: sheet | loadout | console, all full
-     height; sheet and loadout stop growing at 626px; the console keeps at least 300px and shows the user list
+     height; sheet and loadout grow first, up to 702px each (their two-column maximum at the 1440px cap), then
+     extra width goes to the console, which keeps at least 300px and shows the user list
      as a strip across its top. */
 html.ux-scaled #wrap { zoom:var(--ux-z,1); width:var(--ux-vw,100%); max-width:none; height:var(--ux-vh,100dvh); }
 @media (min-aspect-ratio:17/10) and (min-width:1280px) {
   #wrap { max-width:none; }
-  main { grid-template-columns:minmax(0,626px) minmax(0,626px) minmax(300px,1fr); }
+  /* Column 1 never goes below 529px (its width in the 1103px layout, enough for the Engineering button row);
+     the loadout takes what is left up to 702px, then the console grows. 58px = gutter + padding + gaps. */
+  main { grid-template-columns:clamp(529px, (100vw - 58px - 300px) / 2, 702px) minmax(0,702px) minmax(300px,1fr); }
   #rt { display:contents; }
   #rt>#sh { grid-column:2; grid-row:1; min-height:0; }
   #rt>#cb { grid-column:3; grid-row:1; min-height:0; display:flex; flex-direction:column; }

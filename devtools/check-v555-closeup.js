@@ -1,4 +1,4 @@
-// v5.5.5 close-ups: ISB LINK on line 1 of the telemetry header (all states, long names) and SKILL INPUTS as 2 rows of 6.
+// v5.5.5 close-ups: [VENT N] on the HEAT row; ISB LINK on line 1 of the telemetry header (all states, long names) and SKILL INPUTS as 2 rows of 6.
 // Usage: node check-v555-closeup.js [base] [outdir]   (fresh dev server)
 const { chromium } = require('/workspace/pw/node_modules/playwright-core'); const fs = require('fs');
 const base = process.argv[2] || 'http://localhost:8080', out = process.argv[3] || '/workspace/forge-os/feedback/v555b-shots';
@@ -20,7 +20,7 @@ async function checkSkills(p, tag) {
 }
 (async () => {
   const b = await chromium.launch({ executablePath: '/usr/bin/google-chrome', args: ['--no-sandbox'] }); const errs = [];
-  for (const [tag, w, h] of [['floor', 963, 904], ['3col', 1920, 1080]]) {
+  for (const [tag, w, h] of [['floor', 963, 904], ['3col-1.70', 1700, 1000], ['3col', 1920, 1080]]) {
     const ctx = await b.newContext({ viewport: { width: w, height: h } }); const p = await ctx.newPage(); p.on('pageerror', e => errs.push(e.message));
     await p.goto(base + '/terminal.html'); await p.waitForTimeout(1200);
     await p.evaluate(async (fx) => { login(4); await loadManifestFile(new File([fx], 'a.txt')); S.view = 'sortie'; R(); }, fx); await p.waitForTimeout(1200);
@@ -39,6 +39,16 @@ async function checkSkills(p, tag) {
     await p.evaluate(() => { const s = document.getElementById('sync'); s.textContent = '[OFFLINE \u00b7 1 QUEUED]'; const nm = document.querySelector('#con .sorhead .nm'); nm.textContent = 'LIVE SORTIE TELEMETRY // ' + 'MSH-01 MUSHA TEST WITH AN EXTREMELY LONG CALLSIGN THAT KEEPS GOING AND GOING'; });
     const g = await checkHead(p, `solo-${tag} long name`); ok(g.ell, `solo-${tag}: long name is cut with an ellipsis`);
     await p.screenshot({ path: `${out}/closeup-isb-longname-offline-${tag}-${w}x${h}.png`, clip: { x: cb.x, y: hd.y - 6, width: cb.width, height: hd.height + 70 } });
+    // [VENT] stays in the [-5] [-1] [+1] [+5] row (needs a reactor: fit a LIGHT FISSION CELL and an Engineering skill)
+    await p.evaluate(() => { S.core = Object.assign({}, S.core || {}, { R: structuredClone(DB.find(x => x.c == 'R' && x.n == 'LIGHT FISSION CELL')) }); S.pilot = Object.assign({}, S.pilot, { eng: '12' }); tel().heat = 7; S.view = 'sortie'; R(); }); await p.waitForTimeout(500);
+    const v = await p.evaluate(() => { const bs = [...document.querySelectorAll('.heatbox .hbrow2 button')]; const vb = bs.find(b => /VENT/.test(b.textContent)); return { tops: [...new Set(bs.map(b => Math.round(b.getBoundingClientRect().top)))], txt: vb && vb.textContent, title: vb && vb.title, row1: /VENT/.test(document.querySelector('.hbrow1').textContent) }; });
+    ok(v.tops.length === 1 && v.txt === '[VENT]' && !v.row1, `${tag}: [-5] [-1] [+1] [+5] [VENT] on one row, label "${v.txt}", HEAT row unchanged`);
+    ok(/^Engineering roll\. Failure: vents \d+ \(VENT\)\. Success: VENT \+ 1 \+ degrees of success, at least \d+\.$/.test(v.title || ''), `${tag}: VENT tooltip keeps the value: "${v.title}"`);
+    const eb = await (await p.$('#con .pbox:has(.heatbox)')).boundingBox(); const pb = await (await p.$('#con .pbot')).boundingBox();
+    await p.screenshot({ path: `${out}/closeup-vent-row-${tag}-${w}x${h}.png`, clip: { x: pb.x - 4, y: eb.y - 4, width: pb.width + 8, height: eb.height + 8 } });
+    const before = await p.evaluate(() => heatNow()); const vb = await (await p.$('.heatbox .hbrow2 .ventbtn')).boundingBox();
+    await p.mouse.click(vb.x + vb.width / 2, vb.y + vb.height / 2); await p.waitForTimeout(600);
+    ok(await p.evaluate((b) => heatNow() < b, before), `${tag}: clicking [VENT] vents heat`);
     await ctx.close();
     // MP: real LINK OK state from the bridge
     const c2 = await b.newContext({ viewport: { width: w, height: h } }); const q = await c2.newPage(); q.on('pageerror', e => errs.push(e.message));

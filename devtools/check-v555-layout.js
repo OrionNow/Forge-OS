@@ -1,13 +1,17 @@
 // v5.5.5 (aspect-ratio layout, 963px hard floor, console user strip) screenshots + layout checks (solo and MP, console visible). Usage: node check-v555-layout.js [base] [outdir]
 const { chromium } = require('/workspace/pw/node_modules/playwright-core'); const fs = require('fs');
-const base = process.argv[2] || 'http://localhost:8080', out = process.argv[3] || '/workspace/forge-os/feedback/v555b-shots';
+const base = process.argv[2] || 'http://localhost:8080', out = process.argv[3] || (process.env.SHOTS || '/workspace/forge-os/feedback/v555b-shots');
 const fx = fs.readFileSync('/workspace/forge-os/tests/musha-brittle.manifest.txt', 'utf8');
 let fails = 0; const ok = (c, m) => { console.log((c ? 'PASS ' : 'FAIL ') + m); if (!c) fails++; };
-const sizes = [['floor', 963, 904], ['below-floor', 800, 700], ['4x3', 1280, 960], ['ratio-1.68', 1680, 1000], ['ratio-1.70', 1700, 1000], ['16x9', 1920, 1080], ['ultrawide', 2560, 1080]];
+const sizes = [['floor', 963, 904], ['below-floor', 800, 700], ['min', 1103, 900], ['4x3', 1280, 960], ['3col-1280', 1280, 720], ['ratio-1.68', 1680, 1000], ['ratio-1.70', 1700, 1000], ['16x9', 1920, 1080], ['ultrawide', 2560, 1080]];
 const FLOOR = 963, MIN = 1103; const three = (w, h) => w / h >= 1.7 && w >= 1280;
 const geo = (p) => p.evaluate(() => { const r = s => { const e = document.querySelector(s); if (!e || !e.offsetParent && getComputedStyle(e).display === 'none') return null; const q = e.getBoundingClientRect(); return { l: q.left, t: q.top, r: q.right, b: q.bottom, w: q.width, h: q.height }; };
   return { vw: innerWidth, vh: innerHeight, cw: document.documentElement.clientWidth, sw: document.documentElement.scrollWidth, sh: document.documentElement.scrollHeight, header: r('header'), con: r('#con'), shp: r('#sh'), cb: r('#cb'), fr: r('#mpfriends'), log: r('#log'), z: +getComputedStyle(document.getElementById('wrap')).zoom, scaled: document.documentElement.classList.contains('ux-scaled') }; });
 async function check(p, tag, w, mp) {
+  // v5.5.5: fit a reactor so the Engineering HEAT box and its [-5] [-1] [+1] [+5] [VENT] row are on screen
+  await p.evaluate(() => { if (document.querySelector('.heatbox .hbrow2')) return; const St = Forge.state(); St.core = Object.assign({}, St.core || {}, { R: structuredClone(DB.find(x => x.c == 'R' && x.n == 'LIGHT FISSION CELL')) }); Forge.render(); }); await p.waitForTimeout(400);
+  const vr = await p.evaluate(() => { const bs = [...document.querySelectorAll('.heatbox .hbrow2 button')]; const v = bs.find(b => /VENT/.test(b.textContent)), p5 = bs.find(b => b.textContent === '[+5]'); return v && p5 ? { v: v.getBoundingClientRect().top, p5: p5.getBoundingClientRect().top, m5: bs[0].getBoundingClientRect().top, txt: v.textContent, box: v.getBoundingClientRect().right <= v.closest('.pbox').getBoundingClientRect().right + 1 } : null; });
+  ok(vr && Math.abs(vr.v - vr.p5) < 1 && Math.abs(vr.v - vr.m5) < 1 && vr.box && vr.txt === '[VENT]', `${tag}: ${vr && vr.txt} top equals [+5] top (one row, inside the Engineering box) ${vr && [vr.m5, vr.p5, vr.v].map(Math.round)}`);
   const g = await geo(p); const h = g.vh, lim = Math.max(g.cw, FLOOR - (g.vw - g.cw)) + 1;
   if (w < FLOOR) ok(g.sw > g.cw && g.sw <= FLOOR + 1, `${tag}: below the floor the page keeps the floor width and scrolls (scrollWidth ${g.sw}, window ${g.cw})`);
   else ok(g.sw <= g.cw + 1, `${tag}: no horizontal overflow (scrollWidth ${g.sw} <= ${g.cw})`);
@@ -18,7 +22,8 @@ async function check(p, tag, w, mp) {
   if (three(w, h)) {
     ok(g.cb.l > g.shp.r && g.shp.l > g.con.r, `${tag}: three columns (sheet | loadout | console) at ${(w / h).toFixed(3)}:1`);
     ok(Math.abs(g.con.h - g.cb.h) < 2 && Math.abs(g.shp.h - g.con.h) < 2 && Math.abs(g.con.t - g.cb.t) < 2, `${tag}: sheet, loadout and console all full height`);
-    ok(g.con.w <= 627 && g.shp.w <= 627 && g.cb.w >= 299, `${tag}: sheet/loadout capped at 626px, console >= 300px (${Math.round(g.con.w)}/${Math.round(g.shp.w)}/${Math.round(g.cb.w)})`);
+    ok(g.con.w >= 528 * (g.z || 1) && g.con.w <= 703 && g.shp.w <= 703 && g.cb.w >= 299, `${tag}: sheet 529-702px, loadout at most 702px, console >= 300px (${Math.round(g.con.w)}/${Math.round(g.shp.w)}/${Math.round(g.cb.w)})`);
+    ok(g.cb.w < 301 || (g.con.w > 701 && g.shp.w > 701), `${tag}: width priority - console grows past 300px only after sheet and loadout reach 702px`);
     if (mp) ok(g.fr && g.fr.b <= g.log.t + 1 && g.fr.w >= g.cb.w - 30 && g.fr.h < g.cb.h * 0.35, `${tag}: user list is a strip across the top of the console ${g.fr && [g.fr.l, g.fr.t, g.fr.w, g.fr.h].map(Math.round)}`);
   } else {
     ok(Math.abs(g.cb.l - g.shp.l) < 2 && g.cb.t > g.shp.b && Math.abs(g.con.h - (g.cb.b - g.shp.t)) < 3, `${tag}: two columns at ${(w / h).toFixed(3)}:1, sheet full height, console under the loadout`);
