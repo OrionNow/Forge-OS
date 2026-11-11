@@ -33,8 +33,19 @@ let fails = 0; const ok = (c, m) => { console.log((c ? 'PASS ' : 'FAIL ') + m); 
   await p.evaluate(() => { const k = weapons().findIndex(w => hasRng(w) && wRof(w) === 5); awBind(k, 1); weapons()[k].am = 15; const R0 = Math.random; Math.random = () => 0.2; atkRoll(k); rollW(k); Math.random = R0; });
   await p.waitForTimeout(4000);
   const gold2 = await p.evaluate(() => {
-    const g = [...document.querySelectorAll('#log .rc .rcgold')]; const last = [...document.querySelectorAll('#log .rc')].pop(); return { n: g.length, col: g.length ? getComputedStyle(g[g.length - 1]).color : '', txt: g.map(e => e.textContent).slice(-4), line: last && last.textContent.slice(0, 120), fn: rcGold('+3 DoS · DMG 12, 40') }; });
-  const gold = gold2; ok(gold.n >= 2 && gold.col === 'rgb(255, 215, 0)' && gold.txt.some(t => /DoS/.test(t)) && gold.txt.some(t => /^\d/.test(t)) && /rcgold>\+3 DoS<[^]*rcgold>12, 40</.test(gold.fn), '6: DoS and damage numbers in gold ' + JSON.stringify(gold));
+    const GOLD = 'rgb(255, 215, 0)', cards = [...document.querySelectorAll('#log .rc')], last = cards.pop(), rcr = last && last.querySelector('.rcr');
+    const spans = rcr ? [...rcr.querySelectorAll('.rcgold')] : [];
+    return { line: last && last.textContent.slice(0, 120), spans: spans.map(e => e.textContent), spanCol: spans.map(e => getComputedStyle(e).color), labelCol: rcr ? getComputedStyle(rcr).color : '',
+      fn: rcGold('CRITICAL HIT · 5 HITS · +6 DoS · DMG 225, 117'), fnF: rcGold('DODGE · -2 DoF'), fnX: rcGold('<b>3 HITS</b>') }; });
+  // a failed roll card (DoF): force a miss on the same weapon
+  await p.evaluate(() => { const k = weapons().findIndex(w => hasRng(w) && wRof(w) === 5); weapons()[k].am = 15; const R0 = Math.random; Math.random = () => 0.9; atkRoll(k); Math.random = R0; });
+  await p.waitForTimeout(3000);
+  const goldF = await p.evaluate(() => { const last = [...document.querySelectorAll('#log .rc')].pop(), rcr = last && last.querySelector('.rcr'), sp = rcr ? [...rcr.querySelectorAll('.rcgold')] : [];
+    return { line: last && last.textContent.slice(0, 120), spans: sp.map(e => e.textContent), spanCol: sp.map(e => getComputedStyle(e).color), labelCol: rcr ? getComputedStyle(rcr).color : '', bad: last && last.classList.contains('bad') }; });
+  const gold = gold2, G = 'rgb(255, 215, 0)';
+  ok(gold.spans.length >= 3 && gold.spans.every(s => /^[+-]?\d+$/.test(s)) && gold.spanCol.every(c => c === G) && gold.labelCol !== G && /HITS?/.test(gold.line) && /DoS/.test(gold.line) && /DMG/.test(gold.line), '6: success line: hit count, signed DoS and damage numbers gold; HITS/DoS/DMG labels keep the line colour ' + JSON.stringify(gold));
+  ok(gold.fn === 'CRITICAL HIT · <span class=rcgold>5</span> HITS · <span class=rcgold>+6</span> DoS · DMG <span class=rcgold>225</span>, <span class=rcgold>117</span>' && gold.fnF === 'DODGE · <span class=rcgold>-2</span> DoF' && gold.fnX === '&lt;b&gt;<span class=rcgold>3</span> HITS&lt;/b&gt;', '6: rcGold wraps only the numbers (sign included), DoF included, input stays escaped ' + JSON.stringify([gold.fn, gold.fnF, gold.fnX]));
+  ok(goldF.bad && goldF.spans.some(s => /^-\d+$/.test(s)) && goldF.spanCol.every(c => c === G) && goldF.labelCol !== G && /DoF/.test(goldF.line), '6: failed line: signed DoF value gold, DoF label keeps the red line colour ' + JSON.stringify(goldF));
   // 7 parry
   const parry = await p.evaluate(() => { const k = weapons().findIndex(w => /MELEE/.test(wLab(w))); let args = null; const _s = skillRoll; skillRoll = function () { args = [...arguments]; }; parryRoll(k); skillRoll = _s;
     let blk = null; skillRoll = function () { blk = [...arguments]; }; blockRoll(0); skillRoll = _s; return { inc: args && args[3], tag: args && args[4], finc: args && args[5], blk: blk && [blk[3], blk[4], blk[5]] }; });

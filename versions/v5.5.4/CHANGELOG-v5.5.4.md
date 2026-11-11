@@ -15,7 +15,7 @@
 3. **Shields with two DR numbers** (e.g. `DR:160/60`) use the **first** number. Code only; catalogue rows unchanged.
 4. **Vent (Overseer ruling):** failure vents **VENT**; success vents **VENT + 1 + degrees of success**. A higher VENT vents more. The old dead vent function was deleted; the button tooltip and the catalogue help text match.
 5. **Phone/narrow layouts removed** (the 1100px, 900px and 560px blocks in `terminal-ui.css`, and the embedded copy in `terminal.html`, regenerated with `tools/embed-v553-ui.cjs`). The login/welcome-crest sizing rules are kept. Two small narrow-screen rules inherited from 5.5.2's base stylesheet are untouched.
-6. **DoS and damage numbers are always gold** on roll lines (`+N DoS` and the numbers after `DMG`).
+6. **Gold numbers on roll lines (solo and multiplayer):** the hit count, the signed DoS/DoF value (e.g. `+2`, `-1`, sign included) and each damage number are gold. The labels `HITS`, `DoS`, `DoF` and `DMG` keep the line's green (success) or red (failure) colour. The line text is HTML-escaped before the numbers are wrapped.
 7. **Parry degree step:** Parry used the weapon's RCL as its degree step; it now uses the normal step of 1 (success and failure), like Block.
 8. **Heat-zone DR penalty and shields:** confirmed the danger/redline DR multiplier applies only to frame locations, never to shield DR. No code change needed; covered by a new test.
 9. **A LOST frame cannot attack.** ATTACK is refused (no ammo spent) while the frame status is LOST (Core/Chassis or Crew Cabin at 0 HP or below).
@@ -42,7 +42,7 @@ Each suite ran on its own freshly started dev server (Chromium, local PGLite, mi
 | Suite | Result |
 |---|---|
 | Headless page load (1600px, 390px, host `/`), console errors | 4/4, no errors |
-| New 5.5.4 fix checks (`check-v554-fixes.js`: items 3, 4, 6, 7, 8, 9, 10) | 10/10 |
+| New 5.5.4 fix checks (`check-v554-fixes.js`: items 3, 4, 6, 7, 8, 9, 10) | 12/12 (gold re-check after the label-colour tweak; solo, BRITTLE, two-seat, sync, three-seat spoof and console load re-run and passing with the same counts) |
 | Solo (`check-v554-solo.js`) | 119/119 |
 | BRITTLE | 13/13 |
 | Two-seat (`check-v554-2seat.js`) | 59/59 |
