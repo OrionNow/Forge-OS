@@ -1351,9 +1351,21 @@
     });
   }
 
-  // v5.5.5 (Overseer): a custom owner (tab and console) is drawn in the unit's tab colour; with no custom tab colour,
-  // the theme accent. Closed / Unknown stay grey.
-  function ownerTabColor(sh) { return (sh && tabColor(sh.col)) || "var(--cyan)"; }
+  // v5.5.5 (Overseer): a real connected user's name is always their member colour, on the tab and in the console.
+  // A host-created custom owner on a host-owned NPC sheet inherits the unit's tab colour; with no custom tab colour,
+  // dull grey (#5f6366, the default tab outline). Closed, Open, Unknown and LOCAL stay muted grey.
+  // In the console (not the tab label) the mech name also uses the tab colour, or dull grey when none is set.
+  const TAB_GREY = "#5f6366";
+  function ownerTabColor(sh) { return (sh && tabColor(sh.col)) || TAB_GREY; }
+  function greyOwner(name) { return /^(closed|open|unknown|local)$/i.test(String(name || "").trim()); }
+  function frameColor(sh) { return (sh && tabColor(sh.col)) || TAB_GREY; }
+  function ownerPaint(sh, member, customName) {
+    if (!sh || sh.closed) return "var(--muted)";
+    if (member) return memberColor(member);
+    const own = String(customName || "").trim();
+    if (own && !greyOwner(own)) return ownerTabColor(sh);
+    return "var(--muted)";
+  }
   function ownedSheet(id) {
     if (!id) return null;
     let sheets = [];
@@ -1402,7 +1414,7 @@
       const who = owner ? shownName(owner) : "";
       const own = !owner && !sh.closed ? ownOf(sh, i) : "";
       const role = sh.closed ? "Closed" : who || own;
-      const roleCol = (owner || own) && !sh.closed ? ownerTabColor(sh) : "var(--muted)"; // v5.5.5: custom owner = tab colour
+      const roleCol = ownerPaint(sh, owner, own); // v5.5.5: real user = member colour; custom NPC owner = tab colour (or dull grey)
       const ownEd = MP.role === "host" && MP.ownEdit === sh.uid;
       const canName = MP.role === "host" || sh.ownerId === MP.selfId;
       const ed = S.shEdit === i && canName;
@@ -1600,7 +1612,7 @@
   function sendChat(text) {
     const t = String(text).slice(0, 500);
     const me = meMember();
-    if (typeof chatShow === "function") { const os = ownedSheet(MP.selfId); chatShow(me ? shownName(me) : (MP.callsign || "YOU"), os ? ownerTabColor(os) : memberColor(me), t); }
+    if (typeof chatShow === "function") { chatShow(me ? shownName(me) : (MP.callsign || "YOU"), memberColor(me), t); }
     const nonce = rid();
     MP.nonces.add(nonce);
     const line = { nonce, uid: null, tone: "dim", html: capHtml(esc(t)), rc: { k: "chat", t } };
@@ -1651,9 +1663,6 @@
   }
 
   function actorColor(name, hint, id) {
-    const mm = id ? null : memberByName(name);
-    const os = ownedSheet(id || (mm && mm.id));
-    if (os) return ownerTabColor(os);
     const hinted = safeHex(hint);
     if (hinted) return hinted;
     const byId = id && (MP.members || []).find((x) => x.id === id);
@@ -1667,7 +1676,7 @@
     let sheets = [];
     try { sheets = (MP.shadow || []).concat(Forge.state().sheets || []); } catch (e) { sheets = MP.shadow || []; }
     const sh = sheets.find((s) => s && s.uid === uid);
-    return (sh && tabColor(sh.col)) || "var(--muted)";
+    return frameColor(sh);
   }
 
   // The roll names the mech's assigned owner, not the seat that activated the roll.
@@ -1695,15 +1704,15 @@
     const S = Forge.state();
     const sheets = (MP.shadow || []).concat(S.sheets || []);
     const sh = sheets.find((x) => x && x.uid === uid) || (!uid ? (S.sheets || [])[S.cur] : null);
-    const paperDollAccent = ["var(--ac)", "#2ee6e6", "#b86bff", "#ff5a5a", "#e6b83a", "#4fd96a"];
-    const fc = sh && sh.col ? (paperDollAccent[sh.col] || "var(--muted)") : "var(--muted)";
+    const fc = frameColor(sh);
     if (!sh || sh.closed) return { u: "Unknown", c: "var(--muted)", fc };
     const owner = (MP.members || []).find((m) => m && m.id === sh.ownerId);
-    if (owner) return { u: shownName(owner), c: ownerTabColor(sh), fc };
+    if (owner) return { u: shownName(owner), c: memberColor(owner), fc };
     const name = String((sh === (S.sheets || [])[S.cur] ? S.own : null) || (sh.d && sh.d.own) || "").trim().slice(0, 28);
     // no owner name set: fall back to the sending seat's callsign instead of "Unknown"
     const seatName = String(actorName || "").trim().slice(0, 28);
-    return { u: name || seatName || "Unknown", c: name ? ownerTabColor(sh) : "var(--muted)", fc };
+    const c = name && !greyOwner(name) ? ownerTabColor(sh) : "var(--muted)";
+    return { u: name || seatName || "Unknown", c, fc };
   }
 
   function tintSpan(text, color) {
@@ -1729,7 +1738,7 @@
     }
     let sheets = [];
     try { sheets = (Forge.state().sheets || []).concat(MP.shadow || []); } catch (e) { sheets = MP.shadow || []; }
-    for (const sh of sheets) add(sh && sh.name, (sh && tabColor(sh.col)) || "var(--muted)");
+    for (const sh of sheets) add(sh && sh.name, frameColor(sh));
     names.sort((a, b) => b.n.length - a.n.length);
     const bound = (i) => i <= 0 || i >= text.length || !/[A-Za-z0-9]/.test(text[i]);
     let html = "";

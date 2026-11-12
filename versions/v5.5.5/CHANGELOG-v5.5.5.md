@@ -42,8 +42,10 @@ Why 1280 px: it keeps three columns from getting cramped. At 1280 px the console
 | LOST | `#8a8a8a` |
 | Empty sheet | muted grey |
 
-- **Custom owner:** a seat-assigned pilot, or a typed owner name, is drawn in the unit's tab colour. That covers the owner name on the tab and their console lines: roll lines on that unit, and chat from a seat that owns a unit (if it owns several, the one with the lowest unit id, so every seat picks the same one). With no custom tab colour, the owner uses the theme accent (`var(--cyan)`, the colour the tabs used before), so owners stay distinct from grey.
-- **Closed / Unknown,** and a solo sheet with no owner (`LOCAL`), stay grey. A seat that owns no unit keeps its member colour in chat. The user list keeps member colours.
+- **Real connected users:** a seated client's name is always drawn in that user's own member colour, on the tab and in the console (chat and roll author). Owning a unit no longer puts their name in the tab colour.
+- **Mech name in the console:** in chat highlights and roll lines, the unit name uses that sheet's tab colour. If the sheet has no custom tab colour, it uses dull grey `#5f6366`, the same as the default tab outline (not the theme accent, and not the paper-doll accent, which is a slightly different hex on some colours). The name on the tab itself still follows the live STATUS colour above.
+- **Custom owner (host-created NPC):** a typed owner name on a host-owned NPC sheet inherits that sheet's tab colour, on the tab and in the console. If the tab has no custom colour, the name uses dull grey `#5f6366` (the cyan theme-accent fallback was dropped).
+- **Closed, Open, Unknown and LOCAL** stay muted grey (`var(--muted)`). The unassigned `[+]` control stays grey. The user list keeps member colours. A seat that owns no unit still uses its member colour in chat.
 
 The old rule that capped the page at 1440 px from 1700 px up no longer applies in three-column mode. Exported sheets do not carry the zoom.
 
@@ -66,7 +68,7 @@ Negative limb HP; login tied to the browser; Retreat during Move+Atk; Rapid Stri
 | API: base / v52 / v53 / v55 | 18/18, 9/11 (the 2 are the intended 5.5.3 rename/auto-connect behaviour, same as 5.5.4), 10/10, 7/7 |
 | Branch UI (`check-v555-ui.cjs`) / workflows (`check-v555-workflows.cjs`) | 25/25 (the "DMG rolls the recorded hit" check reads the log without waiting and fails about one run in three, a timing flake; 25/25 on rerun), 9/9 |
 | Layout (`check-v555-layout.js`, 3-column width priority and VENT-row checks, solo + two-seat MP at 963×904, 800×700, 1103×900, 1280×960, 1280×720, 1680×1000, 1700×1000, 1920×1080 and 2560×1080, one fresh server each) | 336/336 |
-| Tab colours (`check-v555-tabs.js`: grey default outline; tab name = STATUS colour through all 7 states; owner = tab colour on the tab and in chat/roll lines; Closed/Unknown/LOCAL grey; host and pilot views and sync) | 36/36 |
+| Tab / owner colours (`check-v555-tabs.js`: grey default outline; tab name = STATUS colour through all 7 states; real user = member colour on the tab and in chat/roll lines; console mech name = tab colour or dull grey `#5f6366`; host-created custom owner = tab colour, or dull grey when none is set; Closed/Open/Unknown/LOCAL grey; host, pilot and solo views and sync) | 63/63 |
 | Close-ups (`check-v555-closeup.js`: ISB LINK on line 1 in every state, long name, skills 2×6, VENT row, at 963×904, 1700×1000 and 1920×1080) | 43/43 |
 
 Test adaptations (intended changes only):
@@ -74,6 +76,6 @@ Test adaptations (intended changes only):
 - `check-v555-ui.cjs`: below the 963 px floor the login page may be 963 px wide and scroll, and the test waits 150 ms after each resize because the zoom and floor are applied on the resize event.
 - `check-v555-layout.js` asserts the new rules: zoom values, the floor and horizontal scroll, two columns below 17:10, three columns at 17:10 or wider and at least 1280 px, the console user strip, and hit-testing.
 - `check-v555-closeup.js` and `check-v555-tabs.js` are new.
-- `check-v555-2seat.js`: the host-entered custom owner is now expected in the tab colour (was grey) on both seats, and the sender's chat colour is re-read from the same message, because it now follows the seat's owned unit tab colour.
+- `check-v555-2seat.js`: the host-entered custom owner is expected in the tab colour (was grey) on both seats when a tab colour is set. A real user's chat stays in that user's member colour (the sender colour is still re-read from the same message so the assertion stays stable if a later line is added).
 - `check-v555-solo.js`: the VENT button label is checked as `[VENT]`, and the vent value is read from its tooltip.
 - `check-v555-layout.js` checks that [VENT] has the same top as [+5] and [-5] at every size, solo and MP. It also checks the 529–702 px sheet column and that sheet and loadout reach 702 px before the console grows.
