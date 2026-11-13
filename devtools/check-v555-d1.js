@@ -23,6 +23,10 @@ async function loadUnits(p, names, arm) {
   }, [fx, names, arm]);
   await wait(2500);
 }
+const dollFit = p => p.evaluate(() => Desk.wins().filter(w => w.k === 'unit').map(w => { const h = Desk.hosts().get(w.u + '|doll'); const r = h.firstChild ? h : h.shadowRoot; const win = document.querySelector(`.dkw[data-id="${w.id}"]`).getBoundingClientRect();
+  const ls = [...r.querySelectorAll('.mechmap .mlab')].map(e => { const b = e.getBoundingClientRect(); return { n: e.querySelector('.mn').textContent.trim(), l: b.left, t: b.top, r: Math.max(b.right, b.left + e.scrollWidth), b: b.bottom }; });
+  const bad = []; for (let i = 0; i < ls.length; i++) { const a = ls[i]; if (a.r > win.right - 1) bad.push(a.n + ' spills past the window'); for (let j = i + 1; j < ls.length; j++) { const c = ls[j]; if (a.l < c.r - 1 && c.l < a.r - 1 && a.t < c.b - 1 && c.t < a.b - 1) bad.push(a.n + ' x ' + c.n); } }
+  return { w: Math.round(win.width), n: ls.length, bad }; }));
 const units = p => p.evaluate(() => Desk.wins().filter(w => w.k === 'unit'));
 async function tile(p, top = 8) { await p.evaluate((top) => { const A = document.getElementById('dkarea'), us = Desk.wins().filter(w => w.k === 'unit'), w = Math.floor(A.clientWidth / us.length); us.forEach((u, i) => Desk.geo(u.id, { x: i * w, y: top, w: w - 4, h: A.clientHeight - top - 4, max: false, min: false })); const e = Desk.wins().find(w => w.k === 'enc'); if (e) Desk.minimize(e.id); }, top); await wait(300); }
 const dupIds = p => p.evaluate(() => { const c = {}; document.querySelectorAll('[id]').forEach(e => { c[e.id] = (c[e.id] || 0) + 1; }); return Object.keys(c).filter(k => c[k] > 1); });
@@ -44,7 +48,12 @@ const hpOf = (p, nm) => p.evaluate((nm) => { const S = Forge.state(); Forge.save
     await loadUnits(p, NAMES, true);
     let us = await units(p);
     ok(us.length === 3, 'three units loaded -> three unit windows open ' + us.length);
+    const fitD = await dollFit(p);
+    ok(fitD.length === 3 && fitD.every(f => f.n === 8 && !f.bad.length), 'paper doll: part labels do not overlap or spill at the default auto-open width ' + JSON.stringify(fitD));
     await tile(p);
+    const fitT = await dollFit(p);
+    ok(fitT.every(f => f.n === 8 && !f.bad.length), 'paper doll: part labels do not overlap or spill with three unit windows side by side ' + JSON.stringify(fitT));
+    await shot(p, 'd1-13-doll-fixed-teal.png');
     const names = await p.evaluate(() => Desk.wins().filter(w => w.k === 'unit').map(w => { const h = Desk.hosts().get(w.u + '|doll'); const r = h.firstChild ? h : h.shadowRoot; const s = r.querySelector('.sorhead .nm'); return s && s.textContent; }));
     ok(names.every((t, i) => t && t.includes(NAMES[i].split(' / ')[1].split(' ')[0])), 'every unit window shows its own unit (rendered live) ' + JSON.stringify(names));
     ok((await dupIds(p)).length === 0, 'no duplicate ids with three units on the desktop ' + JSON.stringify(await dupIds(p)));
@@ -109,6 +118,11 @@ const hpOf = (p, nm) => p.evaluate((nm) => { const S = Forge.state(); Forge.save
     const pop = await p.evaluate((u) => { const w = Desk.wins().find(w => w.k === 'sec' && w.u === u && w.s === 'doll'); const e = w && document.querySelector(`.dkw[data-id="${w.id}"]`); const h = e && e.querySelector('.dk-sec'); const r = h && (h.firstChild ? h : h.shadowRoot); return { id: w && w.id, has: !!(r && r.querySelector('.mechmap')), title: e && e.querySelector('.dk-n').textContent, ph: !!document.querySelector(`.dkw[data-k=unit] .dk-seg[data-s=doll] .dk-ph`) }; }, B.u);
     ok(pop.id && pop.has && /PAPER DOLL/.test(pop.title) && pop.ph, 'pop out: the paper doll gets its own window; the unit window shows a placeholder ' + JSON.stringify(pop));
     await p.evaluate((id) => Desk.geo(id, { x: 300, y: 120, w: 620, h: 480 }), pop.id); await wait(300);
+    const fitP = await p.evaluate((id) => { const e = document.querySelector(`.dkw[data-id="${id}"]`), win = e.getBoundingClientRect(), h = e.querySelector('.dk-sec'), r = h.firstChild ? h : h.shadowRoot;
+      const ls = [...r.querySelectorAll('.mechmap .mlab')].map(x => { const b = x.getBoundingClientRect(); return { n: x.querySelector('.mn').textContent.trim(), l: b.left, t: b.top, r: Math.max(b.right, b.left + x.scrollWidth), b: b.bottom }; });
+      let bad = []; ls.forEach((a, i) => { if (a.r > win.right - 1) bad.push(a.n + ' spills past the window'); ls.slice(i + 1).forEach(c => { if (a.l < c.r - 1 && c.l < a.r - 1 && a.t < c.b - 1 && c.t < a.b - 1) bad.push(a.n + ' x ' + c.n); }); });
+      return { n: ls.length, bad, w: Math.round(h.getBoundingClientRect().width), mode: getComputedStyle(r.querySelector('.mechmap')).display }; }, pop.id);
+    ok(fitP.n === 8 && fitP.bad.length === 0, 'paper doll: labels fit in the popped-out doll window too ' + JSON.stringify(fitP));
     // the popped section is live too: damage B through it
     const b0 = await hpOf(p, NAMES[1]);
     await p.locator(`.dkw[data-id="${pop.id}"] .mlab`).nth(3).click(); await wait(200);

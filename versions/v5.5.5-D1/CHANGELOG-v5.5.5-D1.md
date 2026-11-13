@@ -13,6 +13,7 @@
 ## Units
 
 - **One UNIT window per unit, all live at once.** Each window opens combined: paper doll and telemetry, impact resolution, skill inputs, rolls and heat, character sheet, loadout. There is no single active sheet, mirror or MAKE LIVE step. Clicking or typing in any unit window acts on that unit directly. The others keep rendering from their own data (live health).
+- **Narrow paper doll.** When the doll section is under 600 px wide, the doll sits on top and the part labels stack in two columns under it (left-side parts left, right-side parts right), so labels never overlap. Wider windows and popped-out dolls keep the original layout.
 - **Sections.** Each section collapses in place or pops out into its own window. Popped sections stay live and dock back with ⇲.
 - **Permissions (live table).** Rolling and editing stay with the host and the unit's assigned pilot, enforced by the 5.5.5 bridge guards ("ASSIGNED PILOT OR HOST ONLY"). Everyone else gets view-only live health: no skills, rolls or loadout roll buttons.
 - **UNIT GROUP windows.** Choose a tab colour to get mini paper-doll cards with name and condition. A card opens that unit's window and leaves the group window as it is. Several group windows can be open at once.
@@ -36,4 +37,3 @@
 ## Known limits
 
 - An open native select in a unit window that is not yet the one you are using may close on the first click. The second click works.
-- Very narrow unit windows wrap the paper-doll labels. Widen the window or pop out the doll.
