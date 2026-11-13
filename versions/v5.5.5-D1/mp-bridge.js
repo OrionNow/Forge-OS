@@ -20,8 +20,10 @@
    chat across terminal sections, and single-line roster location crawls.
    v26 (FORGE-OS 5.5.4): restored the v5.5.2 roll-author fixes ((via SEAT), unit-less cards name the sender). */
 (function () {
-  if (!window.Forge || window.__forgeMP) {
-    if (!window.Forge) {
+  // 5.5.5-D1: a desktop workstation window (terminal.html?ws=N inside the desktop) is a local session; it never takes a seat.
+  const wsFrame = /[?&]ws=\d/.test(location.search) && window.parent !== window;
+  if (!window.Forge || window.__forgeMP || wsFrame) {
+    if (!window.Forge || wsFrame) {
       document.documentElement.classList.remove("mp-wait");
       if (document.body) document.body.style.visibility = "";
     }
