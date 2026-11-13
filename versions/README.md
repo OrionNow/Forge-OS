@@ -14,10 +14,11 @@ Base builds use plain version numbers. **Use [`v5.5.5/`](v5.5.5/)** (current, re
 | `v5.5.3/` | Superseded, known issues | UI pass (refined surfaces, keyboard access, sheet search, narrow layouts) plus username rename, saved-name auto-connect and chat from any section. Branched before the v5.5.2 review fixes, so it lacks roll-spoofing protection; fixed in 5.5.4. |
 | `v5.5.4/` | Previous | 5.5.3 plus the Overseer-approved fixes: spoofing protection restored, vent rule, shield DR, Parry degree step, LOST frames can't attack, RoF bonus from rounds fired, gold DoS/damage, phone layouts removed. |
 | `v5.5.5/` | **Current / recommended** | 5.5.4 plus an aspect-ratio layout: two columns below 17:10, OPERATOR CONSOLE as a third column at 17:10 or wider (min 1280 px), 963 px hard floor. |
+| `v5.5.5-D1/` | **Active desktop build** | v5.5.5 with a desktop-style UI (windows, one live window per unit, unit groups, console tray, settings, lock-screen login). Same rules and security as v5.5.5. |
 
 > **DEPLOY FIRST (v5.5.2 and later): apply `migrations/0003_forge_member_colors.sql`** before deploying. Without it every enter and poll fails.
 
-The paused desktop fork (v5.5.1-D1, v5.5.1-D2) lives in [`../desktop-fork-archived/`](../desktop-fork-archived/).
+The earlier desktop-fork builds (v5.5.1-D1, v5.5.1-D2) are archived in [`../desktop-fork-archived/`](../desktop-fork-archived/).
 
 ## Using a newer build
 
