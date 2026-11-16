@@ -323,12 +323,12 @@ const cyanScan = p => p.evaluate(() => {
     const pzBtn_3 = await p.evaluate((id) => { const e = document.querySelector(`.dkw[data-id="${id}"]`), b = e.querySelector('.dk-t .dk-sz'), s = e.querySelector('.dk-t .dk-st'); return { b: !!b, left: b && !s.hidden && b.getBoundingClientRect().right <= s.getBoundingClientRect().left + 1 && b.nextElementSibling === s, st: s.textContent, h: Math.round(e.querySelector('.dk-t').getBoundingClientRect().height) }; }, u6_3.id);
     for (let k = 0; k < 2 && (await pzOf_3(u6_3.id)) !== 'L'; k++) { await p.click(`.dkw[data-id="${u6_3.id}"] .dk-sz`); await wait(500); }
     const mL_3 = await p.evaluate((id) => { const e = document.querySelector(`.dkw[data-id="${id}"]`), b = e.querySelector('.dk-b'), br = b.getBoundingClientRect(), col = e.querySelector('.dk-col').getBoundingClientRect(), A = document.getElementById('dkarea').getBoundingClientRect(), r = e.getBoundingClientRect();
-      return { w: Math.round(r.width), aw: Math.round(A.width), gap: Math.round(br.bottom - parseFloat(getComputedStyle(b).paddingBottom) - col.bottom), scroll: b.scrollHeight > b.clientHeight + 2 ? b.scrollHeight - b.clientHeight : 0, pg: !!e.querySelector('.dk-seg[data-s=rolls] .dk-sec') && !Desk.hosts().get(Desk.wins().find(w => w.id === id).u + '|rolls').shadowRoot.querySelector('.pg') && !Desk.hosts().get(Desk.wins().find(w => w.id === id).u + '|rolls').querySelector('.pg') }; }, u6_3.id);
-    ok(pzBtn_3.b && pzBtn_3.left && pzBtn_3.h === 22 && mL_3.w === Math.min(1000, mL_3.aw - 16) && Math.abs(mL_3.gap) <= 4 && mL_3.pg, 'r3 #6: the size button sits left of the NOMINAL badge; LARGE = the full sheet with the left panel exactly the window height (skill inputs collapsed) ' + JSON.stringify({ pzBtn_3, mL_3 }));
+      return { w: Math.round(r.width), aw: Math.round(A.width), gap: Math.round(br.bottom - parseFloat(getComputedStyle(b).paddingBottom) - col.bottom), scroll: b.scrollHeight > b.clientHeight + 2 ? b.scrollHeight - b.clientHeight : 0, lab: e.querySelector('.dk-t .dk-sz').textContent, pg: !!e.querySelector('.dk-seg[data-s=rolls] .dk-sec') && !Desk.hosts().get(Desk.wins().find(w => w.id === id).u + '|rolls').shadowRoot.querySelector('.pg') && !Desk.hosts().get(Desk.wins().find(w => w.id === id).u + '|rolls').querySelector('.pg') }; }, u6_3.id);
+    ok(pzBtn_3.b && pzBtn_3.left && pzBtn_3.h === 22 && mL_3.w === Math.min(1000, mL_3.aw - 16) && mL_3.gap >= 0 && mL_3.gap <= 8 && mL_3.pg && mL_3.lab === '▣ LG', 'r3 #6: the size button sits left of the NOMINAL badge; LARGE = the full sheet with the left panel exactly the window height (skill inputs collapsed) ' + JSON.stringify({ pzBtn_3, mL_3 }));
     await shot3_3('r3-06a-preset-large.png');
     await p.click(`.dkw[data-id="${u6_3.id}"] .dk-sz`); await wait(500);
-    const mS_3 = await p.evaluate((id) => { const e = document.querySelector(`.dkw[data-id="${id}"]`), b = e.querySelector('.dk-b').getBoundingClientRect(), im = e.querySelector('.dk-seg[data-s=impact]').getBoundingClientRect(), d = e.querySelector('.dk-seg[data-s=doll]').getBoundingClientRect(), r = e.getBoundingClientRect(); return { w: Math.round(r.width), h: Math.round(r.height), imp: Math.round(b.bottom - im.bottom), doll: d.top >= b.top - 1 }; }, u6_3.id);
-    ok((await pzOf_3(u6_3.id)) === 'S' && mS_3.w === 600 && mS_3.imp >= -1 && mS_3.imp <= 12 && mS_3.doll, 'r3 #6: SMALL = doll-focused (600 wide, down to IMPACT RESOLUTION); the button cycles LARGE <-> SMALL ' + JSON.stringify(mS_3));
+    const mS_3 = await p.evaluate((id) => { const e = document.querySelector(`.dkw[data-id="${id}"]`), b = e.querySelector('.dk-b').getBoundingClientRect(), im = e.querySelector('.dk-seg[data-s=impact]').getBoundingClientRect(), d = e.querySelector('.dk-seg[data-s=doll]').getBoundingClientRect(), r = e.getBoundingClientRect(); return { w: Math.round(r.width), h: Math.round(r.height), imp: Math.round(b.bottom - im.bottom), doll: d.top >= b.top - 1, lab: e.querySelector('.dk-t .dk-sz').textContent, tip: e.querySelector('.dk-t .dk-sz').title }; }, u6_3.id);
+    ok((await pzOf_3(u6_3.id)) === 'S' && mS_3.w === 600 && mS_3.imp >= -1 && mS_3.imp <= 12 && mS_3.doll && mS_3.lab === '▭ SM' && /Size preset: SMALL .* click for LARGE/.test(mS_3.tip), 'r3 #6: SMALL = doll-focused (600 wide, down to IMPACT RESOLUTION); the button cycles LARGE <-> SMALL ' + JSON.stringify(mS_3));
     await shot3_3('r3-06b-preset-small.png');
     await p.setViewportSize({ width: 1600, height: 900 }); await wait(500);
     // #7: right-click an encounter tile -> open its character sheet in the LARGE view
@@ -338,9 +338,9 @@ const cyanScan = p => p.evaluate(() => {
     await p.locator(`.dkw[data-k=enc] [data-i="${iC}"][onclick^=shClick]`).click({ button: 'right' }); await wait(400);
     const tm_3 = await p.evaluate(() => [...document.querySelectorAll('#tabmenu button')].map(b => b.textContent.trim()));
     await shot3_3('r3-07a-encounter-right-click.png');
-    await p.click('#tabmenu button:has-text("Open character sheet")'); await wait(1200);
+    await p.click('#tabmenu button:has-text("Open sheet window (LARGE)")'); await wait(1200);
     const o7_3 = await p.evaluate((u) => { const w = Desk.wins().find(w => w.k === 'unit' && w.u === u), A = document.getElementById('dkarea').getBoundingClientRect(); return w && { pz: w.pz, w: Math.round(w.w), aw: Math.round(A.width), cur: Desk.curKey() === u, sheet: !!document.querySelector(`.dkw[data-id="${w.id}"] .dk-seg[data-s=sheet] .dk-sec`) }; }, kC);
-    ok(tm_3[0] === 'Open character sheet' && o7_3 && o7_3.pz === 'L' && o7_3.w === Math.min(1000, o7_3.aw - 16) && o7_3.cur && o7_3.sheet, 'r3 #7: right-clicking an encounter tile offers "Open character sheet", which opens it in the LARGE view ' + JSON.stringify({ tm_3, o7_3 }));
+    ok(tm_3[0] === 'Open sheet window (LARGE)' && o7_3 && o7_3.pz === 'L' && o7_3.w === Math.min(1000, o7_3.aw - 16) && o7_3.cur && o7_3.sheet, 'r3 #7: right-clicking an encounter tile offers "Open sheet window (LARGE)", which opens it in the LARGE view ' + JSON.stringify({ tm_3, o7_3 }));
     await shot3_3('r3-07b-sheet-opened-large.png');
     // #10: pilot / owner name next to the mech name (solo: tab colour for a named pilot, LOCAL in grey otherwise)
     await p.evaluate((u) => { const S = Forge.state(); const i = S.sheets.findIndex(s => Desk.ukey(s) === u); shClick(i); S.own = 'VEGA'; Forge.save(); Forge.render(); }, kA); await wait(800);
@@ -349,6 +349,19 @@ const cyanScan = p => p.evaluate(() => {
     const muted_3 = await p.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue('--muted').trim() || getComputedStyle(document.body).getPropertyValue('--muted').trim());
     ok(p10_3[0].t === 'VEGA' && p10_3[0].after && p10_3[0].tab === 'VEGA' && await colEq_3(p10_3[0].col, p10_3[0].sh) && await colEq_3(p10_3[0].tcol, p10_3[0].sh) && p10_3[1].t === 'LOCAL' && await colEq_3(p10_3[1].col, muted_3), 'r3 #10 (solo): the unit window shows the pilot next to the mech name, in the tab colour; an unnamed pilot is LOCAL in grey ' + JSON.stringify({ p10_3, muted_3 }));
     await shot3_3('r3-10a-pilot-name-solo.png');
+    // Misaki fix 1 + 5: the pilot name on a focused title bar / acting tab sits on the page background (readable on REMUS amber), 11px, and in the tab tooltip
+    const theme3 = async (th) => { await p.click('.dk-ico[data-ico=set]'); await wait(400); const sid = await p.evaluate(() => Desk.wins().find(w => w.k === 'set').id); await p.click(`.dkw[data-id="${sid}"] button:has-text("${th}")`); await wait(500); await p.evaluate((id) => Desk.close(id), sid); await wait(300); };
+    await theme3('REMUS ACCORD');
+    await p.evaluate((u) => { const w = Desk.wins().find(w => w.k === 'unit' && w.u === u); Desk.restore(w.id); Desk.front(w.id); }, kA); await wait(400);
+    const cr11 = await p.evaluate((u) => { const w = Desk.wins().find(w => w.k === 'unit' && w.u === u), e = document.querySelector(`.dkw[data-id="${w.id}"]`);
+      const rgb = (c) => (c.match(/[\d.]+/g) || []).map(Number), lum = (c) => { const [r, g, b] = rgb(c).slice(0, 3).map(v => { v /= 255; return v <= .03928 ? v / 12.92 : Math.pow((v + .055) / 1.055, 2.4); }); return .2126 * r + .7152 * g + .0722 * b; };
+      const ratio = (a, b) => { const x = lum(a), y = lum(b); return +((Math.max(x, y) + .05) / (Math.min(x, y) + .05)).toFixed(2); };
+      const m = (el) => { const cs = getComputedStyle(el), bg = cs.backgroundColor, a = rgb(bg)[3]; return { t: el.textContent, fs: cs.fontSize, bg, opaque: a === undefined || a === 1, cr: ratio(cs.color, bg), before: el.classList.contains('dk-pl') ? getComputedStyle(el, '::before').color === cs.color : true }; };
+      const tab = e.querySelector('.dk-ut.act .dk-pil');
+      return { on: e.classList.contains('on'), title: m(e.querySelector('.dk-t .dk-pl')), tab: tab && m(tab), tip: e.querySelector(`.dk-ut[data-u="${u}"]`).title }; }, kA);
+    await shot3_3('r3-11-pilot-name-focused-amber.png');
+    ok(cr11.on && cr11.title.opaque && cr11.title.cr >= 4.5 && cr11.title.before && cr11.title.fs === '11px' && cr11.tab && cr11.tab.opaque && cr11.tab.cr >= 4.5 && cr11.tab.fs === '11px' && /\/\/ PILOT: VEGA/.test(cr11.tip), 'Misaki fix 1+5: the pilot name on a focused title bar and the acting tab sits on the page background (contrast >= 4.5:1 on REMUS amber), 11px, and is in the tab tooltip ' + JSON.stringify(cr11));
+    await theme3('IMPERIAL NAVY');
     // #1: a sheet with a shield takes no more vertical space than one without (wide and narrow doll)
     const shM = (u, add) => p.evaluate(async ([u, add]) => { const S = Forge.state();
       if (add) { const sd = DB.find(x => isShield(x)); S.items.push(Object.assign(structuredClone(sd), { mount: 'LH' })); } else S.items = S.items.filter(x => !isShield(x));
@@ -366,6 +379,20 @@ const cyanScan = p => p.evaluate(() => {
     const sN1 = await shM(kA, true), sN0 = await shM(kA, false);
     ok(sW1.row && sN1.row && Math.abs(sW1.h - sW0.h) <= 3 && Math.abs(sN1.h - sN0.h) <= 3 && sW1.up && !sW1.ovl && !sN1.ovl, 'r3 #1: the shield tile sits higher on the paper doll; a sheet with a shield is no taller than one without (wide and narrow doll, no overlap) ' + JSON.stringify({ wide: [sW0.h, sW1.h, sW1.up, sW1.ovl], narrow: [sN0.h, sN1.h, sN1.ovl], shield: sW1.name }));
     await p.evaluate(() => { const S = Forge.state(); S.items = S.items.filter(x => !isShield(x)); Forge.render(); }); await wait(500);
+    // Misaki fix 2: at 1366 x 768 a unit with a shield that auto-opens keeps IMPACT RESOLUTION (and its [APPLY] row) in view
+    await p.setViewportSize({ width: 1366, height: 768 }); await wait(500);
+    await p.evaluate((u) => { const S = Forge.state(), i = S.sheets.findIndex(s => Desk.ukey(s) === u); shClick(i); }, kB); await wait(400);
+    await p.evaluate(() => { const S = Forge.state(), sd = DB.find(x => isShield(x)); S.items.push(Object.assign(structuredClone(sd), { mount: 'LH' })); Forge.render(); }); await wait(500);
+    await p.evaluate(() => { Desk.wins().filter(w => w.k === 'unit' || w.k === 'sec').forEach(w => Desk.close(w.id)); Desk.wins().filter(w => w.k === 'group').forEach(w => Desk.minimize(w.id)); const e = Desk.wins().find(w => w.k === 'enc'); Desk.restore(e.id); Desk.front(e.id); }); await wait(400);
+    const iB = await p.evaluate((u) => Forge.state().sheets.findIndex(s => Desk.ukey(s) === u), kB);
+    await p.locator(`.dkw[data-k=enc] [data-i="${iB}"][onclick^=shClick]`).click(); await wait(1500);
+    const i12 = await p.evaluate((u) => { const w = Desk.wins().find(w => w.k === 'unit' && w.u === u), e = document.querySelector(`.dkw[data-id="${w.id}"]`), b = e.querySelector('.dk-b').getBoundingClientRect(), im = e.querySelector('.dk-seg[data-s=impact]').getBoundingClientRect();
+      const h = Desk.hosts().get(u + '|impact'), r = h.firstChild ? h : h.shadowRoot, ap = [...r.querySelectorAll('button')].find(x => /APPLY/.test(x.textContent)), apr = ap && ap.getBoundingClientRect(), sh = Desk.hosts().get(u + '|doll'), sr = sh.firstChild ? sh : sh.shadowRoot;
+      return { pz: w.pz, y: Math.round(w.y), h: Math.round(w.h), shield: !!sr.querySelector('.shieldrow .mlab'), impBot: Math.round(b.bottom - im.bottom), impTop: Math.round(im.top - b.top), apply: apr ? Math.round(b.bottom - apr.bottom) : null }; }, kB);
+    await shot3_3('r3-12-large-1366-impact.png');
+    ok(i12.shield && i12.impBot >= 0 && i12.impTop >= 0 && i12.apply !== null && i12.apply >= 0, 'Misaki fix 2: at 1366x768 a unit with a shield auto-opens with IMPACT RESOLUTION and its [APPLY] row fully visible (LARGE, or SMALL when LARGE would hide it) ' + JSON.stringify(i12));
+    await p.evaluate(() => { const S = Forge.state(); S.items = S.items.filter(x => !isShield(x)); Forge.render(); }); await wait(400);
+    await p.setViewportSize({ width: 1600, height: 900 }); await wait(500);
     // settings, 7 REMUS accents
     await p.click('.dk-ico[data-ico=set]'); await wait(500);
     const sw = await p.evaluate(() => Desk.wins().find(w => w.k === 'set'));
@@ -394,16 +421,23 @@ const cyanScan = p => p.evaluate(() => {
     ok(asm && /FRAME ASSEMBLY/.test(asm.t) && !asm.modal && asm.role === before.role && asm.n === before.n && asm.view === before.view, 'FRAME ASSEMBLY opens as its own workstation window; the encounter, role and units are untouched (no swapping) ' + JSON.stringify([before, asm]));
     // r3 #9: ASSEMBLY opens working (its message strip shows the frame's state, not a fault), a fault is surfaced, RELOAD restarts it
     const asmId = await p.evaluate(() => Desk.wins().find(w => w.k === 'ws' && w.n === 1).id);
-    const a9 = async () => p.evaluate((id) => { const e = document.querySelector(`.dkw[data-id="${id}"]`), f = e.querySelector('iframe').contentWindow, m = e.querySelector('.dk-wsmsg'); let v = ''; try { v = f.Forge.state().view; } catch (x) { v = 'ERR'; } return { view: v, msg: m && m.textContent, cls: m && m.className, fr: getComputedStyle(e.querySelector('iframe')).height }; }, asmId);
+    const a9 = async () => p.evaluate((id) => { const e = document.querySelector(`.dkw[data-id="${id}"]`), f = e.querySelector('iframe').contentWindow, m = e.querySelector('.dk-wsmsg'); let v = ''; try { v = f.Forge.state().view; } catch (x) { v = 'ERR'; } return { view: v, msg: m && m.firstChild.textContent, btn: !!(m && !m.querySelector('button').hidden), cls: m && m.className, fr: getComputedStyle(e.querySelector('iframe')).height }; }, asmId);
     const a9a = await a9();
+    // Misaki fix 3: on a healthy workstation RELOAD is two-step (confirm within 3 s); on a fault it is a plain one-click RELOAD
+    const rb = () => p.evaluate((id) => { const e = document.querySelector(`.dkw[data-id="${id}"]`), b = e.querySelector('.dk-wsmsg>button'); return { t: b.textContent, vis: !b.hidden && b.getClientRects().length > 0, fw: e.querySelector('iframe').contentWindow === window.__fw9 }; }, asmId);
+    await p.evaluate((id) => { window.__fw9 = document.querySelector(`.dkw[data-id="${id}"] iframe`).contentWindow; }, asmId);
+    const r0 = await rb(); await p.click(`.dkw[data-id="${asmId}"] .dk-wsmsg>button`); await wait(300); const r1 = await rb();
+    await wait(3300); const r2 = await rb();
+    await p.click(`.dkw[data-id="${asmId}"] .dk-wsmsg>button`); await wait(300); await p.click(`.dkw[data-id="${asmId}"] .dk-wsmsg>button`); await wait(3500); const r3 = await rb();
+    ok(r0.t !== 'RELOAD' && r1.t === 'RELOAD? UNSAVED WORK IS LOST' && r1.fw && r2.t === r0.t && r2.fw && !r3.fw && r3.t === r0.t, 'Misaki fix 3: healthy workstation: the first click asks "RELOAD? UNSAVED WORK IS LOST", it lapses after 3 s, and a confirmed second click reloads ' + JSON.stringify({ r0, r1, r2, r3 }));
     const asmF = p.frameLocator(`.dkw[data-id="${asmId}"] iframe`);
     const asmOk = await p.evaluate((id) => { const f = document.querySelector(`.dkw[data-id="${id}"] iframe`).contentWindow; return !!f.document.querySelector('#app,#wrap') && f.document.body.innerText.length > 50 && !f.document.getElementById('dklock'); }, asmId);
     await p.evaluate((id) => Desk.wsFault(document.querySelector(`.dkw[data-id="${id}"] iframe`).contentWindow, 'probe fault'), asmId); await wait(200);
-    const a9b = await a9();
+    const a9b = await a9(); const rbF = await rb();
     await shot3_3('r3-09a-assembly-fault-strip.png');
     await p.click(`.dkw[data-id="${asmId}"] .dk-wsmsg [data-a=reload]`); await wait(3500);
     const a9c = await a9();
-    ok(a9a.view !== 'login' && a9a.view !== 'ERR' && !/FAULT|DID NOT START/.test(a9a.msg) && /RELOAD/.test(a9a.msg) && asmOk && /FAULT/.test(a9b.msg) && /bad/.test(a9b.cls) && a9c.view === a9a.view && !/FAULT|DID NOT START/.test(a9c.msg), 'r3 #9: ASSEMBLY opens signed in with a status strip; a frame fault shows on the window and RELOAD restarts it ' + JSON.stringify({ a9a, a9b, a9c }));
+    ok(a9a.view !== 'login' && a9a.view !== 'ERR' && !/FAULT|DID NOT START/.test(a9a.msg) && a9a.btn && asmOk && /FAULT/.test(a9b.msg) && /bad/.test(a9b.cls) && rbF.t === 'RELOAD' && rbF.vis && a9c.view === a9a.view && !/FAULT|DID NOT START/.test(a9c.msg), 'r3 #9: ASSEMBLY opens signed in with a status strip; a frame fault shows on the window and RELOAD restarts it ' + JSON.stringify({ a9a, a9b, a9c }));
     await shot3_3('r3-09b-assembly-open.png');
     await p.click('.dk-ico[data-ico=cat]'); await wait(3500);
     const catW = await p.evaluate(() => Desk.wins().find(w => w.k === 'ws' && w.n === 3).id);

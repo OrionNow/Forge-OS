@@ -63,16 +63,16 @@
 3. **Starting height.** A unit window opened from a group starts taller (the SMALL preset, 600 wide), so IMPACT RESOLUTION is fully visible when it opens. A new tabbed unit window opens at the LARGE preset, keeping its cascade step.
 4. **LOADOUT** is gone from the desktop icons and the launch menu. The loadout section inside unit windows is unchanged.
 5. **Skill inputs** are now part of the ROLLS // SKILLS // HEAT section, not a section of their own. They start collapsed in play; opening them is remembered.
-6. **Size preset button.** On a unit window's title bar, the ▣ / ▭ button left of the status badge (NOMINAL and so on) cycles the preset sizes:
+6. **Size preset button.** On a unit window's title bar, the ▣ LG / ▭ SM button left of the status badge (NOMINAL and so on) cycles the preset sizes:
    - LARGE: the full sheet, sized so the left panel is exactly the window height with skill inputs collapsed
    - SMALL: doll-focused, 600 wide, down to IMPACT RESOLUTION
    On a screen too short for the whole left panel, LARGE uses the full desktop height.
-7. **Encounter tile right-click.** The menu now starts with "Open character sheet", which opens or focuses the unit's tab at the LARGE preset.
+7. **Encounter tile right-click.** The menu now starts with "Open sheet window (LARGE)" (renamed in the review fixes), which opens or focuses the unit's tab at the LARGE preset.
 8. **OVERSEER and CATALOGUE** moved from the launch menu to the top-right icon column, under SETTINGS: 設 SETTINGS, 監 OVERSEER, 典 CATALOGUE, 録 CHANGELOG. Both still need their keys.
 9. **ASSEMBLY.** The failure could not be reproduced here, in solo, on the live table, or across theme, scale, logout and reopen. The likeliest causes were fixed:
    - Stale cached scripts: the `desk.js` and `mp-bridge.js` cache keys were never bumped across rounds, so a browser could pair a new desktop with an old bridge. Both are bumped now.
    - Silent failures: a workstation's own console is hidden, so its messages and errors were invisible. Every workstation window (ASSEMBLY, SERVICE, CATALOGUE, OVERSEER) now has a status strip under it. The strip shows the workstation's last message; a script error or failed sign-in shows as WORKSTATION FAULT; a workstation that never starts shows DID NOT START.
-   - RELOAD on the strip restarts the workstation with a fresh local session.
+   - RELOAD on the strip restarts the workstation with a fresh local session (one click on a fault; confirm twice when healthy).
    If it still breaks, the strip's text is the detail needed to fix it.
 10. **Pilot name.** Unit windows show the pilot or owner next to the mech name, on the tab and in the title bar:
     - a seated client: their member colour
@@ -80,6 +80,23 @@
     - Open, Closed, Unknown, or LOCAL in solo: grey
 
 UI SCALE is unchanged. Tests: the D1 suite adds checks for all ten items; the earlier skill-input and ref2-size checks were updated for items 3, 5 and 6.
+
+## Round 3 review fixes (Misaki)
+
+1. **Readable pilot name.** On a focused title bar and on the acting tab, the pilot name now sits on the page background with a little padding, and its `//` takes the name's colour. Before, grey `// LOCAL` on amber was 1.3:1 on REMUS ACCORD.
+2. **IMPACT RESOLUTION on smaller screens.** A window that opens automatically uses the SMALL preset when LARGE would push IMPACT RESOLUTION off-screen (for example 1366 x 768 with a shield). LARGE is also 4 px taller, so the [APPLY] row is never cut off.
+3. **Workstation RELOAD.** The strip shows a one-click RELOAD only on a fault or DID NOT START. On a healthy workstation it is a small ↻: the first click asks "RELOAD? UNSAVED WORK IS LOST", and it reloads only if clicked again within 3 seconds.
+4. **Size button** reads ▣ LG / ▭ SM. The tooltip is unchanged.
+5. **Pilot name** is 11 px, and the unit tab's tooltip adds `// PILOT: <name>`.
+6. **11 px minimum** for the remaining small chrome text:
+   - group colour picker and its buttons
+   - the current-colour label
+   - SELECTED UNIT buttons
+   - the workstation strip button
+   - settings legends and notes
+   - login labels and layout buttons
+
+   The encounter tile menu item is now **Open sheet window (LARGE)**.
 
 ## Known limits
 
