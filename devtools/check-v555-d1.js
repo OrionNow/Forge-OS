@@ -29,7 +29,7 @@ const labels = (p, id) => p.evaluate((id) => { const w = Desk.wins().find(w => w
   const bad = []; for (let i = 0; i < ls.length; i++) { const a = ls[i]; if (a.r > win.right - 1) bad.push(a.n + ' spills past the window'); for (let j = i + 1; j < ls.length; j++) { const c = ls[j]; if (a.l < c.r - 1 && c.l < a.r - 1 && a.t < c.b - 1 && c.t < a.b - 1) bad.push(a.n + ' x ' + c.n); } }
   const svg = r.querySelector('.mechmap svg').getBoundingClientRect(), mid = svg.left + svg.width / 2;
   return { w: Math.round(win.width), n: ls.length, bad, lefts: ls.map(x => x.l), sides: [ls.filter(x => x.r <= mid).length, ls.filter(x => x.l >= mid).length], below: ls.filter(x => x.t >= svg.bottom - 1).length }; }, id);
-const uw = p => p.evaluate(() => Desk.wins().filter(w => w.k === 'unit').map(w => ({ id: w.id, u: w.u, c: w.c, tabs: (w.tabs || []).slice(), n: document.querySelector(`.dkw[data-id="${w.id}"] .dk-n`).textContent })));
+const uw = p => p.evaluate(() => Desk.wins().filter(w => w.k === 'unit').map(w => ({ id: w.id, u: w.u, c: w.c, pz: w.pz, tabs: (w.tabs || []).slice(), n: document.querySelector(`.dkw[data-id="${w.id}"] .dk-n`).textContent })));
 const dupIds = p => p.evaluate(() => { const c = {}; document.querySelectorAll('[id]').forEach(e => { c[e.id] = (c[e.id] || 0) + 1; }); return Object.keys(c).filter(k => c[k] > 1); });
 const hpOf = (p, nm) => p.evaluate((nm) => { const S = Forge.state(); Forge.save(); const sh = S.sheets.find(s => (s.d && (s.d.id + ' ' + s.d.cs).includes(nm.split(' / ')[0]))); return sh && sh.d.tel.hp.slice(); }, nm);
 const keyOf = (p, nm) => p.evaluate((nm) => { const sh = Forge.state().sheets.find(s => (s.d.id + ' ' + s.d.cs).includes(nm.split(' / ')[0])); return Desk.ukey(sh); }, nm);
@@ -63,7 +63,7 @@ const cyanScan = p => p.evaluate(() => {
     // 2 icons under windows; windows may sit over the icon column
     const encId = await p.evaluate(() => Desk.wins().find(w => w.k === 'enc').id);
     await dragBy(p, `.dkw[data-id="${encId}"] .dk-t .dk-n`, -200, 140);
-    const under = await p.evaluate((id) => { const w = document.querySelector(`.dkw[data-id="${id}"]`).getBoundingClientRect(); const ic = [...document.querySelectorAll('#dkicons .dk-ico')].map(i => i.getBoundingClientRect()).find(r => r.top > w.top + 30 && r.bottom < w.bottom && r.left >= w.left); if (!ic) return { w: [w.left, w.top, w.height] }; const e = document.elementFromPoint(ic.left + ic.width / 2, ic.top + ic.height / 2); return { wl: Math.round(w.left), onWin: !!(e && e.closest(`.dkw[data-id="${id}"]`)) }; }, encId);
+    const under = await p.evaluate((id) => { const w = document.querySelector(`.dkw[data-id="${id}"]`).getBoundingClientRect(); const ic = [...document.querySelectorAll('#dkicons .dk-ico')].map(i => i.getBoundingClientRect()).find(r => r.top + r.height / 2 > w.top + 26 && r.top + r.height / 2 < w.bottom - 2 && r.left >= w.left); if (!ic) return { w: [w.left, w.top, w.height] }; const e = document.elementFromPoint(ic.left + ic.width / 2, ic.top + ic.height / 2); return { wl: Math.round(w.left), onWin: !!(e && e.closest(`.dkw[data-id="${id}"]`)) }; }, encId);
     ok(under.wl < 88 && under.onWin, 'desktop icons render under windows: a window dragged over the icon column covers the icons ' + JSON.stringify(under));
     await p.evaluate((id) => Desk.geo(id, { x: 88, y: 8, w: 900, h: 96 }), encId); await wait(200);
     // 16 tabbed unit windows
@@ -75,16 +75,27 @@ const cyanScan = p => p.evaluate(() => {
     for (const i of [0, 1, 2]) { await p.locator(`.dkw[data-k=enc] [data-i="${i}"][onclick^=shClick]`).click(); await wait(500); }
     ws = await uw(p); let cy = ws.find(w => w.c === 1), rd = ws.find(w => w.c === 3);
     ok(ws.length === 2 && cy && rd && JSON.stringify(cy.tabs) === JSON.stringify([kA, kB]) && JSON.stringify(rd.tabs) === JSON.stringify([kC]) && /CYAN/.test(cy.n) && /RED/.test(rd.n), 'open routing by colour: first open puts each unit in the window for its tab colour (CYAN: 2 tabs, RED: 1), creating windows as needed ' + JSON.stringify(ws.map(w => [w.n, w.tabs])));
+    const casc = await p.evaluate(([c, r]) => { const a = document.querySelector(`.dkw[data-id="${c}"]`), b = document.querySelector(`.dkw[data-id="${r}"]`), ra = a.getBoundingClientRect(), rb = b.getBoundingClientRect(), t = a.querySelector('.dk-ut').getBoundingClientRect(); const e = document.elementFromPoint(t.left + t.width / 2, t.top + t.height / 2); return { dy: Math.round(rb.top - ra.top), tabBottom: Math.round(t.bottom - ra.top), visible: !!(e && e.closest(`.dkw[data-id="${c}"]`)) }; }, [cy.id, rd.id]);
+    ok(casc.dy >= 42 && casc.dy >= casc.tabBottom && casc.visible, 'cascaded unit windows step down past the title bar and tab strip, so the window behind keeps its tabs visible ' + JSON.stringify(casc));
     await p.evaluate(([c, r]) => { Desk.geo(c, { x: 88, y: 112, w: 700, h: 740 }); Desk.geo(r, { x: 796, y: 112, w: 700, h: 740 }); }, [cy.id, rd.id]); await wait(300);
     const fitW = [await labels(p, cy.id), await labels(p, rd.id)];
     ok(fitW.every(f => f.n === 8 && !f.bad.length), 'paper doll labels fit in both colour windows ' + JSON.stringify(fitW.map(f => [f.w, f.bad])));
     // background tabs stay live; the active tab is the acting unit
     await p.click(`.dkw[data-id="${cy.id}"] .dk-ut[data-u="${kA}"]`); await wait(500);
     ok(await p.evaluate(([id, u]) => Desk.wins().find(w => w.id === id).u === u && Desk.curKey() === u, [cy.id, kA]), 'clicking a tab makes it the active tab and the acting unit');
+    const acting = () => p.evaluate(() => { const a = [...document.querySelectorAll('#dkarea .dk-ut.act')]; const t = a[0]; const cs = t && getComputedStyle(t), dk = getComputedStyle(document.getElementById('dk')); const probe = document.createElement('i'); probe.style.background = 'var(--dk-on)'; document.getElementById('dk').appendChild(probe); const on = getComputedStyle(probe).backgroundColor; probe.remove();
+      return { n: a.length, u: t && t.dataset.u, pf: t && t.querySelector('.pf').textContent, bg: cs && cs.backgroundColor === on, onTabs: document.querySelectorAll('#dkarea .dk-ut.on').length, stat: document.getElementById('dkstat').textContent }; });
+    await p.mouse.move(800, 880);
+    const ac1 = await acting();
+    ok(ac1.n === 1 && ac1.u === kA && ac1.pf === '▶ ' && ac1.bg && ac1.onTabs >= 2 && /ACTING: MSH-01/.test(ac1.stat), 'acting unit: only its tab gets .act (filled, ▶ prefix) while every window has an active tab; the status bar shows ACTING: <unit> ' + JSON.stringify(ac1));
     const dmg = async (u, loc, v) => { await p.locator(`.dk-sec[data-u="${u}"][data-s=doll] .mlab`).nth(loc).click(); await wait(300); await p.locator(`.dk-sec[data-u="${u}"][data-s=impact] input[type=number]`).first().fill(String(v)); await wait(200); await p.locator(`.dk-sec[data-u="${u}"][data-s=impact] .damage-apply`).click(); await wait(1200); };
     const a0 = await hpOf(p, NAMES[0]), c0 = await hpOf(p, NAMES[2]);
     await dmg(kA, 1, 700); const a1 = await hpOf(p, NAMES[0]), c1 = await hpOf(p, NAMES[2]);
     await dmg(kC, 2, 720); const a2 = await hpOf(p, NAMES[0]), c2 = await hpOf(p, NAMES[2]);
+    await p.mouse.move(800, 880);
+    const ac2 = await acting();
+    ok(ac2.n === 1 && ac2.u === kC && /ACTING: RVN-06/.test(ac2.stat) && await p.evaluate((u) => !document.querySelector(`.dk-ut.act[data-u="${u}"]`) && !!document.querySelector(`.dk-ut.on[data-u="${u}"]`), kA), 'acting moves with the last-touched unit: working in the RED window marks its tab; the CYAN active tab stays .on but not .act ' + JSON.stringify(ac2));
+    await shot(p, 'r2-16-acting-tab.png');
     ok(JSON.stringify(a1) !== JSON.stringify(a0) && JSON.stringify(c1) === JSON.stringify(c0) && JSON.stringify(c2) !== JSON.stringify(c1) && JSON.stringify(a2) === JSON.stringify(a1), 'all units live: damage in the CYAN window hits only its active unit, then the RED window hits only its unit, no switch step ' + JSON.stringify([a0, a1, c1, c2].map(x => x && x.join('/'))));
     await p.evaluate((u) => { const S = Forge.state(), i = S.sheets.findIndex(s => Desk.ukey(s) === u); if (i === S.cur) return; S.sheets[i].d.tel.hp[0] = 1; Forge.render(); }, kB); await wait(400);
     const bgLive = /\b1\/\d+ HP/.test(await hostTxt(p, kB, 'doll'));
@@ -97,7 +108,12 @@ const cyanScan = p => p.evaluate(() => {
     ok(rl[0] && /ICR-07/.test(rl[1]) && /Do[SF]/.test(rl[1]), 'a [ROLL] on the newly active tab rolls for that unit ' + JSON.stringify(rl[1].slice(0, 140)));
     ok((await dupIds(p)).length === 0, 'no duplicate ids with tabbed windows ' + JSON.stringify(await dupIds(p)));
     // skill input focus survives a render
-    await p.locator(`.dk-sec[data-u="${kB}"][data-s=skills] input[data-skill=pil]`).fill('15'); await wait(200);
+    // r3 item 5: skill inputs are part of the rolls section (no separate SKILL INPUTS section) and start collapsed there
+    const sk5 = await p.evaluate((u) => { const h = Desk.hosts().get(u + '|rolls'), r = h.firstChild ? h : h.shadowRoot; const hd = [...r.querySelectorAll('.shh')].find(e => /SKILL INPUTS/.test(e.textContent));
+      return { segs: [...document.querySelectorAll('.dkw[data-k=unit] .dk-seg')].map(s => s.dataset.s).filter((v, i, a) => a.indexOf(v) === i), head: !!hd, collapsed: !r.querySelector('.pg'), rolls: /\[ROLL\]/.test(r.textContent), title: (document.querySelector('.dkw[data-k=unit] .dk-seg[data-s=rolls] .dk-sh .dk-n') || {}).textContent }; }, kB);
+    ok(!sk5.segs.includes('skills') && sk5.head && sk5.collapsed && sk5.rolls && /SKILLS/.test(sk5.title || ''), 'r3 #5: skill inputs live in the ROLLS section (no separate section), collapsed by default in play ' + JSON.stringify(sk5));
+    await p.locator(`.dk-sec[data-u="${kB}"][data-s=rolls] .shh:has-text("SKILL INPUTS")`).first().click(); await wait(400);
+    await p.locator(`.dk-sec[data-u="${kB}"][data-s=rolls] input[data-skill=pil]`).fill('15'); await wait(200);
     await p.evaluate(() => Forge.render()); await wait(300);
     const fk = await p.evaluate((u) => { const a = document.activeElement; return [a && a.dataset && a.dataset.skill, a && a.value, a && a.closest('.dk-sec') && a.closest('.dk-sec').dataset.u === u]; }, kB);
     ok(fk[0] === 'pil' && fk[1] === '15' && fk[2], 'a skill input keeps focus and value through a re-render ' + JSON.stringify(fk));
@@ -113,10 +129,20 @@ const cyanScan = p => p.evaluate(() => {
     ws = await uw(p); cy = ws.find(w => w.id === cy.id); rd = ws.find(w => w.id === rd.id);
     ok(JSON.stringify(cy.tabs) === JSON.stringify([kA]) && JSON.stringify(rd.tabs) === JSON.stringify([kC, kB]) && rd.u === kB, 'tab drag: dragging a tab onto another unit window moves the unit there as its active tab ' + JSON.stringify(ws.map(w => [w.n, w.tabs])));
     await shot(p, 'r2-03-unit-window-several-tabs.png');
-    await p.locator(`.dkw[data-id="${rd.id}"] .dk-ut[data-u="${kC}"]`).dragTo(p.locator('#dkdesk'), { targetPosition: { x: 1530, y: 500 } }); await wait(800);
+    { const t = await p.locator(`.dkw[data-id="${rd.id}"] .dk-ut[data-u="${kC}"]`).boundingBox(); await p.mouse.move(t.x + 20, t.y + 10); await p.mouse.down(); await p.mouse.move(t.x + 60, t.y + 30, { steps: 4 }); await p.mouse.move(1530, 500, { steps: 12 }); await p.mouse.move(1534, 504); await p.mouse.move(1530, 500); await wait(300); /* Chromium fires dragover on the moves after dragenter */
+      const mk = await p.evaluate(() => { const m = document.getElementById('dktmark'); if (!m) return null; const cs = getComputedStyle(m), r = m.getBoundingClientRect(); const ar = document.getElementById('dkarea').getBoundingClientRect(); return { t: m.textContent, dashed: cs.outlineStyle === 'dashed', cls: m.classList.contains('dk-tdrop'), inside: r.right <= ar.right + 1 && r.bottom <= ar.bottom + 1, fits: m.scrollWidth <= m.clientWidth + 1 }; });
+      ok(mk && mk.t === 'DROP: NEW WINDOW' && mk.dashed && mk.cls && mk.inside && mk.fits, 'tear-off marker: dragging a tab over the empty desktop shows a dashed DROP: NEW WINDOW outline ' + JSON.stringify(mk));
+      await shot(p, 'r2-17-tear-off-marker.png');
+      await p.mouse.up(); await wait(800);
+      ok(await p.evaluate(() => !document.getElementById('dktmark') && !document.querySelector('.dk-tdrop')), 'tear-off marker clears on drop'); }
     ws = await uw(p); const torn = ws.find(w => w.tabs.length === 1 && w.tabs[0] === kC);
     ok(ws.length === 3 && torn && torn.c === null && JSON.stringify(ws.find(w => w.id === rd.id).tabs) === JSON.stringify([kB]), 'tab dropped on the desktop: tears off into a new unit window of its own at the drop point ' + JSON.stringify(ws.map(w => [w.n, w.tabs, w.c])));
     await p.locator(`.dkw[data-id="${torn.id}"] .dk-ut`).dragTo(p.locator(`.dkw[data-id="${rd.id}"] .dk-utabs`)); await wait(800);
+    ws = await uw(p); rd = ws.find(w => w.id === rd.id);
+    { const t = await p.locator(`.dkw[data-id="${rd.id}"] .dk-ut`).first().boundingBox(); await p.mouse.move(t.x + 20, t.y + 10); await p.mouse.down(); await p.mouse.move(t.x + 60, t.y + 30, { steps: 4 }); await p.mouse.move(1530, 820, { steps: 10 }); await p.mouse.move(1534, 824); await p.mouse.move(1530, 820); await wait(200);
+      const m1 = await p.evaluate(() => !!document.getElementById('dktmark')); await p.mouse.move(500, 50, { steps: 8 }); await p.mouse.up(); await wait(500); /* released over the ENCOUNTER window: no drop target, so only dragend fires */
+      const m2 = await p.evaluate(() => !document.getElementById('dktmark') && !document.querySelector('.dk-tdrop'));
+      ok(m1 && m2, 'tear-off marker clears on dragend (released where a tab cannot drop) ' + JSON.stringify([m1, m2])); }
     ws = await uw(p); rd = ws.find(w => w.id === rd.id);
     ok(ws.length === 2 && rd.tabs.length === 2, 'dragging the last tab into another window closes the emptied window ' + JSON.stringify(ws.map(w => [w.n, w.tabs])));
     // 4 narrow paper doll: 4 + 4
@@ -146,6 +172,10 @@ const cyanScan = p => p.evaluate(() => {
     await p.click(`.dkw[data-id="${B}"] [data-a=max]`); await wait(200);
     const gr = await geo(p, B);
     ok(!gr.max && gr.w === g2.w && gr.x === g2.x, 'restore returns the previous geometry ' + JSON.stringify(gr));
+    await p.evaluate((id) => Desk.geo(id, { x: 5000, y: 5000 }), B); await wait(200);
+    const gc = await geo(p, B), arC = await areaR(p);
+    ok(arC.r - gc.x >= 160 && arC.b - gc.y >= 40, 'off-screen clamp keeps at least 160 x 40 of the window on the desktop ' + JSON.stringify([gc, arC]));
+    await p.evaluate(([id, g]) => Desk.geo(id, g), [B, { x: gr.x, y: gr.y, w: gr.w, h: gr.h }]); await wait(200);
     await p.click(`.dkw[data-id="${B}"] [data-a=min]`); await wait(200);
     const tb = await p.evaluate((id) => { const t = document.querySelector(`#dktabs [data-id="${id}"]`); return t && t.className; }, B);
     ok((await geo(p, B)).hid && /min/.test(tb || ''), 'minimize hides the window; its taskbar tab stays ' + tb);
@@ -188,8 +218,8 @@ const cyanScan = p => p.evaluate(() => {
     await p.locator(`.dkw[data-id="${gw.id}"] .dk-card:has-text("ICARUS")`).click(); await wait(800);
     const selA = await p.evaluate(([id, u]) => { const e = document.querySelector(`.dkw[data-id="${id}"]`); const hs = [...e.querySelectorAll('.dk-gsb>.dk-sec')]; return { sel: Desk.wins().find(w => w.id === id).sel === u, on: (e.querySelector('.dk-card.on .nm2') || {}).textContent, hosts: hs.map(h => h.dataset.u + '|' + h.dataset.s), map: hs.some(h => !!(h.firstChild ? h : h.shadowRoot).querySelector('.mechmap')), dmg: hs.some(h => !!(h.firstChild ? h : h.shadowRoot).querySelector('.damage-apply')), hdr: e.querySelector('.dk-gsel .dk-n').textContent, open: !!e.querySelector('.dk-gsel [data-g=open]') }; }, [gw.id, kB]);
     ok(selA.sel && /ICARUS/.test(selA.on || '') && selA.hosts.join() === `${kB}|doll,${kB}|impact` && selA.map && selA.dmg && /ICARUS/.test(selA.hdr) && selA.open && (await uw(p)).length === nW0, 'single click selects a card: its paper doll and impact resolution show in the group window\'s SELECTED UNIT area; no window opens ' + JSON.stringify(selA));
-    const ph = await p.evaluate(([id]) => /SHOWN IN THE UNIT GROUP WINDOW/.test(document.querySelector(`.dkw[data-id="${id}"] .dk-seg[data-s=doll]`).textContent), [rd.id]);
-    ok(ph, 'its unit window (active tab) shows a placeholder for the sections now in the group window');
+    const ph = await p.evaluate(([id]) => { const b = document.querySelector(`.dkw[data-id="${id}"] .dk-seg[data-s=doll] button.dk-back`); if (!b) return null; const probe = document.createElement('i'); probe.style.color = 'var(--dk-hi)'; document.getElementById('dk').appendChild(probe); const hi = getComputedStyle(probe).color; probe.remove(); return { t: b.textContent, hiBorder: getComputedStyle(b).borderTopColor === hi }; }, [rd.id]);
+    ok(ph && ph.t === '◀ IN UNIT GROUP // CYAN — click to bring back' && ph.hiBorder, 'its unit tab shows a clickable ◀ IN UNIT GROUP // CYAN button (highlight border) for the sections now in the group window ' + JSON.stringify(ph));
     const bS0 = await hpOf(p, NAMES[1]);
     await p.locator(`.dkw[data-id="${gw.id}"] .dk-gsb .mlab`).nth(4).click(); await wait(300);
     await p.locator(`.dkw[data-id="${gw.id}"] .dk-gsb input[type=number]`).first().fill('700'); await wait(200);
@@ -206,6 +236,10 @@ const cyanScan = p => p.evaluate(() => {
     ok(op1.act && op1.top && op1.inWin && op1.gph, '[OPEN ↗] focuses the unit\'s tab in its window; the full window gets its sections back (group shows OPEN IN ITS UNIT WINDOW / SHOW HERE) ' + JSON.stringify(op1));
     await p.click(`.dkw[data-id="${gw.id}"] [data-g=here]`); await wait(500);
     ok(await p.evaluate(([gid, u]) => !!document.querySelector(`.dkw[data-id="${gid}"] .dk-gsb>.dk-sec[data-u="${u}"]`), [gw.id, kB]), '[SHOW HERE] brings the sections back into the group window');
+    await p.click(`.dkw[data-id="${rd.id}"] .dk-seg[data-s=doll] button.dk-back`); await wait(700);
+    const bk = await p.evaluate(([id, gid, u]) => ({ inWin: !!document.querySelector(`.dkw[data-id="${id}"] .dk-seg[data-s=doll] .dk-sec[data-u="${u}"]`), gph: /OPEN IN ITS UNIT WINDOW/.test(document.querySelector(`.dkw[data-id="${gid}"] .dk-gsel`).textContent), top: Desk.wins().filter(w => !w.hidden).sort((a, b) => b.z - a.z)[0].id === id }), [rd.id, gw.id, kB]);
+    ok(bk.inWin && bk.gph && bk.top, 'the ◀ IN UNIT GROUP button does the same as [OPEN ↗]: the sections come back to the unit window ' + JSON.stringify(bk));
+    await p.click(`.dkw[data-id="${gw.id}"] [data-g=here]`); await wait(500);
     // double-click on a card whose unit has no window: routed by colour (CYAN window gets the tab)
     await p.click(`.dkw[data-id="${rd.id}"] .dk-ut[data-u="${kB}"] [data-ux]`); await wait(500);
     await p.locator(`.dkw[data-id="${gw.id}"] .dk-card:has-text("ICARUS")`).dblclick(); await wait(900);
@@ -218,7 +252,9 @@ const cyanScan = p => p.evaluate(() => {
     ws = await uw(p); const nw = ws.find(w => w.tabs.includes(kB));
     const g6 = nw && await geo(p, nw.id), wide = nw && await labels(p, nw.id);
     const shield = nw && await p.evaluate((u) => { const h = Desk.hosts().get(u + '|doll'); const r = h.firstChild ? h : h.shadowRoot; const s = r.querySelector('.shieldrow'); return !s || s.getBoundingClientRect().height > 0; /* the test frame has no shields */ }, kB);
-    ok(nw && nw.c === 1 && Math.abs(g6.w - 600) <= 2 && Math.abs(g6.h - 500) <= 2 && wide.n === 8 && !wide.bad.length && wide.sides[0] > 0 && wide.sides[1] > 0 && shield, 'a unit window created from the group opens at the ref2 size (600 x 500): wide doll with labels on both sides, shield row (when the frame has shields) visible ' + JSON.stringify({ g6, sides: wide && wide.sides, bad: wide && wide.bad, shield }));
+    const impVis = nw && await p.evaluate((id) => { const e = document.querySelector(`.dkw[data-id="${id}"]`), b = e.querySelector('.dk-b').getBoundingClientRect(), s = e.querySelector('.dk-seg[data-s=impact]').getBoundingClientRect(); return { top: Math.round(s.top - b.top), bot: Math.round(b.bottom - s.bottom), title: /IMPACT/.test(e.querySelector('.dk-seg[data-s=impact] .dk-sh').textContent) }; }, nw.id);
+    ok(nw && impVis.bot >= -1 && impVis.top >= 0 && impVis.title && g6.h > 500 && nw.pz === 'S', 'r3 #3: a unit window opened from the group starts taller (SMALL preset) with IMPACT RESOLUTION fully visible on open ' + JSON.stringify({ g6, impVis }));
+    ok(nw && nw.c === 1 && Math.abs(g6.w - 600) <= 2 && wide.n === 8 && !wide.bad.length && wide.sides[0] > 0 && wide.sides[1] > 0 && shield, 'a unit window created from the group opens 600 wide (ref2 width): wide doll with labels on both sides, shield row (when the frame has shields) visible ' + JSON.stringify({ g6, sides: wide && wide.sides, bad: wide && wide.bad, shield }));
     await shot(p, 'r2-08-unit-from-group.png');
     // 13 console window
     const conId = await p.evaluate(() => (Desk.conWin() || {}).w ? Desk.conWin().w.id : (Desk.wins().find(w => w.k === 'con') || {}).id);
@@ -236,11 +272,100 @@ const cyanScan = p => p.evaluate(() => {
     const cg3 = await geo(p, conId);
     ok(Math.abs(cg2.x - cg.x + 500) <= 8 && Math.abs(cg2.y - cg.y + 300) <= 8 && Math.abs(cg3.w - cg2.w - 60) <= 8 && Math.abs(cg3.h - cg2.h - 40) <= 8, 'console: a normal window: drag moves it and the corner resizes it ' + JSON.stringify([cg, cg2, cg3]));
     await shot(p, 'r2-10-console-moved.png');
+    await p.evaluate(() => { const u = Desk.wins().find(w => w.k === 'unit'); Desk.front(u.id); }); await wait(200);
+    const cov = await p.evaluate((id) => Desk.wins().filter(w => !w.hidden).sort((a, b) => b.z - a.z)[0].id !== id, conId);
+    await p.click('#dktray'); await wait(300);
+    const fr = await p.evaluate((id) => ({ vis: !document.querySelector(`.dkw[data-id="${id}"]`).hidden, top: Desk.wins().filter(w => !w.hidden).sort((a, b) => b.z - a.z)[0].id === id }), conId);
+    ok(cov && fr.vis && fr.top, 'tray button on an open but covered console brings it to the front instead of closing it ' + JSON.stringify([cov, fr]));
+    await p.click('#dktray'); await wait(300);
+    const hidT = (await geo(p, conId)).hid; await p.click('#dktray'); await wait(300);
+    ok(hidT && !(await geo(p, conId)).hid, 'tray button on the console already on top closes it (and opens it again)');
     await p.click(`.dkw[data-id="${conId}"] [data-a=close]`); await wait(300);
     const hid1 = (await geo(p, conId)).hid;
     await p.click('#dktray'); await wait(300); const cg4 = await geo(p, conId);
     await p.click('#dktray'); await wait(300); const hid2 = (await geo(p, conId)).hid;
     ok(hid1 && !cg4.hid && cg4.x === cg3.x && cg4.y === cg3.y && hid2, 'console: × hides it; the tray button reopens it where it was left and toggles it closed ' + JSON.stringify([hid1, cg4, hid2]));
+    const ov = await p.evaluate(() => { const bad = []; document.querySelectorAll('#dkicons .dk-ico span,#dkiconsr .dk-ico span').forEach(s => { if (s.scrollWidth > s.clientWidth + 1 || s.getBoundingClientRect().right > s.closest('.dk-ico').getBoundingClientRect().right + 1) bad.push('icon ' + s.textContent); });
+      const t = document.getElementById('dktask'); if (t.scrollWidth > t.clientWidth + 1) bad.push('taskbar'); const st = document.getElementById('dkstat'); if (st.scrollWidth > st.clientWidth + 1) bad.push('status ' + st.scrollWidth + '>' + st.clientWidth);
+      document.querySelectorAll('.dk-card').forEach(c => { if (c.scrollWidth > c.clientWidth + 1) bad.push('card ' + c.querySelector('.nm2').textContent); c.querySelectorAll('.cd,.nm2').forEach(x => { if (x.getBoundingClientRect().right > c.getBoundingClientRect().right + 1) bad.push('card line ' + x.textContent); }); });
+      document.querySelectorAll('#dktabs button').forEach(b => { if (b.getBoundingClientRect().bottom > t.getBoundingClientRect().bottom + 1) bad.push('tab ' + b.textContent); });
+      const h = [...document.querySelectorAll('.dkw .dk-t')].map(x => Math.round(x.getBoundingClientRect().height)).filter(x => x); return { bad, h: [...new Set(h)], fs: getComputedStyle(document.querySelector('.dkw .dk-t .dk-n')).fontSize }; });
+    ok(!ov.bad.length && ov.h.every(x => x === 22) && ov.fs === '12px', 'larger chrome text (titles 12px, title bars 22px): no overflow in the icon column, taskbar tabs or status bar ' + JSON.stringify(ov));
+    /* ================= ROUND 3 (feedback/v555-d1/round3/NOTES.md) ================= */
+    const S3r = process.env.R3SHOTS || '/workspace/forge-os/feedback/v555-d1/round3/shots'; fs.mkdirSync(S3r, { recursive: true });
+    const shot3_3 = (f) => p.screenshot({ path: S3r + '/' + f });
+    const colEq_3 = (a, b) => p.evaluate(([a, b]) => { const t = (c) => { const s = document.createElement('span'); s.style.color = c; document.body.appendChild(s); const v = getComputedStyle(s).color; s.remove(); return v; }; return t(a) === t(b); }, [a, b]);
+    // #4 + #8: icons and the start menu
+    const ic_3 = await p.evaluate(() => { const q = (s) => document.querySelector('#dkiconsr [data-ico=' + s + ']').getBoundingClientRect(), a = q('set'), o = q('ovr'), c = q('cat'), ar = document.getElementById('dkarea').getBoundingClientRect();
+      return { l: [...document.querySelectorAll('#dkicons .dk-ico')].map(b => b.dataset.ico), r: [...document.querySelectorAll('#dkiconsr .dk-ico')].map(b => b.dataset.ico), stack: a.bottom <= o.top && o.bottom <= c.top, right: ar.right - a.right < 20, top: a.top - ar.top < 20 }; });
+    await p.click('#dkstart'); await wait(300);
+    const mi_3 = await p.evaluate(() => [...document.querySelectorAll('#dkmenu button')].map(b => b.textContent.trim()));
+    await shot3_3('r3-04-08-icons-and-start-menu.png');
+    await p.click('#dkstart'); await wait(200);
+    ok(!ic_3.l.includes('loadout') && !ic_3.r.includes('loadout') && !mi_3.some(t => /LOADOUT/.test(t)) && !(await p.locator('[data-ico=loadout]').count()), 'r3 #4: LOADOUT is gone from the desktop icons and the start menu ' + JSON.stringify({ l: ic_3.l, mi_3 }));
+    ok(JSON.stringify(ic_3.r) === '["set","ovr","cat","log"]' && !ic_3.l.some(i => ['ovr', 'cat', 'set'].includes(i)) && ic_3.stack && ic_3.right && ic_3.top && !mi_3.some(t => /OVERSEER|CATALOGUE/.test(t)) && mi_3.some(t => /SETTINGS/.test(t)), 'r3 #8: OVERSEER and CATALOGUE sit top-right under SETTINGS (not in the start menu) ' + JSON.stringify({ r: ic_3.r, mi_3 }));
+    // #2: group window, cards as a vertical sidebar on the right
+    await p.click('.dk-ico[data-ico=units]'); await wait(700);
+    const gid3_3 = await p.evaluate(() => Desk.wins().filter(w => w.k === 'group').pop().id);
+    await p.locator(`.dkw[data-id="${gid3_3}"] .dk-card:has-text("MUSHA")`).click(); await wait(500);
+    const g2_3 = await p.evaluate((id) => { const g = document.querySelector(`.dkw[data-id="${id}"]`); const cd = g.querySelector('.dk-cards').getBoundingClientRect(), gs = g.querySelector('.dk-gsel').getBoundingClientRect(), win = g.getBoundingClientRect(); const cs = [...g.querySelectorAll('.dk-card')].map(c => c.getBoundingClientRect());
+      return { n: cs.length, side: cd.left >= gs.right - 1 && win.right - cd.right < 16, vert: cs.every((c, i) => !i || (c.top >= cs[i - 1].bottom - 3 && Math.abs(c.left - cs[0].left) < 6)), cw: Math.round(cd.width), sw: Math.round(gs.width), rs: cs.map(c => [c.left | 0, c.top | 0, c.bottom | 0]), top: Math.abs(cd.top - gs.top) < 2 }; }, gid3_3);
+    ok(g2_3.n >= 2 && g2_3.side && g2_3.vert && g2_3.top && g2_3.sw > 2 * g2_3.cw, 'r3 #2: the unit group window shows its mini-doll tiles as a vertical sidebar on the right, the selected unit beside it ' + JSON.stringify(g2_3));
+    await shot3_3('r3-02-group-sidebar.png');
+    await p.evaluate((id) => Desk.close(id), gid3_3); await wait(300);
+    // #6: size preset button left of the NOMINAL badge
+    await p.setViewportSize({ width: 1600, height: 1300 }); await wait(500);
+    if (!(await uw(p)).some(w => w.tabs.includes(kA))) { await p.evaluate((u) => { Desk.open({ k: 'unit', u }); Desk.sync(); }, kA); await wait(800); }
+    const u6_3 = (await uw(p)).find(w => w.tabs.includes(kA));
+    await p.evaluate((id) => { Desk.restore(id); Desk.front(id); }, u6_3.id); await p.click(`.dkw[data-id="${u6_3.id}"] .dk-ut[data-u="${kA}"]`); await wait(500);
+    if (await p.locator(`.dk-sec[data-u="${kA}"][data-s=rolls] .pg`).count()) { await p.locator(`.dk-sec[data-u="${kA}"][data-s=rolls] .shh:has-text("SKILL INPUTS")`).first().click(); await wait(400); }
+    const pzOf_3 = (id) => p.evaluate((id) => Desk.wins().find(w => w.id === id).pz, id);
+    const pzBtn_3 = await p.evaluate((id) => { const e = document.querySelector(`.dkw[data-id="${id}"]`), b = e.querySelector('.dk-t .dk-sz'), s = e.querySelector('.dk-t .dk-st'); return { b: !!b, left: b && !s.hidden && b.getBoundingClientRect().right <= s.getBoundingClientRect().left + 1 && b.nextElementSibling === s, st: s.textContent, h: Math.round(e.querySelector('.dk-t').getBoundingClientRect().height) }; }, u6_3.id);
+    for (let k = 0; k < 2 && (await pzOf_3(u6_3.id)) !== 'L'; k++) { await p.click(`.dkw[data-id="${u6_3.id}"] .dk-sz`); await wait(500); }
+    const mL_3 = await p.evaluate((id) => { const e = document.querySelector(`.dkw[data-id="${id}"]`), b = e.querySelector('.dk-b'), br = b.getBoundingClientRect(), col = e.querySelector('.dk-col').getBoundingClientRect(), A = document.getElementById('dkarea').getBoundingClientRect(), r = e.getBoundingClientRect();
+      return { w: Math.round(r.width), aw: Math.round(A.width), gap: Math.round(br.bottom - parseFloat(getComputedStyle(b).paddingBottom) - col.bottom), scroll: b.scrollHeight > b.clientHeight + 2 ? b.scrollHeight - b.clientHeight : 0, pg: !!e.querySelector('.dk-seg[data-s=rolls] .dk-sec') && !Desk.hosts().get(Desk.wins().find(w => w.id === id).u + '|rolls').shadowRoot.querySelector('.pg') && !Desk.hosts().get(Desk.wins().find(w => w.id === id).u + '|rolls').querySelector('.pg') }; }, u6_3.id);
+    ok(pzBtn_3.b && pzBtn_3.left && pzBtn_3.h === 22 && mL_3.w === Math.min(1000, mL_3.aw - 16) && Math.abs(mL_3.gap) <= 4 && mL_3.pg, 'r3 #6: the size button sits left of the NOMINAL badge; LARGE = the full sheet with the left panel exactly the window height (skill inputs collapsed) ' + JSON.stringify({ pzBtn_3, mL_3 }));
+    await shot3_3('r3-06a-preset-large.png');
+    await p.click(`.dkw[data-id="${u6_3.id}"] .dk-sz`); await wait(500);
+    const mS_3 = await p.evaluate((id) => { const e = document.querySelector(`.dkw[data-id="${id}"]`), b = e.querySelector('.dk-b').getBoundingClientRect(), im = e.querySelector('.dk-seg[data-s=impact]').getBoundingClientRect(), d = e.querySelector('.dk-seg[data-s=doll]').getBoundingClientRect(), r = e.getBoundingClientRect(); return { w: Math.round(r.width), h: Math.round(r.height), imp: Math.round(b.bottom - im.bottom), doll: d.top >= b.top - 1 }; }, u6_3.id);
+    ok((await pzOf_3(u6_3.id)) === 'S' && mS_3.w === 600 && mS_3.imp >= -1 && mS_3.imp <= 12 && mS_3.doll, 'r3 #6: SMALL = doll-focused (600 wide, down to IMPACT RESOLUTION); the button cycles LARGE <-> SMALL ' + JSON.stringify(mS_3));
+    await shot3_3('r3-06b-preset-small.png');
+    await p.setViewportSize({ width: 1600, height: 900 }); await wait(500);
+    // #7: right-click an encounter tile -> open its character sheet in the LARGE view
+    await p.evaluate((u) => Desk.wins().filter(w => w.k === 'unit' && (w.tabs || []).includes(u)).forEach(w => Desk.close(w.id)), kC); await wait(300);
+    await p.evaluate(() => { const e = Desk.wins().find(w => w.k === 'enc'); Desk.restore(e.id); Desk.front(e.id); }); await wait(300);
+    const iC = await p.evaluate((u) => Forge.state().sheets.findIndex(s => Desk.ukey(s) === u), kC);
+    await p.locator(`.dkw[data-k=enc] [data-i="${iC}"][onclick^=shClick]`).click({ button: 'right' }); await wait(400);
+    const tm_3 = await p.evaluate(() => [...document.querySelectorAll('#tabmenu button')].map(b => b.textContent.trim()));
+    await shot3_3('r3-07a-encounter-right-click.png');
+    await p.click('#tabmenu button:has-text("Open character sheet")'); await wait(1200);
+    const o7_3 = await p.evaluate((u) => { const w = Desk.wins().find(w => w.k === 'unit' && w.u === u), A = document.getElementById('dkarea').getBoundingClientRect(); return w && { pz: w.pz, w: Math.round(w.w), aw: Math.round(A.width), cur: Desk.curKey() === u, sheet: !!document.querySelector(`.dkw[data-id="${w.id}"] .dk-seg[data-s=sheet] .dk-sec`) }; }, kC);
+    ok(tm_3[0] === 'Open character sheet' && o7_3 && o7_3.pz === 'L' && o7_3.w === Math.min(1000, o7_3.aw - 16) && o7_3.cur && o7_3.sheet, 'r3 #7: right-clicking an encounter tile offers "Open character sheet", which opens it in the LARGE view ' + JSON.stringify({ tm_3, o7_3 }));
+    await shot3_3('r3-07b-sheet-opened-large.png');
+    // #10: pilot / owner name next to the mech name (solo: tab colour for a named pilot, LOCAL in grey otherwise)
+    await p.evaluate((u) => { const S = Forge.state(); const i = S.sheets.findIndex(s => Desk.ukey(s) === u); shClick(i); S.own = 'VEGA'; Forge.save(); Forge.render(); }, kA); await wait(800);
+    const p10_3 = await p.evaluate(([a, c]) => { const t = (u) => { const w = Desk.wins().find(w => w.k === 'unit' && w.u === u); const e = document.querySelector(`.dkw[data-id="${w.id}"]`), pl = e.querySelector('.dk-t .dk-pl'), n = e.querySelector('.dk-t .dk-n'), tab = e.querySelector(`.dk-ut[data-u="${u}"] .dk-pil`); const sh = Forge.state().sheets.find(s => Desk.ukey(s) === u);
+      return { t: pl && !pl.hidden && pl.textContent, col: pl && getComputedStyle(pl).color, after: pl && pl.previousElementSibling === n, tab: tab && tab.textContent, tcol: tab && getComputedStyle(tab).color, sh: SH_COL[sh.col || 0] }; }; return [t(a), t(c)]; }, [kA, kC]);
+    const muted_3 = await p.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue('--muted').trim() || getComputedStyle(document.body).getPropertyValue('--muted').trim());
+    ok(p10_3[0].t === 'VEGA' && p10_3[0].after && p10_3[0].tab === 'VEGA' && await colEq_3(p10_3[0].col, p10_3[0].sh) && await colEq_3(p10_3[0].tcol, p10_3[0].sh) && p10_3[1].t === 'LOCAL' && await colEq_3(p10_3[1].col, muted_3), 'r3 #10 (solo): the unit window shows the pilot next to the mech name, in the tab colour; an unnamed pilot is LOCAL in grey ' + JSON.stringify({ p10_3, muted_3 }));
+    await shot3_3('r3-10a-pilot-name-solo.png');
+    // #1: a sheet with a shield takes no more vertical space than one without (wide and narrow doll)
+    const shM = (u, add) => p.evaluate(async ([u, add]) => { const S = Forge.state();
+      if (add) { const sd = DB.find(x => isShield(x)); S.items.push(Object.assign(structuredClone(sd), { mount: 'LH' })); } else S.items = S.items.filter(x => !isShield(x));
+      Forge.render(); await new Promise(r => setTimeout(r, 600));
+      const w = Desk.wins().find(w => w.k === 'unit' && w.u === u), h = Desk.hosts().get(u + '|doll'), r = h.firstChild ? h : h.shadowRoot, row = r.querySelector('.sorfoot .shieldrow'), mm = r.querySelector('.mechmap');
+      const rr = row && row.getBoundingClientRect(), mr = mm.getBoundingClientRect(), ls = [...r.querySelectorAll('.mechmap .mlab:not(.dk-shup .mlab)'), ...r.querySelectorAll('.sorbtns button')].map(e => e.getBoundingClientRect());
+      const ovl = !!(rr && rr.height && ls.some(l => l.right > rr.left + 1 && l.left < rr.right - 1 && l.bottom > rr.top + 1 && l.top < rr.bottom - 1));
+      return { h: Math.round(document.querySelector(`.dkw[data-id="${w.id}"] .dk-seg[data-s=doll]`).getBoundingClientRect().height), row: !!(rr && rr.height > 0), up: !!(rr && rr.top < mr.bottom), ovl, name: add ? DB.find(x => isShield(x)).n : '' }; }, [u, add]);
+    await p.evaluate((u) => { const S = Forge.state(); shClick(S.sheets.findIndex(s => Desk.ukey(s) === u)); }, kA); await wait(500);
+    const wA = (await uw(p)).find(w => w.u === kA);
+    await p.evaluate((id) => Desk.geo(id, { w: 1000, h: 860 }), wA.id); await wait(400);
+    const sW0 = await shM(kA, false), sW1 = await shM(kA, true);
+    await shot3_3('r3-01-shield-tile.png');
+    await p.evaluate((id) => Desk.geo(id, { w: 480 }), wA.id); await wait(500);
+    const sN1 = await shM(kA, true), sN0 = await shM(kA, false);
+    ok(sW1.row && sN1.row && Math.abs(sW1.h - sW0.h) <= 3 && Math.abs(sN1.h - sN0.h) <= 3 && sW1.up && !sW1.ovl && !sN1.ovl, 'r3 #1: the shield tile sits higher on the paper doll; a sheet with a shield is no taller than one without (wide and narrow doll, no overlap) ' + JSON.stringify({ wide: [sW0.h, sW1.h, sW1.up, sW1.ovl], narrow: [sN0.h, sN1.h, sN1.ovl], shield: sW1.name }));
+    await p.evaluate(() => { const S = Forge.state(); S.items = S.items.filter(x => !isShield(x)); Forge.render(); }); await wait(500);
     // settings, 7 REMUS accents
     await p.click('.dk-ico[data-ico=set]'); await wait(500);
     const sw = await p.evaluate(() => Desk.wins().find(w => w.k === 'set'));
@@ -267,6 +392,19 @@ const cyanScan = p => p.evaluate(() => {
     await p.click('.dk-ico[data-ico=guest]'); await wait(3000);
     const asm = await p.evaluate(() => { const w = Desk.wins().find(w => w.k === 'ws' && w.n === 1); return w && { t: document.querySelector(`.dkw[data-id="${w.id}"] .dk-n`).textContent, modal: !!document.getElementById('dkmodal'), role: Forge.state().role, n: Forge.state().sheets.length, view: Forge.state().view }; });
     ok(asm && /FRAME ASSEMBLY/.test(asm.t) && !asm.modal && asm.role === before.role && asm.n === before.n && asm.view === before.view, 'FRAME ASSEMBLY opens as its own workstation window; the encounter, role and units are untouched (no swapping) ' + JSON.stringify([before, asm]));
+    // r3 #9: ASSEMBLY opens working (its message strip shows the frame's state, not a fault), a fault is surfaced, RELOAD restarts it
+    const asmId = await p.evaluate(() => Desk.wins().find(w => w.k === 'ws' && w.n === 1).id);
+    const a9 = async () => p.evaluate((id) => { const e = document.querySelector(`.dkw[data-id="${id}"]`), f = e.querySelector('iframe').contentWindow, m = e.querySelector('.dk-wsmsg'); let v = ''; try { v = f.Forge.state().view; } catch (x) { v = 'ERR'; } return { view: v, msg: m && m.textContent, cls: m && m.className, fr: getComputedStyle(e.querySelector('iframe')).height }; }, asmId);
+    const a9a = await a9();
+    const asmF = p.frameLocator(`.dkw[data-id="${asmId}"] iframe`);
+    const asmOk = await p.evaluate((id) => { const f = document.querySelector(`.dkw[data-id="${id}"] iframe`).contentWindow; return !!f.document.querySelector('#app,#wrap') && f.document.body.innerText.length > 50 && !f.document.getElementById('dklock'); }, asmId);
+    await p.evaluate((id) => Desk.wsFault(document.querySelector(`.dkw[data-id="${id}"] iframe`).contentWindow, 'probe fault'), asmId); await wait(200);
+    const a9b = await a9();
+    await shot3_3('r3-09a-assembly-fault-strip.png');
+    await p.click(`.dkw[data-id="${asmId}"] .dk-wsmsg [data-a=reload]`); await wait(3500);
+    const a9c = await a9();
+    ok(a9a.view !== 'login' && a9a.view !== 'ERR' && !/FAULT|DID NOT START/.test(a9a.msg) && /RELOAD/.test(a9a.msg) && asmOk && /FAULT/.test(a9b.msg) && /bad/.test(a9b.cls) && a9c.view === a9a.view && !/FAULT|DID NOT START/.test(a9c.msg), 'r3 #9: ASSEMBLY opens signed in with a status strip; a frame fault shows on the window and RELOAD restarts it ' + JSON.stringify({ a9a, a9b, a9c }));
+    await shot3_3('r3-09b-assembly-open.png');
     await p.click('.dk-ico[data-ico=cat]'); await wait(3500);
     const catW = await p.evaluate(() => Desk.wins().find(w => w.k === 'ws' && w.n === 3).id);
     const cf = p.frameLocator(`.dkw[data-id="${catW}"] iframe`);
@@ -316,11 +454,22 @@ const cyanScan = p => p.evaluate(() => {
     const pK = await keyOf(Pl.p, 'PB-7 / KAGE'), pH = await keyOf(Pl.p, 'HST-1 / HOSTUNIT');
     ok(pw.length === 1 && pw[0].tabs.length === 2 && hw.length === 1 && hw[0].tabs.length === 2, 'both seats: both units as tabs in one grey-bucket unit window ' + JSON.stringify([pw, hw].map(x => x.map(w => w.tabs))));
     const viewOnly = await Pl.p.evaluate(([o, m]) => { const g = (u, s) => { const h = Desk.hosts().get(u + '|' + s); return h.firstChild ? h : h.shadowRoot; };
-      return { otherSkills: /VIEW ONLY/.test(g(o, 'skills').textContent), otherRolls: /VIEW ONLY/.test(g(o, 'rolls').textContent), ownRolls: /\[ROLL\]/.test(g(m, 'rolls').textContent) }; }, [pH, pK]);
+      return { otherSkills: !Desk.hosts().get(o + '|skills') && !/SKILL INPUTS/.test(g(o, 'rolls').textContent), otherRolls: /VIEW ONLY/.test(g(o, 'rolls').textContent), ownRolls: /\[ROLL\]/.test(g(m, 'rolls').textContent) }; }, [pH, pK]);
     const wid = pw[0].id;
     const rbVis = async (u) => { await Pl.p.click(`.dkw[data-id="${wid}"] .dk-ut[data-u="${u}"]`); await wait(500); return Pl.p.evaluate((u) => { const h = Desk.hosts().get(u + '|loadout'); const r = h.firstChild ? h : h.shadowRoot; return [...r.querySelectorAll('.rbtn')].filter(b => b.getClientRects().length && getComputedStyle(b).visibility !== 'hidden').length; }, u); };
     viewOnly.otherRb = await rbVis(pH); viewOnly.ownRb = await rbVis(pK);
     ok(viewOnly.otherSkills && viewOnly.otherRolls && viewOnly.ownRolls && viewOnly.otherRb === 0 && viewOnly.ownRb > 0, "pilot: the host's unit is view-only in its tab; the own unit tab has rolls " + JSON.stringify(viewOnly));
+    // r3 #10 (live table): pilot beside the mech name; a seated client in their member colour, Open in grey, a host-named pilot in the tab colour
+    const pil = (s, u) => s.p.evaluate((u) => { const w = Desk.wins().find(w => w.k === 'unit' && (w.tabs || []).includes(u)); if (!w) return null; const e = document.querySelector(`.dkw[data-id="${w.id}"]`), t = e.querySelector(`.dk-ut[data-u="${u}"] .dk-pil`), i = Forge.state().sheets.findIndex(s => Desk.ukey(s) === u), sh = Forge.state().sheets[i];
+      const pl = w.u === u ? e.querySelector('.dk-t .dk-pl') : null; const muted = getComputedStyle(document.body).getPropertyValue('--muted').trim(); const cc = (c) => { const s = document.createElement('span'); s.style.color = c; document.body.appendChild(s); const v = getComputedStyle(s).color; s.remove(); return v; };
+      return { tab: t && t.textContent, tcol: t && getComputedStyle(t).color, title: pl && !pl.hidden ? pl.textContent : null, col: pl && getComputedStyle(pl).color, grey: cc(muted), tabc: cc(SH_COL[sh.col || 0] || ''), mp: window.mpPilotOf(i) }; }, u);
+    const k10 = await pil(H, pK), o10 = await pil(H, pH), pH0 = await H.p.evaluate((u) => { const s = Forge.state().sheets.find(s => Desk.ukey(s) === u); return [s.col || 0, !!s.closed]; }, pH);
+    await H.p.evaluate((u) => { const S = Forge.state(), i = S.sheets.findIndex(s => Desk.ukey(s) === u); shClick(i); }, pH); await wait(800);
+    await H.p.evaluate((u) => { const S = Forge.state(), i = S.sheets.findIndex(s => Desk.ukey(s) === u); S.sheets[i].col = 2; S.sheets[i].closed = false; S.own = 'GUNNER'; Forge.render(); }, pH); await wait(1500);
+    const g10 = await pil(H, pH);
+    ok(k10 && k10.tab === 'PILOTB' && k10.tcol === 'rgb(255, 136, 0)' && o10 && /^(Open|Closed)$/.test(o10.tab) && o10.tcol === o10.grey && g10 && g10.tab === 'GUNNER' && g10.title === 'GUNNER' && g10.col === g10.tabc && g10.tcol === g10.tabc, 'r3 #10 (live): pilot names beside the mech name: a client in their member colour, Open / Closed in grey, a host-made pilot in the tab colour ' + JSON.stringify({ k10, o10, g10 }));
+    await H.p.screenshot({ path: (process.env.R3SHOTS || '/workspace/forge-os/feedback/v555-d1/round3/shots') + '/r3-10b-pilot-names-live.png' });
+    await H.p.evaluate(([u, c]) => { const S = Forge.state(), i = S.sheets.findIndex(s => Desk.ukey(s) === u); S.sheets[i].col = c[0]; S.sheets[i].closed = c[1]; S.own = ''; Forge.render(); }, [pH, pH0]); await wait(1500); // back to the closed host unit for the checks below
     await Pl.p.click(`.dkw[data-id="${wid}"] .dk-ut[data-u="${pH}"]`); await wait(500);
     const n0 = await Pl.p.evaluate(() => document.getElementById('log').textContent.length);
     const routedOther = await Pl.p.evaluate((u) => Desk.curKey() === u && document.body.classList.contains('mp-view'), pH);

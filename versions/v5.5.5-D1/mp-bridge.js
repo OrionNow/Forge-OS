@@ -1623,6 +1623,21 @@
     MP.logs.push(line);
     schedule();
   }
+  // 5.5.5-D1 r3: the pilot shown beside a mech name on the desktop's unit windows, same rules as the encounter tabs:
+  // a seated client in their member colour, a host-made pilot in the tab colour, Open / Closed / Unknown in grey
+  window.mpPilotOf = function (i) {
+    if (!(MP.on && MP.ready)) return null;
+    const sh = (Forge.state().sheets || [])[i];
+    if (!sh) return null;
+    const grey = "var(--muted)";
+    if (sh.closed) return { n: "Closed", c: grey, g: 1 };
+    const owner = (MP.members || []).find((m) => m.id === sh.ownerId);
+    if (owner) return { n: shownName(owner), c: ownerPaint(sh, owner, ""), g: 0 };
+    if (sh.ownerId) return { n: "Unknown", c: grey, g: 1 };
+    const own = ownOf(sh, i).trim();
+    if (own && !greyOwner(own)) return { n: own, c: ownerPaint(sh, null, own), g: 0 };
+    return { n: own || "Open", c: grey, g: 1 };
+  };
   window.mpWho = function () {
     if (!(MP.on && MP.ready)) return null;
     return { ...rollIdentity(curUid(), MP.selfId, MP.callsign), id: MP.selfId || "local" };

@@ -7,14 +7,14 @@
 ## Desktop
 
 - **Windows for every function.** Close, minimise, maximise, drag (title bar) and resize (8 handles). Optional 8 px snap. Windows and taskbar tabs are listed on a thin taskbar: 起動 LAUNCH, one tab per window (active one outlined), status readout and clock, console tray button at the far right.
-- **Icons.** Kanji with English captions down the left (戦 ENCOUNTER, 機 UNITS, 装 LOADOUT, 造 ASSEMBLY, 整 SERVICE, 典 CATALOGUE, 監 OVERSEER, 設 SETTINGS). 録 CHANGELOG is at the top right. No console icon.
+- **Icons.** Kanji with English captions: 戦 ENCOUNTER, 機 UNITS, 造 ASSEMBLY and 整 SERVICE down the left; 設 SETTINGS, 監 OVERSEER, 典 CATALOGUE and 録 CHANGELOG down the top right (round 3). No console icon.
 - **Login screen on every connect.** Full-screen login on page load and after every logout. One form: callsign, colour, LOGIN (live table) or WORK OFFLINE (solo). It pre-fills the last used callsign and colour, and has a DESKTOP / CLASSIC layout toggle. There are no clearance rows: login goes straight to the desktop, and every function is reachable from there.
 - **Workstation windows (no swapping).** 造 ASSEMBLY, 整 SERVICE, 典 CATALOGUE and 監 OVERSEER each open in their own window with an independent local session. CATALOGUE and OVERSEER still need their keys inside the window. The encounter, your units and your live-table seat are never switched out. Workstation windows close on logout.
 - **Icons sit under windows.** Windows can be dragged over the icon column.
 
 ## Units
 
-- **Tabbed UNIT windows, all units live.** Units are tabs in unit windows. The first time a unit opens, it goes into the window for its tab colour; that window is created if needed, and units with no colour share a grey window. Changing a unit's colour later does not move it. Drag a tab onto another unit window to move it there. Drop it on the desktop to tear it off into a window of its own. × on a tab closes it, and the last tab closes the window. Each tab is the combined unit view: paper doll and telemetry, impact resolution, skill inputs, rolls and heat, character sheet, loadout. The active tab is the acting unit. Background tabs keep rendering from their own data, so health stays live, and permissions are unchanged.
+- **Tabbed UNIT windows, all units live.** Units are tabs in unit windows. The first time a unit opens, it goes into the window for its tab colour; that window is created if needed, and units with no colour share a grey window. Changing a unit's colour later does not move it. Drag a tab onto another unit window to move it there. Drop it on the desktop to tear it off into a window of its own. × on a tab closes it, and the last tab closes the window. Each tab is the combined unit view: paper doll and telemetry, impact resolution, rolls // skills // heat (skill inputs collapsed inside it), character sheet, loadout. The active tab is the acting unit. Background tabs keep rendering from their own data, so health stays live, and permissions are unchanged.
 - **Narrow paper doll.** When the doll section is under 560 px wide, the doll sits on top and the 8 parts sit under it in two even columns (4 + 4). A unit window at about 600 x 500 keeps the wide doll, with labels on both sides.
 - **Sections.** Each section collapses in place or pops out into its own window. Popped sections stay live and dock back with ⇲.
 - **Permissions (live table).** Rolling and editing stay with the host and the unit's assigned pilot, enforced by the 5.5.5 bridge guards ("ASSIGNED PILOT OR HOST ONLY"). Everyone else gets view-only live health: no skills, rolls or loadout roll buttons.
@@ -26,6 +26,16 @@
 - **GLOBAL CONSOLE.** A normal window that you can move and resize. It opens at the bottom right from the ▤ taskbar button, which toggles it. × and _ hide it. Outside clicks, Escape and typing leave it open. The button lights up on new output while hidden. When the window is taller than it is wide, the user list moves to a strip across the top. Commands act on the last unit touched.
 - **SETTINGS (設).** Theme (all five themes restyle the desktop; IMPERIAL NAVY is teal, REMUS ACCORD is amber, and every accent follows the theme), audio, UI scale (80–150%), five saved layout slots (open windows, positions, collapsed and popped sections, unit groups), snap, reset layout, and classic layout.
 - **OVERSEER and CATALOGUE EDITOR.** Still need their keys, entered inside their own workstation windows.
+
+## Clarity fixes (review pass)
+
+- **Acting unit.** The unit that console commands and engine actions use (the last one touched) has a filled tab with a ▶ prefix, in whichever window it is in. The status bar shows ACTING: <unit>. Each window's active tab is still outlined.
+- **Console tray button.** If the console is open but covered, the button brings it to the front. It only closes the console when the console is already on top.
+- **Cascade.** New unit windows step down 56 px, so the window behind keeps its title bar and tab strip visible.
+- **Back from the group.** A unit tab whose sections are shown in a group window has a ◀ IN UNIT GROUP // <COLOUR> — click to bring back button (highlight border) in their place. It does the same as [OPEN ↗].
+- **Larger chrome text.** Title bars are 22 px and 11 px. Titles, status badges, swatches, card condition lines and the taskbar are 12 px. Section bars and icon captions are 11 px. Card condition lines wrap inside their cards.
+- **Off-screen clamp.** At least 160 x 40 px of a window always stays on the desktop.
+- **Tear-off marker.** Dragging a unit tab over the empty desktop shows a dashed DROP: NEW WINDOW outline (DROP: MOVE WINDOW HERE for a window's only tab). It clears on drop or when the drag ends.
 
 ## Fallback
 
@@ -43,7 +53,33 @@
   - settings, slots and REMUS accents
   - workstation windows and their keys
   - live-table permissions across tabs and the group area
+  - the clarity fixes: acting tab and status, tray front-or-close, cascade step, the back-from-group button, off-screen clamp, tear-off marker, and chrome text overflow
 - The existing 5.5.5 suites run against this build in classic layout.
+
+## Round 3 (Overseer feedback, round3/NOTES.md)
+
+1. **Shield tile.** The shield tile now rides up onto the paper doll, in its empty bottom-left corner. A sheet with a shield is no taller than one without, with the wide doll and with the 4 + 4 narrow doll.
+2. **Unit group window.** The mini-doll tiles form a vertical sidebar on the right, and the selected unit's doll and impact resolution sit beside them. The default group window is wider (840 px).
+3. **Starting height.** A unit window opened from a group starts taller (the SMALL preset, 600 wide), so IMPACT RESOLUTION is fully visible when it opens. A new tabbed unit window opens at the LARGE preset, keeping its cascade step.
+4. **LOADOUT** is gone from the desktop icons and the launch menu. The loadout section inside unit windows is unchanged.
+5. **Skill inputs** are now part of the ROLLS // SKILLS // HEAT section, not a section of their own. They start collapsed in play; opening them is remembered.
+6. **Size preset button.** On a unit window's title bar, the ▣ / ▭ button left of the status badge (NOMINAL and so on) cycles the preset sizes:
+   - LARGE: the full sheet, sized so the left panel is exactly the window height with skill inputs collapsed
+   - SMALL: doll-focused, 600 wide, down to IMPACT RESOLUTION
+   On a screen too short for the whole left panel, LARGE uses the full desktop height.
+7. **Encounter tile right-click.** The menu now starts with "Open character sheet", which opens or focuses the unit's tab at the LARGE preset.
+8. **OVERSEER and CATALOGUE** moved from the launch menu to the top-right icon column, under SETTINGS: 設 SETTINGS, 監 OVERSEER, 典 CATALOGUE, 録 CHANGELOG. Both still need their keys.
+9. **ASSEMBLY.** The failure could not be reproduced here, in solo, on the live table, or across theme, scale, logout and reopen. The likeliest causes were fixed:
+   - Stale cached scripts: the `desk.js` and `mp-bridge.js` cache keys were never bumped across rounds, so a browser could pair a new desktop with an old bridge. Both are bumped now.
+   - Silent failures: a workstation's own console is hidden, so its messages and errors were invisible. Every workstation window (ASSEMBLY, SERVICE, CATALOGUE, OVERSEER) now has a status strip under it. The strip shows the workstation's last message; a script error or failed sign-in shows as WORKSTATION FAULT; a workstation that never starts shows DID NOT START.
+   - RELOAD on the strip restarts the workstation with a fresh local session.
+   If it still breaks, the strip's text is the detail needed to fix it.
+10. **Pilot name.** Unit windows show the pilot or owner next to the mech name, on the tab and in the title bar:
+    - a seated client: their member colour
+    - a pilot the host typed in: the tab colour
+    - Open, Closed, Unknown, or LOCAL in solo: grey
+
+UI SCALE is unchanged. Tests: the D1 suite adds checks for all ten items; the earlier skill-input and ref2-size checks were updated for items 3, 5 and 6.
 
 ## Known limits
 
