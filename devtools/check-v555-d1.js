@@ -16,6 +16,8 @@ const S4r = process.env.R4SHOTS || '/workspace/forge-os/feedback/v555-d1/round4/
 const shot4 = (p, f) => p.screenshot({ path: S4r + '/' + f });
 const P1r = process.env.P1SHOTS || '/workspace/forge-os/feedback/v555-d1/passes/p1'; fs.mkdirSync(P1r, { recursive: true });
 const shotP1 = (p, f) => p.screenshot({ path: P1r + '/' + f });
+const P2r = process.env.P2SHOTS || '/workspace/forge-os/feedback/v555-d1/passes/p2'; fs.mkdirSync(P2r, { recursive: true });
+const shotP2 = (p, f) => p.screenshot({ path: P2r + '/' + f });
 async function pickGroupCol(p, id, c) {
   if (!await p.evaluate(() => !!document.querySelector('.dk-gcol-menu'))) {
     await p.click(`.dkw[data-id="${id}"] .dk-gcol`); await wait(200);
@@ -81,7 +83,7 @@ const cyanScan = p => p.evaluate(() => {
     let ws = await uw(p);
     ok(ws.length === 1 && ws[0].tabs.length === 3 && ws[0].c === 0 && await p.evaluate((id) => document.querySelectorAll(`.dkw[data-id="${id}"] .dk-ut`).length === 3, ws[0].id), 'tabbed unit windows: three opened units with no tab colour share ONE unit window (grey bucket) with a tab strip ' + JSON.stringify(ws));
     const [kA, kB, kC] = [await keyOf(p, NAMES[0]), await keyOf(p, NAMES[1]), await keyOf(p, NAMES[2])];
-    await p.evaluate(() => { Desk.wins().filter(w => w.k === 'unit').forEach(w => Desk.close(w.id)); const S = Forge.state(); Forge.save(); S.sheets[0].col = 1; S.sheets[1].col = 1; S.sheets[2].col = 3; Forge.render(); }); await wait(500);
+    await p.evaluate(() => { const S = Forge.state(); Forge.save(); S.sheets[0].col = 1; S.sheets[1].col = 1; S.sheets[2].col = 3; Forge.render(); Desk.wins().filter(w => w.k === 'unit').forEach(w => Desk.close(w.id)); }); await wait(500);
     for (const i of [0, 1, 2]) { await p.locator(`.dkw[data-k=enc] [data-i="${i}"][onclick^=shClick]`).click(); await wait(500); }
     ws = await uw(p); let cy = ws.find(w => w.c === 1), rd = ws.find(w => w.c === 3);
     ok(ws.length === 2 && cy && rd && JSON.stringify(cy.tabs) === JSON.stringify([kA, kB]) && JSON.stringify(rd.tabs) === JSON.stringify([kC]) && /CYAN/.test(cy.n) && /RED/.test(rd.n), 'open routing by colour: first open puts each unit in the window for its tab colour (CYAN: 2 tabs, RED: 1), creating windows as needed ' + JSON.stringify(ws.map(w => [w.n, w.tabs])));
@@ -261,6 +263,8 @@ const cyanScan = p => p.evaluate(() => {
     ws = await uw(p); const cyw = ws.find(w => w.id === cy.id);
     ok(cyw && cyw.tabs.includes(kB) && cyw.u === kB, 'double-click on a card opens the unit: no window holds it, so it joins the window for its colour (CYAN) as the active tab ' + JSON.stringify(ws.map(w => [w.n, w.tabs])));
     // ref2 default size when a new window is created from the group
+    // keep a different unit acting so renderUnits does not auto-open ICARUS as a LARGE window
+    await p.click(`.dkw[data-id="${rd.id}"] .dk-ut[data-u="${kC}"]`); await wait(400);
     await p.evaluate((id) => Desk.close(id), cy.id); await wait(400);
     await p.locator(`.dkw[data-id="${gw.id}"] .dk-card:has-text("ICARUS")`).click(); await wait(400);
     await p.click(`.dkw[data-id="${gw.id}"] .dk-gsel [data-g=open]`); await wait(900);
@@ -615,9 +619,9 @@ const cyanScan = p => p.evaluate(() => {
       const w = Desk.wins().find(w => w.k === 'keys'); if (!w) return null;
       const t = (document.querySelector(`.dkw[data-id="${w.id}"]`) || {}).innerText || '';
       const fs = parseFloat(getComputedStyle(document.querySelector(`.dkw[data-id="${w.id}"] .dk-keys`) || document.body).fontSize);
-      return { t, fs, hasCtrl: /Ctrl\+1/.test(t), drag: /Drag a unit tab/i.test(t), tear: /Tear-off/i.test(t), dbl: /Double-click/i.test(t), right: /Right-click/i.test(t) };
+      return { t, fs, hasCtrl: /Ctrl\+1/.test(t), hasEsc: /\bEsc\b/.test(t), hasHelp: /\?/.test(t), drag: /Drag a unit tab/i.test(t), tear: /Tear-off/i.test(t), dbl: /Double-click/i.test(t), right: /Right-click/i.test(t) };
     });
-    ok(keys && keys.fs >= 11 && keys.hasCtrl && keys.drag && keys.tear && keys.dbl && keys.right, 'p1: SHORTCUTS window lists keys and mouse gestures (tab drag, tear-off, double-click, right-click), 11px or larger ' + JSON.stringify({ fs: keys && keys.fs, hasCtrl: keys && keys.hasCtrl, drag: keys && keys.drag, tear: keys && keys.tear, dbl: keys && keys.dbl, right: keys && keys.right }));
+    ok(keys && keys.fs >= 11 && !keys.hasCtrl && keys.hasEsc && keys.hasHelp && keys.drag && keys.tear && keys.dbl && keys.right, 'p1/p2: SHORTCUTS lists gestures and ? / Esc, 11px or larger, and no longer lists Ctrl+1-9 ' + JSON.stringify({ fs: keys && keys.fs, hasCtrl: keys && keys.hasCtrl, hasEsc: keys && keys.hasEsc, hasHelp: keys && keys.hasHelp, drag: keys && keys.drag, tear: keys && keys.tear, dbl: keys && keys.dbl, right: keys && keys.right }));
     await p.keyboard.press('Escape'); await wait(200);
     await p.click('#dkstart'); await wait(200);
     ok(await p.evaluate(() => !!document.getElementById('dkmenu') && /TILE UNITS/.test(document.getElementById('dkmenu').textContent)), 'p1: TILE UNITS is in the launch menu');
@@ -626,9 +630,18 @@ const cyanScan = p => p.evaluate(() => {
     await p.click('#dkhelp'); await wait(300);
     ok(await p.evaluate(() => Desk.wins().some(w => w.k === 'keys' && !w.hidden && !w.min)), 'p1: the taskbar ? button opens SHORTCUTS');
     await p.evaluate(() => { const k = Desk.wins().find(w => w.k === 'keys'); if (k) Desk.close(k.id); }); await wait(200);
-    // Ctrl+1..9 sets acting unit (page-dispatched; avoids the browser stealing Ctrl+1)
-    const act0 = await p.evaluate(() => ({ cur: Forge.state().cur, n: Desk.actUnit(1), after: Forge.state().cur, label: document.querySelector('#dkstat .act') && document.querySelector('#dkstat .act').textContent }));
-    ok(act0.n && act0.after != null, 'p1: Ctrl+1..9 / actUnit sets the acting unit in tab order ' + JSON.stringify(act0));
+    // p2: minimising the acting unit shows ACTING: X (MIN); clicking it restores the window
+    const minAct = await p.evaluate(() => {
+      const S = Forge.state(), sh = S.cur != null ? S.sheets[S.cur] : null; if (!sh) return null;
+      const k = Desk.ukey(sh), w = Desk.wins().find(w => w.k === 'unit' && (w.tabs || []).includes(k)); if (!w) return { miss: k };
+      Desk.minimize(w.id);
+      const el = document.querySelector('#dkstat .act');
+      return { id: w.id, txt: el && el.textContent, minCls: !!(el && el.classList.contains('min')), hidden: !!(w && Desk.wins().find(x => x.id === w.id).min) };
+    });
+    ok(minAct && /ACTING:/.test(minAct.txt || '') && /\(MIN\)/.test(minAct.txt || '') && minAct.minCls && minAct.hidden, 'p2: minimising the acting unit shows ACTING: X (MIN) in the status bar ' + JSON.stringify(minAct));
+    await p.click('#dkstat .act'); await wait(250);
+    const minRst = await p.evaluate((id) => { const w = Desk.wins().find(w => w.id === id), el = document.querySelector('#dkstat .act'), e = document.querySelector(`.dkw[data-id="${id}"]`); return { min: !!(w && w.min), hid: !!(e && e.hidden), txt: el && el.textContent, on: e && e.classList.contains('on') }; }, minAct.id);
+    ok(minRst && !minRst.min && !minRst.hid && /ACTING:/.test(minRst.txt || '') && !/\(MIN\)/.test(minRst.txt || ''), 'p2: clicking ACTING: X (MIN) restores the acting unit window ' + JSON.stringify(minRst));
     // #1 STABILITY scroll into view after APPLY
     const stab = await p.evaluate(() => {
       const w = Desk.wins().find(w => w.k === 'unit' && !w.min && !w.hidden) || Desk.wins().find(w => w.k === 'unit');
@@ -664,15 +677,19 @@ const cyanScan = p => p.evaluate(() => {
       return { s, savedX, mid, afterX: after && after.x, resetBtn: true };
     });
     ok(lay && lay.s && lay.savedX === 200 && lay.mid === 360 && lay.afterX === 200, 'p1: window position is persisted per callsign and restored from that layout ' + JSON.stringify(lay));
-    // last roll line in the status bar when the console is closed
+    // LAST: only roll cards, not arbitrary log lines
     const conWas = await p.evaluate(() => { const c = document.querySelector('.dkw[data-k=con]'); return !!(c && !c.hidden); });
     if (conWas) { await p.click('#dktray'); await wait(200); }
-    await p.evaluate(() => { const log = document.getElementById('log'); const d = document.createElement('div'); d.textContent = '[ 12:00 ] VEGA // 3d6 ATTACK 14'; log.appendChild(d); });
+    await p.evaluate(() => { const log = document.getElementById('log'); const d = document.createElement('div'); d.textContent = 'COMPONENT TABLE [....................] 0%'; log.appendChild(d); });
+    await wait(250);
+    const lastJunk = await p.evaluate(() => { const el = document.querySelector('#dkstat .dk-last'); return el ? el.textContent : ''; });
+    ok(!/COMPONENT TABLE/.test(lastJunk || ''), 'p2: LAST: ignores a non-roll log line ' + JSON.stringify(lastJunk));
+    await p.evaluate(() => { const log = document.getElementById('log'); const wrap = document.createElement('div'); wrap.innerHTML = '<div class="rc" data-rcid="p2test-rc">LOCAL / VEGA · SENSORS · SKILL · +2 DoS <span class=rcx>[+]</span></div>'; log.appendChild(wrap); });
     await wait(250);
     const last = await p.evaluate(() => { const el = document.querySelector('#dkstat .dk-last'); return el ? el.textContent : ''; });
-    ok(/^LAST:/.test(last) && /VEGA/.test(last) && last.length <= 100, 'p1: when the console is closed, #dkstat shows LAST: and the roll line ' + JSON.stringify(last));
+    ok(/^LAST:/.test(last) && /VEGA/.test(last) && /SENSORS/.test(last) && !/COMPONENT TABLE/.test(last) && last.length <= 100, 'p2: when the console is closed, LAST: shows only the roll card text ' + JSON.stringify(last));
     await p.click('#dkstat .dk-last'); await wait(300);
-    ok(await p.evaluate(() => { const c = document.querySelector('.dkw[data-k=con]'); return !!(c && !c.hidden); }), 'p1: clicking LAST: in the status bar opens the console');
+    ok(await p.evaluate(() => { const c = document.querySelector('.dkw[data-k=con]'); return !!(c && !c.hidden); }), 'p2: clicking LAST: in the status bar opens the console');
     await p.click('#dktray'); await wait(200);
 
     // shots: 1366 and 1920, both themes
@@ -689,8 +706,20 @@ const cyanScan = p => p.evaluate(() => {
     await shotP1(p, 'p1-shortcuts-1920-navy.png');
     await p.evaluate(() => { const k = Desk.wins().find(w => w.k === 'keys'); if (k) Desk.close(k.id); }); await wait(150);
     await themeP1('REMUS ACCORD'); await shotP1(p, 'p1-desk-1920-remus.png');
+    await p.setViewportSize({ width: 1280, height: 720 }); await wait(400);
+    await themeP1('IMPERIAL NAVY');
+    const narrow = await p.evaluate(() => {
+      const b = document.querySelector('#dktabs button');
+      const clr = document.querySelector('#dkstat .dk-clr');
+      const cs = b && getComputedStyle(b);
+      return { tw: b && Math.round(b.getBoundingClientRect().width), min: b && parseFloat(cs.minWidth), clr: clr && getComputedStyle(clr).display };
+    });
+    ok(narrow && narrow.min >= 120 && narrow.tw >= 120 && narrow.clr === 'none', 'p2: at 1280 taskbar tabs are at least 120px and CLEARANCE is hidden ' + JSON.stringify(narrow));
+    await shotP2(p, 'p2-desk-1280-navy.png');
     await p.setViewportSize({ width: 1600, height: 900 }); await wait(400);
     await themeP1('IMPERIAL NAVY');
+    const wideClr = await p.evaluate(() => { const clr = document.querySelector('#dkstat .dk-clr'); return clr && getComputedStyle(clr).display !== 'none'; });
+    ok(wideClr, 'p2: at 1600 CLEARANCE stays visible in the status bar');
     await p.evaluate(() => { const k = Desk.wins().find(w => w.k === 'keys'); if (k) Desk.close(k.id); }); await wait(200);
 
     // settings, 7 REMUS accents
@@ -894,6 +923,75 @@ const cyanScan = p => p.evaluate(() => {
     ok(pre[0] === 'PILOTB' && pre[1] === '#ff8800' && pre[2], 'login pre-fills the last used callsign and colour ' + JSON.stringify(pre));
     ok(errs.length === 0, 'MP: no page errors ' + JSON.stringify(errs.slice(0, 4)));
     await H.ctx.close(); await Pl.ctx.close();
+  }
+  /* ================= PASS 2 simultaneous-load MP ================= */
+  {
+    const errs = [];
+    const { execSync } = require('child_process');
+    try { execSync('bash /workspace/fresh-d1.sh', { stdio: ['ignore', 'pipe', 'pipe'], timeout: 180000 }); }
+    catch (e) { console.log('NOTE p2 mp: could not restart the local server before the simultaneous-load case (' + (e && e.message || e) + ')'); }
+    await wait(1500);
+    const boot = async (name, col, viewport) => {
+      const ctx = await b.newContext({ viewport }); const p = await ctx.newPage();
+      p.on('pageerror', e => errs.push(name + ' ' + e.message)); p.on('console', m => { if (m.type() === 'error' && !/status of (409|413)|ERR_FAILED|net::/.test(m.text())) errs.push(name + ' console: ' + m.text()); });
+      await p.goto(base + '/terminal.html'); await wait(2000);
+      await p.fill('#dklkname', name); if (col) await p.fill('#dklkcol', col);
+      return { ctx, p, name };
+    };
+    const H2 = await boot('HOSTC', '', { width: 1366, height: 768 });
+    const P2s = await boot('PILOTD', '#33aaff', { width: 1366, height: 768 });
+    await Promise.all([H2.p.click('#dklkgo'), P2s.p.click('#dklkgo')]);
+    await Promise.all([
+      H2.p.waitForFunction(() => !document.getElementById('mpveil') && document.getElementById('dklock').hidden && document.body.classList.contains('mp-live'), null, { timeout: 20000 }),
+      P2s.p.waitForFunction(() => !document.getElementById('mpveil') && document.getElementById('dklock').hidden && document.body.classList.contains('mp-live'), null, { timeout: 20000 })
+    ]);
+    await Promise.all([loadUnits(H2.p, ['HST-2 / HOSTTWO'], true), loadUnits(P2s.p, ['PD-9 / PILOTUNIT'], true)]);
+    await wait(4000);
+    await Promise.all([H2.p.evaluate(() => { try { Forge.render(); } catch (e) {} }), P2s.p.evaluate(() => { try { Forge.render(); } catch (e) {} })]);
+    await wait(1000);
+    const sheetNames = async (page) => page.evaluate(() => Forge.state().sheets.map(s => (s.name || ((s.d && (s.d.id + ' ' + s.d.cs)) || '') + (s.hidden ? ' [hid]' : ''))));
+    const hostSheets = await sheetNames(H2.p), pilotSheets = await sheetNames(P2s.p);
+    const race = !pilotSheets.some(n => /PILOTUNIT|PD-9/.test(n)) || !hostSheets.some(n => /PILOTUNIT|PD-9/.test(n));
+    if (race) console.log('NOTE p2 mp: pilot sheet missing after simultaneous load (known 5.5.5 manifest race, out of scope) ' + JSON.stringify({ hostSheets, pilotSheets }));
+    const actingOf = (page) => page.evaluate(() => {
+      const S = Forge.state(), sh = (S.view === 'sortie' && S.cur != null) ? S.sheets[S.cur] : null;
+      if (!sh) return { hasSheet: false, hasTab: false, n: S.sheets.filter(s => !s.hidden).length };
+      const k = Desk.ukey(sh);
+      const tab = [...document.querySelectorAll('#dkarea .dk-ut')].find(t => t.dataset.u === k);
+      return { hasSheet: true, hasTab: !!tab, pf: tab && ((tab.querySelector('.pf') || {}).textContent || ''), name: sh.name || (sh.d && (sh.d.id + ' ' + sh.d.cs)), n: S.sheets.filter(s => !s.hidden).length };
+    });
+    const lastOf = (page) => page.evaluate(() => { const el = document.querySelector('#dkstat .dk-last'); return el ? el.textContent : ''; });
+    // inject a non-roll line and a roll card on the host, console closed
+    await H2.p.evaluate(() => { const c = document.querySelector('.dkw[data-k=con]'); if (c && !c.hidden) { const b = document.getElementById('dktray'); if (b) b.click(); } });
+    await wait(200);
+    await H2.p.evaluate(() => { const log = document.getElementById('log'); const junk = document.createElement('div'); junk.textContent = 'COMPONENT TABLE [....................] 0%'; log.appendChild(junk); });
+    await wait(200);
+    const lastJunkMp = await lastOf(H2.p);
+    ok(!/COMPONENT TABLE/.test(lastJunkMp || ''), 'p2 mp: LAST: ignores a non-roll log line after a simultaneous load ' + JSON.stringify(lastJunkMp));
+    await H2.p.evaluate(() => { const log = document.getElementById('log'); const wrap = document.createElement('div'); wrap.innerHTML = '<div class="rc" data-rcid="p2mp-rc">HOSTC / HOSTTWO · SENSORS · SKILL · +1 DoS <span class=rcx>[+]</span></div>'; log.appendChild(wrap); });
+    await wait(250);
+    const lastMp = await lastOf(H2.p);
+    ok(/^LAST:/.test(lastMp) && /HOSTTWO|SENSORS/.test(lastMp) && !/COMPONENT TABLE/.test(lastMp), 'p2 mp: LAST: shows only roll card text ' + JSON.stringify(lastMp));
+
+    const widths = [[1280, 720], [1366, 768], [1920, 1080]];
+    for (const [w, h] of widths) {
+      await H2.p.setViewportSize({ width: w, height: h }); await P2s.p.setViewportSize({ width: w, height: h }); await wait(400);
+      await Promise.all([H2.p.evaluate(() => { try { Forge.render(); } catch (e) {} }), P2s.p.evaluate(() => { try { Forge.render(); } catch (e) {} })]);
+      await wait(400);
+      const aH = await actingOf(H2.p), aP = await actingOf(P2s.p);
+      ok(!aH.hasSheet || aH.hasTab, 'p2 mp: at ' + w + ' the host acting unit has a tab after a simultaneous load ' + JSON.stringify(aH));
+      ok(!aP.hasSheet || aP.hasTab, 'p2 mp: at ' + w + ' the pilot acting unit has a tab after a simultaneous load ' + JSON.stringify(aP));
+      if (w === 1280) {
+        const tabW = await H2.p.evaluate(() => { const b = document.querySelector('#dktabs button'); const clr = document.querySelector('#dkstat .dk-clr'); return { min: b && parseFloat(getComputedStyle(b).minWidth), tw: b && Math.round(b.getBoundingClientRect().width), clr: clr && getComputedStyle(clr).display }; });
+        ok(tabW && tabW.min >= 120 && tabW.clr === 'none', 'p2 mp: at 1280 taskbar tabs are at least 120px and CLEARANCE is hidden ' + JSON.stringify(tabW));
+      }
+      const lastNow = await lastOf(H2.p);
+      ok(!lastNow || (/^LAST:/.test(lastNow) && !/COMPONENT TABLE/.test(lastNow) && !/EDITS NOT SAVED/.test(lastNow)), 'p2 mp: at ' + w + ' LAST: is empty or roll text only ' + JSON.stringify(lastNow));
+      await shotP2(H2.p, 'p2-mp-host-' + w + '.png');
+      await shotP2(P2s.p, 'p2-mp-pilot-' + w + '.png');
+    }
+    ok(errs.length === 0, 'p2 mp: no page errors on a simultaneous load ' + JSON.stringify(errs.slice(0, 4)));
+    await H2.ctx.close(); await P2s.ctx.close();
   }
   await b.close(); console.log(fails ? fails + ' FAILED of ' + n : 'ALL PASS ' + n + '/' + n); process.exit(fails ? 1 : 0);
 })().catch(e => { console.error(e); process.exit(2); });

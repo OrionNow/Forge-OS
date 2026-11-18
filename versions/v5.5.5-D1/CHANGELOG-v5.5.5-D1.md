@@ -132,6 +132,16 @@ Live-table fixes from the 8fc06ae audit (host + pilot):
 10. **LAST roll.** When the console is closed, a new roll line is shown in the status bar as `LAST: …` (90 characters, about 8 seconds) and is clickable to open the console.
 11. **VIEWING.** A read-only pilot sees `VIEWING` (dimmer) in the status bar instead of `ACTING`.
 
+## Pass 2 (Overseer improvement series, Nov 18)
+
+1. **LAST is rolls only.** The status-bar `LAST:` line now reads only console roll cards (`[data-rcid]`). Other log lines, and anything added before desktop login completes, are ignored.
+2. **Acting unit tab.** After `autoOpen()`, `renderUnits` always opens a window for the acting unit if it does not already have one, even if that sheet was previously marked seen. This covers a two-seat load within about a second.
+3. **Package folder permissions.** The deployable zip now stores directories as mode 0755 (and files as 0644) so a normal user can extract it without `chmod`.
+4. **Ctrl+1…9 removed.** The shortcut and its SHORTCUTS-window line are gone. The SHORTCUTS window and the taskbar `?` button stay.
+5. **ACTING (MIN).** Minimising the acting unit's window no longer drops it from the unit order. The status bar shows `ACTING: X (MIN)` (or `VIEWING: X (MIN)`), and clicking that label restores the window.
+6. **Narrow taskbar.** CLEARANCE is wrapped in `.dk-clr` and hidden at viewport widths of 1366 px or less. Taskbar tabs have a 120 px minimum width.
+
 ## Known limits
 
 - An open native select in a unit window that is not yet the one you are using may close on the first click. The second click works.
+- A 5.5.5 bridge/server manifest race can still drop a pilot's sheet when both seats load at the same time. That is out of scope for this desktop pass.
