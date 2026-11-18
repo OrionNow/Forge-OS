@@ -171,6 +171,10 @@ Live-table fixes from the 8fc06ae audit (host + pilot):
 
 1. **A long LAST does not push the tray off-screen.** With three or more windows, `#dktabs` can shrink or scroll (`min-width:0`). `?` and `▤` do not shrink. Below 1600 px, while `LAST:` is showing, `#dkstat` hides everything except `ACTING`/`VIEWING` and `LAST:`. Below 1366 px, tab minimum width is 56 px. Only the LAST detail ellipsizes; the result and callsign stay intact.
 
+## Pass 9 (Overseer improvement series, Nov 18)
+
+1. **ACTING stays whole.** `#dkstat .act` no longer shrinks or ellipsizes, so `ACTING:` (and `ACTING: … (MIN)`) stays at full width. The `(MIN)` restore control stays visible. While `LAST:` is showing, non-essential status items are hidden at every width, not only below 1600 px. At 1366 px and wider, taskbar tabs use a 96 px minimum width.
+
 ## Known limits
 
 - An open native select in a unit window that is not yet the one you are using may close on the first click. The second click works.

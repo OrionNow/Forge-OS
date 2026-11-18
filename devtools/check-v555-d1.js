@@ -41,6 +41,8 @@ const P7r = process.env.P7SHOTS || '/workspace/forge-os/feedback/v555-d1/passes/
 const shotP7 = (p, f) => p.screenshot({ path: P7r + '/' + f });
 const P8r = process.env.P8SHOTS || '/workspace/forge-os/feedback/v555-d1/passes/p8'; fs.mkdirSync(P8r, { recursive: true });
 const shotP8 = (p, f) => p.screenshot({ path: P8r + '/' + f });
+const P9r = process.env.P9SHOTS || '/workspace/forge-os/feedback/v555-d1/passes/p9'; fs.mkdirSync(P9r, { recursive: true });
+const shotP9 = (p, f) => p.screenshot({ path: P9r + '/' + f });
 async function pickGroupCol(p, id, c) {
   if (!await p.evaluate(() => !!document.querySelector('.dk-gcol-menu'))) {
     await p.click(`.dkw[data-id="${id}"] .dk-gcol`); await wait(200);
@@ -1190,6 +1192,83 @@ const cyanScan = p => p.evaluate(() => {
     await p8closeExtra(); await wait(200);
     const p8two1920 = await p8read();
     ok(p8two1920 && p8two1920.n >= 1 && p8two1920.n <= 3 && p8two1920.help.in && p8two1920.tray.in && /DMG/.test(p8two1920.res || '') && /PILOTB/.test(p8two1920.who || '') && p8two1920.resIn && p8two1920.whoIn, 'p8: at 1920 with 2 windows, a CRIT + DMG LAST: keeps ▤ and ? in view and shows DMG · PILOTB ' + JSON.stringify(p8two1920));
+    const p9read = () => H.p.evaluate(() => {
+      const vw = window.innerWidth, vh = window.innerHeight;
+      const vis = (node, clip) => {
+        if (!node || !clip) return false;
+        const a = node.getBoundingClientRect(), c = clip.getBoundingClientRect();
+        const cw = node.clientWidth || a.width;
+        return a.width > 1 && a.left >= c.left - 2 && a.right <= c.right + 2 && node.scrollWidth <= cw + 2;
+      };
+      const inView = (id) => {
+        const e = document.getElementById(id); if (!e) return { id, miss: true };
+        const r = e.getBoundingClientRect();
+        return { id, in: r.width > 0 && r.left >= -1 && r.right <= vw + 1 && r.top >= -1 && r.bottom <= vh + 1, l: Math.round(r.left), r: Math.round(r.right), vw };
+      };
+      const el = document.querySelector('#dkstat .dk-last');
+      const bar = document.getElementById('dkstat');
+      const res = el && el.querySelector('span.dk-lr');
+      const who = el && el.querySelector('b.dk-lr');
+      const act = document.querySelector('#dkstat .act');
+      const actCw = act ? (act.clientWidth || act.getBoundingClientRect().width) : 0;
+      const btns = [...(document.querySelectorAll('#dktabs button') || [])];
+      return {
+        n: btns.length, vw,
+        text: el ? el.textContent.replace(/\s+/g, ' ').trim() : '',
+        res: res ? res.textContent.replace(/\s+/g, ' ').trim() : '',
+        who: who ? who.textContent.replace(/\s+/g, ' ').trim() : '',
+        resIn: !!(res && bar && vis(res, bar) && vis(res, el)),
+        whoIn: !!(who && bar && vis(who, bar) && vis(who, el)),
+        act: act ? act.textContent.replace(/\s+/g, ' ').trim() : '',
+        actIn: !!(act && bar && vis(act, bar) && act.scrollWidth <= actCw + 2),
+        actMin: !!(act && act.classList.contains('min') && /\(MIN\)/.test(act.textContent || '')),
+        actSw: act ? act.scrollWidth : 0, actCw: Math.round(actCw),
+        help: inView('dkhelp'), tray: inView('dktray'), lastOn: !!el
+      };
+    });
+    const p9open8 = () => H.p.evaluate(() => {
+      ['group', 'set', 'keys', 'sheet', 'term', 'sec'].forEach((k) => {
+        if (!Desk.wins().some((w) => w.k === k && !w.hidden)) { try { Desk.open({ k }); } catch (e) { /* ok */ } }
+      });
+    });
+    const p9closeExtra = () => H.p.evaluate(() => {
+      ['group', 'set', 'keys', 'sheet', 'term', 'sec'].forEach((k) => { const w = Desk.wins().find((x) => x.k === k); if (w) { try { Desk.close(w.id); } catch (e) { /* ok */ } } });
+    });
+    const p9minAct = (on, id) => H.p.evaluate(([on, id]) => {
+      const St = Forge.state(), sh = St.sheets[St.cur];
+      const key = sh && (typeof Desk.ukey === 'function' ? Desk.ukey(sh) : (sh.u || sh.id));
+      const w = (id && Desk.wins().find((x) => x.id === id)) || Desk.wins().find((x) => x.k === 'unit' && (x.u === key || (x.tabs || []).includes(key))) || Desk.wins().find((x) => x.k === 'unit');
+      if (!w) return null;
+      try { if (on) Desk.minimize(w.id); else Desk.restore(w.id); } catch (e) { return String(e); }
+      return w.id;
+    }, [on, id || null]);
+    await emitLast(Pl.p, { id: 'rcp9crit1', u: 'PILOTB', c: '#ff8800', fc: 'var(--ac)', by: 'local', f: 'PB-7 KAGE', a: '30mm AUTOCANNON', r: 'CRITICAL HIT · 1 HIT · +2 DoS · DMG 7, 9', o: 'ok', d: ['CRIT'] });
+    try { await H.p.waitForFunction(() => { const el = document.querySelector('#dkstat .dk-last'); return !!(el && /PILOTB/.test(el.textContent || '') && /DMG/.test(el.textContent || '')); }, null, { timeout: 8000 }); } catch (e) { /* assert below */ }
+    await H.p.setViewportSize({ width: 1280, height: 800 }); await Pl.p.setViewportSize({ width: 1280, height: 800 }); await wait(200);
+    await p9open8(); await wait(300);
+    const p9eight1280 = await p9read();
+    ok(p9eight1280 && p9eight1280.n >= 8 && p9eight1280.actIn && /^ACTING: /.test(p9eight1280.act || '') && !/\.\.\.|…/.test(p9eight1280.act || '') && p9eight1280.help.in && p9eight1280.tray.in && /DMG/.test(p9eight1280.res || '') && /PILOTB/.test(p9eight1280.who || '') && p9eight1280.resIn && p9eight1280.whoIn, 'p9: at 1280 with 8 windows, ACTING is unclipped, LAST shows DMG · PILOTB, and ▤ and ? stay on-screen ' + JSON.stringify(p9eight1280));
+    await shotP9(H.p, 'p9-acting-8win-1280.png');
+    const p9win = await p9minAct(true); await wait(200);
+    const p9min1280 = await p9read();
+    ok(p9min1280 && p9min1280.actMin && p9min1280.actIn && /\(MIN\)/.test(p9min1280.act || '') && p9min1280.help.in && p9min1280.tray.in && p9min1280.resIn && p9min1280.whoIn, 'p9: at 1280 with 8 windows, ACTING (MIN) stays visible and unclipped ' + JSON.stringify(p9min1280));
+    await shotP9(H.p, 'p9-acting-min-1280.png');
+    await p9minAct(false, p9win); await wait(200);
+    await H.p.setViewportSize({ width: 1920, height: 1080 }); await Pl.p.setViewportSize({ width: 1920, height: 1080 }); await wait(300);
+    const p9eight1920 = await p9read();
+    ok(p9eight1920 && p9eight1920.n >= 8 && p9eight1920.actIn && /^ACTING: /.test(p9eight1920.act || '') && !/\.\.\.|…/.test(p9eight1920.act || '') && p9eight1920.help.in && p9eight1920.tray.in && /DMG/.test(p9eight1920.res || '') && /PILOTB/.test(p9eight1920.who || '') && p9eight1920.resIn && p9eight1920.whoIn, 'p9: at 1920 with 8 windows, ACTING is unclipped, LAST shows DMG · PILOTB, and ▤ and ? stay on-screen ' + JSON.stringify(p9eight1920));
+    await shotP9(H.p, 'p9-acting-8win-1920.png');
+    await p9minAct(true, p9win); await wait(200);
+    const p9min1920 = await p9read();
+    ok(p9min1920 && p9min1920.actMin && p9min1920.actIn && /\(MIN\)/.test(p9min1920.act || '') && p9min1920.help.in && p9min1920.tray.in, 'p9: at 1920 with 8 windows, ACTING (MIN) stays visible and unclipped ' + JSON.stringify(p9min1920));
+    await p9minAct(false, p9win); await wait(200);
+    await H.p.evaluate(() => { try { Desk.setTray(true); } catch (e) { /* ok */ } }); await wait(200);
+    await H.p.evaluate(() => { try { Desk.setTray(false); } catch (e) { /* ok */ } }); await wait(200);
+    await H.p.setViewportSize({ width: 1280, height: 800 }); await Pl.p.setViewportSize({ width: 1280, height: 800 }); await wait(200);
+    const p9nolast = await p9read();
+    ok(p9nolast && p9nolast.n >= 4 && !p9nolast.lastOn && p9nolast.actIn && /^ACTING: /.test(p9nolast.act || '') && !/\.\.\.|…/.test(p9nolast.act || ''), 'p9: at 1280 with 4+ windows and no LAST, ACTING is not clipped ' + JSON.stringify(p9nolast));
+    await shotP9(H.p, 'p9-acting-nolast-1280.png');
+    await p9closeExtra(); await wait(200);
     await H.p.setViewportSize({ width: 1600, height: 900 }); await Pl.p.setViewportSize({ width: 1600, height: 900 }); await wait(200);
     const viewOnly = await Pl.p.evaluate(([o, m]) => { const g = (u, s) => { const h = Desk.hosts().get(u + '|' + s); return h.firstChild ? h : h.shadowRoot; };
       return { otherSkills: !Desk.hosts().get(o + '|skills') && !/SKILL INPUTS/.test(g(o, 'rolls').textContent), otherRolls: /VIEW ONLY/.test(g(o, 'rolls').textContent), ownRolls: /\[ROLL\]/.test(g(m, 'rolls').textContent) }; }, [pH, pK]);
