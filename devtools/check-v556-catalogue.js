@@ -71,6 +71,29 @@ const ok = (c, m, e) => { if (c) pass++; else fail++; console.log((c ? 'PASS ' :
   ok(pane.items === n0, 'selecting a card does not install it');
   ok(await p.evaluate(() => { const g = document.getElementById('ltgrid').getBoundingClientRect(), d = document.getElementById('ltpane').getBoundingClientRect(); return d.left >= g.right - 1; }), 'detail pane sits to the right of the grid');
   await p.screenshot({ path: shots + '/v556-03-detail-pane.png' });
+  // 4b) a selection hidden by a chip, a search or a tab change clears the pane (ADD cannot add an unseen record)
+  const paneCleared = () => p.evaluate(() => ({ pick: S.catPick, add: !!document.querySelector('#ltpane .lt-add'), sel: document.querySelectorAll('.lt-card.sel').length, ph: /SELECT A CARD/.test(document.getElementById('ltpane').innerText) }));
+  const isClear = r => r.pick === null && !r.add && r.sel === 0 && r.ph;
+  const pickSub = await p.evaluate(i => subtypeKey(subtypeOf(DB[i])), pick);
+  const otherSub = await p.evaluate(s => [...document.querySelectorAll('.lt-chiprow:not([hidden]) .lt-chip')].map(b => b.dataset.sub).find(x => x && x !== s), pickSub);
+  await p.locator(`.lt-chiprow:not([hidden]) .lt-chip[data-sub="${otherSub}"]`).click();
+  let pc = await paneCleared();
+  ok(isClear(pc), `chip ${otherSub} hiding the selected card clears the pane and removes ADD`, pc);
+  await p.locator('.lt-chiprow:not([hidden]) .lt-chip[data-sub=""]').click();
+  await p.locator(`.lt-card[data-i="${pick}"]`).click();
+  ok((await paneCleared()).add, 'card re-selected after it is visible again');
+  await p.locator('#catq').fill('ZZQX-NO-SUCH-RECORD');
+  pc = await paneCleared();
+  ok(isClear(pc) && await p.evaluate(() => !document.getElementById('ltnone').hidden), 'a search with no match clears the pane and removes ADD', pc);
+  await p.locator('#catq').press('Escape');
+  await p.locator(`.lt-card[data-i="${pick}"]`).click();
+  await p.locator('button[onclick="tab(\'U\')"]').click();
+  pc = await paneCleared();
+  ok(isClear(pc), 'changing tab away from the selected card clears the pane', pc);
+  await p.locator('button[onclick="tab(\'A\')"]').click();
+  await p.locator(`.lt-card[data-i="${pick}"]`).click();
+  ok(await p.evaluate(() => S.items.length) === n0, 'none of the hide/clear steps installed anything');
+  ok(await p.evaluate(() => document.getElementById('catq').scrollWidth <= document.getElementById('catq').clientWidth + 1 || document.getElementById('catq').placeholder === 'name, class, stat, tag  (/)'), 'search placeholder is the short form');
   // 5) ADD uses the existing install path
   await p.evaluate(() => { window.__inst = 0; const o = window.inst; window.inst = function (...a) { window.__inst++; return o.apply(this, a); }; });
   await p.locator('#ltpane .lt-add').click();
