@@ -37,6 +37,8 @@ const P5r = process.env.P5SHOTS || '/workspace/forge-os/feedback/v555-d1/passes/
 const shotP5 = (p, f) => p.screenshot({ path: P5r + '/' + f });
 const P6r = process.env.P6SHOTS || '/workspace/forge-os/feedback/v555-d1/passes/p6'; fs.mkdirSync(P6r, { recursive: true });
 const shotP6 = (p, f) => p.screenshot({ path: P6r + '/' + f });
+const P7r = process.env.P7SHOTS || '/workspace/forge-os/feedback/v555-d1/passes/p7'; fs.mkdirSync(P7r, { recursive: true });
+const shotP7 = (p, f) => p.screenshot({ path: P7r + '/' + f });
 async function pickGroupCol(p, id, c) {
   if (!await p.evaluate(() => !!document.querySelector('.dk-gcol-menu'))) {
     await p.click(`.dkw[data-id="${id}"] .dk-gcol`); await wait(200);
@@ -762,7 +764,7 @@ const cyanScan = p => p.evaluate(() => {
     });
     ok(p4atk && p4atk.text === 'LAST: 1 HIT · +2 DoS · PILOTB · 30mm AUTOCANNON', 'p4: LAST: leads with the result and names the weapon and caller ' + JSON.stringify(p4atk));
     ok(p4atk && /PILOTB \/ PD-9 PILOTUNIT/.test(p4atk.title) && /30mm AUTOCANNON/.test(p4atk.title) && /1 HIT/.test(p4atk.title) && /\+2 DoS/.test(p4atk.title), 'p4: the LAST: title holds the full card text ' + JSON.stringify(p4atk && p4atk.title));
-    ok(p4atk && p4atk.w > 0 && p4atk.resultW > 0 && p4atk.resultW <= p4atk.cw + 1 && p4atk.cw <= (p4atk.maxW || 264) + 1, 'p4: the result-first LAST: text fits in the status slot ' + JSON.stringify(p4atk));
+    ok(p4atk && p4atk.w > 0 && p4atk.resultW > 0 && p4atk.resultW <= p4atk.cw + 1, 'p4: the result-first LAST: text is not cut off ' + JSON.stringify(p4atk));
     await shotP4(p, 'p4-last-status-1366.png');
     const p4dmg = await p.evaluate(() => {
       const rc = RC.get('rcp4atk1');
@@ -913,7 +915,7 @@ const cyanScan = p => p.evaluate(() => {
       const cs = b && getComputedStyle(b);
       return { tw: b && Math.round(b.getBoundingClientRect().width), min: b && parseFloat(cs.minWidth), clr: clr && getComputedStyle(clr).display };
     });
-    ok(narrow && narrow.min >= 120 && narrow.tw >= 120 && narrow.clr === 'none', 'p2: at 1280 taskbar tabs are at least 120px and CLEARANCE is hidden ' + JSON.stringify(narrow));
+    ok(narrow && narrow.min >= 96 && narrow.tw >= 96 && narrow.clr === 'none', 'p2: at 1280 taskbar tabs are at least 96px and CLEARANCE is hidden ' + JSON.stringify(narrow));
     await shotP2(p, 'p2-desk-1280-navy.png');
     await p.setViewportSize({ width: 1600, height: 900 }); await wait(400);
     await themeP1('IMPERIAL NAVY');
@@ -1062,6 +1064,72 @@ const cyanScan = p => p.evaluate(() => {
     const p6stabMp = await H.p.evaluate(() => { const el = document.querySelector('#dkstat .dk-last'); return el ? el.textContent.replace(/\s+/g, ' ').trim() : ''; });
     ok(/^LAST: \+3 DoS · PILOTB · STABILITY · RIGHT ARM \(100 > 41\.5\)$/.test(p6stabMp || ''), 'p6 mp: at 1280 the other seat\'s callsign is visible in LAST: after a STABILITY CHECK, right after the result ' + JSON.stringify(p6stabMp));
     await shotP6(H.p, 'p6-last-mp-1280.png');
+    await emitLast(Pl.p, { id: 'rcp7crit1', u: 'PILOTB', c: '#ff8800', fc: 'var(--ac)', by: 'local', f: 'PB-7 KAGE', a: '30mm AUTOCANNON', r: 'CRITICAL HIT · 1 HIT · +2 DoS · DMG 7, 9', o: 'ok', d: ['CRIT'] });
+    try { await H.p.waitForFunction(() => { const el = document.querySelector('#dkstat .dk-last'); return !!(el && /PILOTB/.test(el.textContent || '') && /CRIT/.test(el.textContent || '') && /DMG/.test(el.textContent || '')); }, null, { timeout: 8000 }); } catch (e) { /* assert below */ }
+    const p7crit = await H.p.evaluate(() => {
+      const el = document.querySelector('#dkstat .dk-last');
+      if (!el) return { miss: true };
+      const box = (node) => {
+        if (!node) return null;
+        const a = node.getBoundingClientRect();
+        return { w: Math.round(a.width * 10) / 10, l: Math.round(a.left * 10) / 10, r: Math.round(a.right * 10) / 10, sw: node.scrollWidth, cw: node.clientWidth };
+      };
+      const vis = (node, clip) => {
+        if (!node || !clip) return false;
+        const a = node.getBoundingClientRect(), c = clip.getBoundingClientRect();
+        const cw = node.clientWidth || a.width;
+        return a.width > 1 && a.left >= c.left - 2 && a.right <= c.right + 2 && node.scrollWidth <= cw + 2;
+      };
+      const bar = document.getElementById('dkstat');
+      const res = el.querySelector('span.dk-lr');
+      const who = el.querySelector('b.dk-lr');
+      const det = el.querySelector('.dk-lx');
+      return {
+        text: el.textContent.replace(/\s+/g, ' ').trim(),
+        title: el.getAttribute('title') || '',
+        res: res ? res.textContent.replace(/\s+/g, ' ').trim() : '',
+        who: who ? who.textContent.replace(/\s+/g, ' ').trim() : '',
+        detail: det ? det.textContent.replace(/\s+/g, ' ').trim() : '',
+        resIn: vis(res, bar) && vis(res, el),
+        whoIn: vis(who, bar) && vis(who, el),
+        hasCritical: /CRITICAL/.test(el.textContent || ''),
+        titleCrit: /CRITICAL/.test(el.getAttribute('title') || ''),
+        meas: { res: box(res), who: box(who), last: box(el), bar: box(bar) }
+      };
+    });
+    ok(p7crit && /^LAST: CRIT HIT · 1 HIT · \+2 DoS · DMG 7, 9 · PILOTB · 30mm AUTOCANNON$/.test(p7crit.text || ''), 'p7 mp: at 1280 a CRIT + DMG LAST: from the other seat uses CRIT and keeps the callsign after the result ' + JSON.stringify(p7crit));
+    ok(p7crit && p7crit.resIn && p7crit.whoIn && /PILOTB/.test(p7crit.who || '') && /CRIT HIT/.test(p7crit.res || '') && /DMG/.test(p7crit.res || '') && !p7crit.hasCritical && p7crit.titleCrit, 'p7 mp: at 1280 the CRIT + DMG result and the other seat\'s callsign are not cut off ' + JSON.stringify(p7crit));
+    await shotP7(H.p, 'p7-last-crit-mp-1280.png');
+    const p7tabs = await H.p.evaluate(() => {
+      const openK = ['group', 'set', 'keys'];
+      openK.forEach((k) => { if (!Desk.wins().some(w => w.k === k && !w.hidden && !w.min)) { try { Desk.open({ k }); } catch (e) { /* ok */ } } });
+      try { Forge.render(); } catch (e) { /* ok */ }
+      const tabs = document.getElementById('dktabs');
+      const btns = tabs ? [...tabs.querySelectorAll('button')] : [];
+      const tb = tabs && tabs.getBoundingClientRect();
+      const clips = btns.map((b, i) => {
+        const r = b.getBoundingClientRect();
+        const cut = !(r.width > 0 && r.left >= tb.left - 2 && r.right <= tb.right + 2);
+        return { i, cut, w: Math.round(r.width), l: Math.round(r.left), r: Math.round(r.right), tbR: Math.round(tb.right) };
+      });
+      return { n: btns.length, min: btns[0] ? parseFloat(getComputedStyle(btns[0]).minWidth) : 0, clips, lastOn: !!document.querySelector('#dkstat .dk-last') };
+    });
+    await wait(300);
+    const p7tabs2 = await H.p.evaluate(() => {
+      const tabs = document.getElementById('dktabs');
+      const btns = tabs ? [...tabs.querySelectorAll('button')] : [];
+      const tb = tabs && tabs.getBoundingClientRect();
+      const clips = btns.map((b, i) => {
+        const r = b.getBoundingClientRect();
+        const cut = !(r.width > 0 && r.left >= tb.left - 2 && r.right <= tb.right + 2);
+        return { i, cut, w: Math.round(r.width), l: Math.round(r.left), r: Math.round(r.right), tbR: Math.round(tb.right) };
+      });
+      return { n: btns.length, min: btns[0] ? parseFloat(getComputedStyle(btns[0]).minWidth) : 0, clips, lastOn: !!document.querySelector('#dkstat .dk-last') };
+    });
+    ok(p7tabs2 && p7tabs2.n >= 4 && p7tabs2.min >= 96 && p7tabs2.lastOn && p7tabs2.clips.every(c => !c.cut), 'p7: at 1280 the taskbar with 4+ windows plus LAST: does not clip a tab ' + JSON.stringify(p7tabs2));
+    await shotP7(H.p, 'p7-tabs-1280.png');
+    await H.p.evaluate(() => { ['group', 'set', 'keys'].forEach((k) => { const w = Desk.wins().find((x) => x.k === k); if (w) { try { Desk.close(w.id); } catch (e) { /* ok */ } } }); });
+    await wait(300);
     await H.p.setViewportSize({ width: 1600, height: 900 }); await Pl.p.setViewportSize({ width: 1600, height: 900 }); await wait(200);
     const viewOnly = await Pl.p.evaluate(([o, m]) => { const g = (u, s) => { const h = Desk.hosts().get(u + '|' + s); return h.firstChild ? h : h.shadowRoot; };
       return { otherSkills: !Desk.hosts().get(o + '|skills') && !/SKILL INPUTS/.test(g(o, 'rolls').textContent), otherRolls: /VIEW ONLY/.test(g(o, 'rolls').textContent), ownRolls: /\[ROLL\]/.test(g(m, 'rolls').textContent) }; }, [pH, pK]);
@@ -1165,7 +1233,10 @@ const cyanScan = p => p.evaluate(() => {
   {
     const errs = [];
     const { execSync } = require('child_process');
-    try { execSync('bash /workspace/fresh-d1.sh', { stdio: ['ignore', 'pipe', 'pipe'], timeout: 180000 }); }
+    try {
+      try { execSync("pkill -f 'vite dev --host 0.0.0.0 --port 8090' || true; pkill -f '/workspace/fresh-d1.sh' || true; sleep 1", { stdio: 'ignore', timeout: 8000 }); } catch (e) { /* ok */ }
+      execSync('bash /workspace/fresh-d1.sh', { stdio: ['ignore', 'pipe', 'pipe'], timeout: 180000 });
+    }
     catch (e) { console.log('NOTE p2 mp: could not restart the local server before the simultaneous-load case (' + (e && e.message || e) + ')'); }
     await wait(1500);
     const boot = async (name, col, viewport) => {
@@ -1226,7 +1297,7 @@ const cyanScan = p => p.evaluate(() => {
       ok(!aP.hasSheet || aP.hasTab, 'p2 mp: at ' + w + ' the pilot acting unit has a tab after a simultaneous load ' + JSON.stringify(aP));
       if (w === 1280) {
         const tabW = await H2.p.evaluate(() => { const b = document.querySelector('#dktabs button'); const clr = document.querySelector('#dkstat .dk-clr'); return { min: b && parseFloat(getComputedStyle(b).minWidth), tw: b && Math.round(b.getBoundingClientRect().width), clr: clr && getComputedStyle(clr).display }; });
-        ok(tabW && tabW.min >= 120 && tabW.clr === 'none', 'p2 mp: at 1280 taskbar tabs are at least 120px and CLEARANCE is hidden ' + JSON.stringify(tabW));
+        ok(tabW && tabW.min >= 96 && tabW.clr === 'none', 'p2 mp: at 1280 taskbar tabs are at least 96px and CLEARANCE is hidden ' + JSON.stringify(tabW));
       }
       const lastNow = await lastOf(H2.p);
       ok(!lastNow || (/^LAST:/.test(lastNow) && !/COMPONENT TABLE/.test(lastNow) && !/EDITS NOT SAVED/.test(lastNow)), 'p2 mp: at ' + w + ' LAST: is empty or roll text only ' + JSON.stringify(lastNow));

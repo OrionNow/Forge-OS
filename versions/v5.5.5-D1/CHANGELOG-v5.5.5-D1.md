@@ -162,6 +162,11 @@ Live-table fixes from the 8fc06ae audit (host + pilot):
 
 1. **Callsign after the result.** `LAST:` now puts the callsign immediately after the outcome (`LAST: 1 HIT · +2 DoS · PILOTB · 30mm AUTOCANNON`, and `LAST: +3 DoS · PILOTB · STABILITY · RIGHT ARM (100 > 41.5)`). `LOCAL` is still omitted, so solo lines are unchanged. At 1600 px and wider, the `LAST:` slot can grow to 40em.
 
+## Pass 7 (Overseer improvement series, Nov 18)
+
+1. **LAST does not clip the result or callsign.** The status line is `LAST:` + the result + the callsign (if not `LOCAL`) + the detail. Only the detail is allowed to ellipsize. In `LAST:` only, `CRITICAL` is shortened to `CRIT`. The title still holds the full card text. The STABILITY and solo order is unchanged.
+2. **Narrow taskbar tabs.** Below 1366 px, taskbar tabs use a 96 px minimum width so the last tab is less likely to clip when four or more windows are open and `LAST:` is showing.
+
 ## Known limits
 
 - An open native select in a unit window that is not yet the one you are using may close on the first click. The second click works.
