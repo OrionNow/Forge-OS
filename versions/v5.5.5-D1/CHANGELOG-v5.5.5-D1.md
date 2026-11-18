@@ -141,6 +141,12 @@ Live-table fixes from the 8fc06ae audit (host + pilot):
 5. **ACTING (MIN).** Minimising the acting unit's window no longer drops it from the unit order. The status bar shows `ACTING: X (MIN)` (or `VIEWING: X (MIN)`), and clicking that label restores the window.
 6. **Narrow taskbar.** CLEARANCE is wrapped in `.dk-clr` and hidden at viewport widths of 1366 px or less. Taskbar tabs have a 120 px minimum width.
 
+## Pass 3 (Overseer improvement series, Nov 18)
+
+1. **LAST after the fill.** The log observer only lights the tray dot. `LAST:` is hooked after `logPost` has filled the roll card, reading the card's source text (`rcSum` / `RC`) so a live roll is not caught half-typed. It shows only when the login lock is hidden, the console is closed, and more than 2 seconds have passed since login (`loginAt` is set only when the lock hides, not on later renders). History replay (`data-replay` on catch-up lines from the bridge, and the 2-second login window) does not show `LAST:`. Clicking `LAST:` still opens the console.
+2. **Taskbar unit name.** A unit window's taskbar tab is `機` plus the unit name (and `//` colour when it has one). The window title bar keeps the long `UNITS // …` form.
+3. **Targeter in view.** After the targeter renders, `.tgdrop` is scrolled into view (`block: "nearest"`), the same way as the STABILITY strip.
+
 ## Known limits
 
 - An open native select in a unit window that is not yet the one you are using may close on the first click. The second click works.

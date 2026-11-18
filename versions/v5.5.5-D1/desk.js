@@ -727,9 +727,11 @@
     if (k === "sheet") return !ENCV.includes(v) && !!($("sh") && $("sh").textContent.trim());
     return false;
   }
+  let loginAt = 0;
   function placeEngine() {
     const v = S.view, locked = LOCKV.includes(v), bar = $("bar"), con = $("con"), sh = $("sh"), cb = $("cb");
     const lk = $("dklock"), was = lk.hidden; lk.hidden = !locked;
+    if (lk.hidden && !was) loginAt = Date.now(); else if (!lk.hidden) loginAt = 0;
     const mode = locked ? "lock" : ENCV.includes(v) ? "enc" : "term:" + role() + ":" + (S.authRole || "") + ":" + v;
     if (mode !== lastMode) { closedEngine.clear(); lastMode = mode; }
     if (locked && was) { lockShow(); [...W.values()].filter((v) => v.w.k === "ws").forEach((v) => close(v.w.id, true)); }
@@ -811,10 +813,14 @@
     const hex = (c != null && typeof SH_COL !== "undefined" && SH_COL[c]) || "";
     return { c, hex };
   }
+  function kanjiTab(w) {
+    if (w.k === "unit") { const i = idxOf(w.u); return ["機", (i >= 0 ? safeLabel(i) : "UNITS") + (w.c ? " // " + COLN[w.c] : "")]; }
+    return kanjiTitle(w);
+  }
   function paintTabs() {
     const a = activeId();
     tabsEl.innerHTML = [...W.values()].filter((x) => x.e.style.display !== "none" && x.w.k !== "con").map((x) => {
-      const [k, n] = kanjiTitle(x.w), t = winTint(x.w), col = t.hex ? ` style="color:${t.hex}"` : "", sw = t.hex ? `<i class=dk-tc style="background:${t.c ? t.hex : "transparent"};color:${t.hex}"></i>` : "";
+      const [k, n] = kanjiTab(x.w), t = winTint(x.w), col = t.hex ? ` style="color:${t.hex}"` : "", sw = t.hex ? `<i class=dk-tc style="background:${t.c ? t.hex : "transparent"};color:${t.hex}"></i>` : "";
       return `<button type=button role=tab data-id="${x.w.id}" class="${x.w.id === a ? "on" : ""}${x.w.min ? " min" : ""}" aria-selected=${x.w.id === a} title="${esc(n)}"${col}>${sw}${esc(k)} ${esc(n)}</button>`;
     }).join("");
   }
@@ -858,17 +864,41 @@
   const trayOpen = () => { const x = findW((v) => v.w.k === "con"); return !!x && !x.e.hidden; };
   $("dktray").addEventListener("click", () => { // open but covered: bring it to the front; only an on-top console toggles closed
     if (trayOpen() && activeId() !== conWin().w.id) { front(conWin().w.id); return; } setTray(!trayOpen()); });
-  new MutationObserver((muts) => {
+  new MutationObserver(() => { if (!trayOpen()) $("dktray").classList.add("new"); }).observe($("log"), { childList: true });
+  function rollCardText(el) {
+    const id = el && el.dataset && el.dataset.rcid;
+    let text = "";
+    try {
+      const rc = (typeof RC !== "undefined" && RC.get && id) ? RC.get(id) : null;
+      if (rc && typeof rcSum === "function") {
+        const tmp = document.createElement("div");
+        tmp.innerHTML = rcSum(rc) + " [+]";
+        text = (tmp.textContent || "").replace(/\s+/g, " ").trim();
+      }
+    } catch (e) { /* ok */ }
+    if (!text) text = ((el && el.textContent) || "").replace(/\s+/g, " ").trim();
+    return text;
+  }
+  function noteLastFromNode(d) {
+    if (!d || !d.querySelector) return;
+    if (d.dataset && d.dataset.replay) return;
+    if (d.closest && d.closest("[data-replay]")) return;
     if (!$("dklock") || !$("dklock").hidden) return;
     if (trayOpen()) return;
-    $("dktray").classList.add("new");
-    let text = "";
-    muts.forEach((m) => m.addedNodes.forEach((n) => {
-      const rc = n.matches && (n.matches("[data-rcid]") ? n : n.querySelector("[data-rcid]"));
-      if (rc) text = rc.textContent.replace(/\s+/g, " ").trim();
-    }));
+    if (!loginAt || Date.now() - loginAt <= 2000) return;
+    const rc = d.matches && (d.matches("[data-rcid]") ? d : d.querySelector("[data-rcid]"));
+    if (!rc) return;
+    const text = rollCardText(rc);
     if (text) showLastRoll(text);
-  }).observe($("log"), { childList: true });
+  }
+  if (typeof logPost === "function") {
+    const _lpLast = logPost;
+    logPost = function (d) {
+      const out = _lpLast.apply(this, arguments);
+      try { noteLastFromNode(d); } catch (e) { /* ok */ }
+      return out;
+    };
+  }
 
 
   /* ---------- pass 1: edge snap, TILE UNITS, shortcuts, acting-unit keys, STABILITY scroll, per-callsign layout ---------- */
@@ -962,6 +992,16 @@
   }, true);
   const helpBtn = $("dkhelp"); if (helpBtn) helpBtn.addEventListener("click", () => openShortcuts());
 
+  function revealTargeter() {
+    const els = [];
+    const visit = (root) => { if (root && root.querySelectorAll) root.querySelectorAll(".tgdrop").forEach((el) => els.push(el)); };
+    visit(document); HOSTS.forEach((h) => { visit(h); if (h.shadowRoot) visit(h.shadowRoot); try { visit(shIn(h)); } catch (e) { /* ok */ } });
+    els.forEach((el) => {
+      if (el.dataset.seen) return;
+      el.dataset.seen = "1";
+      try { el.scrollIntoView({ block: "nearest", inline: "nearest" }); } catch (e) { /* ok */ }
+    });
+  }
   function revealStab() {
     const els = [];
     const visit = (root) => {
@@ -1005,7 +1045,13 @@
     layoutApplied = s;
     if (rec && rec.v === 1) setTimeout(() => { if (layoutApplied === s) loadLayoutRec(rec); }, 0);
   }
-  if ($("dklock")) new MutationObserver(() => { if ($("dklock").hidden) maybeRestoreLayout(); else layoutApplied = ""; }).observe($("dklock"), { attributes: true, attributeFilter: ["hidden"] });
+  let lockWasHidden = !!($("dklock") && $("dklock").hidden);
+  if ($("dklock")) new MutationObserver(() => {
+    const hid = $("dklock").hidden;
+    if (hid && !lockWasHidden) { loginAt = Date.now(); maybeRestoreLayout(); }
+    else if (!hid) { loginAt = 0; layoutApplied = ""; }
+    lockWasHidden = hid;
+  }).observe($("dklock"), { attributes: true, attributeFilter: ["hidden"] });
   if ($("dklock") && $("dklock").hidden) maybeRestoreLayout();
 
   /* ---------- launch menu, icons, clearance switches ---------- */
@@ -1065,7 +1111,7 @@
       placeEngine();
       if (S.view === "sortie") renderUnits(pre); else CACHE.clear();
       W.forEach((x) => { if (x.w.k === "group") paintGroup(x); else if (x.w.k === "set") paintSettings(x); else if (x.w.k === "unit") paintUnitChrome(x); else if (x.w.k === "keys") paintShortcuts(x); });
-      paintTitles(); paintTabs(); paintStat(); applyLoginColour(); revealStab();
+      paintTitles(); paintTabs(); paintStat(); applyLoginColour(); revealStab(); revealTargeter();
       if (S.view === "sortie") W.forEach((x) => { if (!x.pzPend || x.w.k !== "unit" || x.e.hidden || x.w.min) return; const h = HOSTS.get(x.w.u + "|doll");
         if (h && h.isConnected && (h.firstElementChild || shIn(h).firstElementChild)) { const pz = x.pzPend; x.pzPend = null; applyPreset(x, pz, !x.pzForce); x.pzForce = false; } });
       frestore(f);

@@ -447,6 +447,7 @@
         if (!log) return;
         if (silent) {
           const d = document.createElement("div");
+          d.dataset.replay = "1";
           if (typeof logKind === "function") d.dataset.k = logKind(html);
           if (typeof logTs === "function") d.dataset.ts = logTs();
           d.innerHTML = `<span class="${safeTone(tone)}">${html || ""}</span>`;

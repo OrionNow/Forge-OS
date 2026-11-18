@@ -10,6 +10,17 @@ const shots = process.argv[3] || '/workspace/forge-os/feedback/v555-d1/round2/sh
 const fx = fs.readFileSync('/workspace/forge-os/tests/musha-brittle.manifest.txt', 'utf8');
 let fails = 0, n = 0; const ok = (c, m) => { n++; console.log((c ? 'PASS ' : 'FAIL ') + m); if (!c) fails++; };
 const wait = ms => new Promise(r => setTimeout(r, ms));
+const waitLogIdle = async (page, stableMs, timeoutMs) => {
+  const stable = stableMs || 600, limit = Date.now() + (timeoutMs || 20000);
+  let last = await page.evaluate(() => (document.getElementById('log') && document.getElementById('log').textContent) || '');
+  let okSince = Date.now();
+  while (Date.now() < limit) {
+    await wait(200);
+    const now = await page.evaluate(() => (document.getElementById('log') && document.getElementById('log').textContent) || '');
+    if (now !== last) { last = now; okSince = Date.now(); }
+    else if (Date.now() - okSince >= stable) return;
+  }
+};
 fs.mkdirSync(shots, { recursive: true });
 const shot = (p, f) => p.screenshot({ path: shots + '/' + f });
 const S4r = process.env.R4SHOTS || '/workspace/forge-os/feedback/v555-d1/round4/shots'; fs.mkdirSync(S4r, { recursive: true });
@@ -18,6 +29,8 @@ const P1r = process.env.P1SHOTS || '/workspace/forge-os/feedback/v555-d1/passes/
 const shotP1 = (p, f) => p.screenshot({ path: P1r + '/' + f });
 const P2r = process.env.P2SHOTS || '/workspace/forge-os/feedback/v555-d1/passes/p2'; fs.mkdirSync(P2r, { recursive: true });
 const shotP2 = (p, f) => p.screenshot({ path: P2r + '/' + f });
+const P3r = process.env.P3SHOTS || '/workspace/forge-os/feedback/v555-d1/passes/p3'; fs.mkdirSync(P3r, { recursive: true });
+const shotP3 = (p, f) => p.screenshot({ path: P3r + '/' + f });
 async function pickGroupCol(p, id, c) {
   if (!await p.evaluate(() => !!document.querySelector('.dk-gcol-menu'))) {
     await p.click(`.dkw[data-id="${id}"] .dk-gcol`); await wait(200);
@@ -677,20 +690,92 @@ const cyanScan = p => p.evaluate(() => {
       return { s, savedX, mid, afterX: after && after.x, resetBtn: true };
     });
     ok(lay && lay.s && lay.savedX === 200 && lay.mid === 360 && lay.afterX === 200, 'p1: window position is persisted per callsign and restored from that layout ' + JSON.stringify(lay));
-    // LAST: only roll cards, not arbitrary log lines
+    // LAST: hook after logPost; ignore junk, pre-fill DOM, and replay; real rolls show it
     const conWas = await p.evaluate(() => { const c = document.querySelector('.dkw[data-k=con]'); return !!(c && !c.hidden); });
     if (conWas) { await p.click('#dktray'); await wait(200); }
     await p.evaluate(() => { const log = document.getElementById('log'); const d = document.createElement('div'); d.textContent = 'COMPONENT TABLE [....................] 0%'; log.appendChild(d); });
     await wait(250);
     const lastJunk = await p.evaluate(() => { const el = document.querySelector('#dkstat .dk-last'); return el ? el.textContent : ''; });
-    ok(!/COMPONENT TABLE/.test(lastJunk || ''), 'p2: LAST: ignores a non-roll log line ' + JSON.stringify(lastJunk));
-    await p.evaluate(() => { const log = document.getElementById('log'); const wrap = document.createElement('div'); wrap.innerHTML = '<div class="rc" data-rcid="p2test-rc">LOCAL / VEGA · SENSORS · SKILL · +2 DoS <span class=rcx>[+]</span></div>'; log.appendChild(wrap); });
+    ok(!/COMPONENT TABLE/.test(lastJunk || ''), 'p2/p3: LAST: ignores a non-roll log line ' + JSON.stringify(lastJunk));
+    await p.evaluate(() => { const log = document.getElementById('log'); const wrap = document.createElement('div'); wrap.innerHTML = '<div class="rc" data-rcid="p3bare-rc">LOCAL / VEGA · SENSORS · SKILL · +2 DoS <span class=rcx>[+]</span></div>'; log.appendChild(wrap); });
     await wait(250);
-    const last = await p.evaluate(() => { const el = document.querySelector('#dkstat .dk-last'); return el ? el.textContent : ''; });
-    ok(/^LAST:/.test(last) && /VEGA/.test(last) && /SENSORS/.test(last) && !/COMPONENT TABLE/.test(last) && last.length <= 100, 'p2: when the console is closed, LAST: shows only the roll card text ' + JSON.stringify(last));
+    const lastBare = await p.evaluate(() => { const el = document.querySelector('#dkstat .dk-last'); return el ? el.textContent : ''; });
+    ok(!/VEGA/.test(lastBare || ''), 'p3: appending a roll card without logPost does not set LAST (the observer no longer reads the half-typed DOM) ' + JSON.stringify(lastBare));
+    await p.evaluate(() => { const log = document.getElementById('log'); const wrap = document.createElement('div'); wrap.dataset.replay = '1'; wrap.innerHTML = '<div class="rc" data-rcid="p3replay-rc">LOCAL / REPLAYUNIT · SENSORS · SKILL · +2 DoS <span class=rcx>[+]</span></div>'; log.appendChild(wrap); if (typeof logPost === 'function') logPost(wrap); });
+    await wait(250);
+    const lastReplay = await p.evaluate(() => { const el = document.querySelector('#dkstat .dk-last'); return el ? el.textContent : ''; });
+    ok(!/REPLAYUNIT/.test(lastReplay || ''), 'p3: history-replay cards do not show LAST: ' + JSON.stringify(lastReplay));
+    await waitLogIdle(p, 600, 20000);
+    const uRoll = await p.evaluate(() => {
+      const w = Desk.wins().find(w => w.k === 'unit' && !w.min && !w.hidden) || Desk.wins().find(w => w.k === 'unit');
+      if (!w) return null;
+      Desk.restore(w.id); Desk.front(w.id); Desk.route(w.u);
+      return w.u;
+    });
+    const nRoll = await p.evaluate(() => document.getElementById('log').textContent.length);
+    if (uRoll) {
+      const btn = p.locator(`.dk-sec[data-u="${uRoll}"][data-s=rolls] button:has-text("[ROLL]")`).first();
+      if (await btn.count()) { await btn.click(); await wait(2800); }
+      else { await p.evaluate(() => { try { atkRoll(0); } catch (e) {} }); await wait(2800); }
+    }
+    const lastLive = await p.evaluate((n) => { const el = document.querySelector('#dkstat .dk-last'); return { last: el ? el.textContent : '', added: document.getElementById('log').textContent.slice(n) }; }, nRoll);
+    ok(/^LAST:/.test(lastLive.last || '') && !/COMPONENT TABLE/.test(lastLive.last || '') && !/REPLAYUNIT/.test(lastLive.last || '') && /Do[SF]|SKILL|SENSORS|ROLL|\+/.test(lastLive.last || ''), 'p3: a real new roll with the console closed shows LAST: with the finished roll text ' + JSON.stringify(lastLive));
+    await p.setViewportSize({ width: 1366, height: 768 }); await wait(300);
+    await shotP3(p, 'p3-last-1366.png');
     await p.click('#dkstat .dk-last'); await wait(300);
-    ok(await p.evaluate(() => { const c = document.querySelector('.dkw[data-k=con]'); return !!(c && !c.hidden); }), 'p2: clicking LAST: in the status bar opens the console');
+    ok(await p.evaluate(() => { const c = document.querySelector('.dkw[data-k=con]'); return !!(c && !c.hidden); }), 'p3: clicking LAST: in the status bar opens the console');
     await p.click('#dktray'); await wait(200);
+    const tabLab = await p.evaluate(() => {
+      const w = Desk.wins().find(w => w.k === 'unit' && !w.min && !w.hidden) || Desk.wins().find(w => w.k === 'unit');
+      if (!w) return null;
+      const i = Desk.idxOf(w.u), sh = i >= 0 ? Forge.state().sheets[i] : null;
+      const name = sh && sh.d ? [sh.d.id, sh.d.cs].filter(Boolean).join(' ').trim() : (sh && sh.name) || '';
+      const tab = document.querySelector(`#dktabs [data-id="${w.id}"]`);
+      const title = document.querySelector(`.dkw[data-id="${w.id}"] .dk-n`);
+      return { name, tab: tab && tab.textContent.replace(/\s+/g, ' ').trim(), title: title && title.textContent, startsUnits: /^UNITS \/\/ /.test((tab && tab.textContent) || '') };
+    });
+    ok(tabLab && tabLab.name && tabLab.tab && tabLab.tab.indexOf(tabLab.name) >= 0 && !tabLab.startsUnits && /^UNITS \/\/ /.test(tabLab.title || ''), 'p3: the taskbar tab shows the unit name; the window title keeps the long UNITS // form ' + JSON.stringify(tabLab));
+    const openTg = async (width, height, shotName) => {
+      await p.setViewportSize({ width, height }); await wait(300);
+      const tg = await p.evaluate(() => {
+        const w = Desk.wins().find(w => w.k === 'unit' && !w.min && !w.hidden) || Desk.wins().find(w => w.k === 'unit');
+        if (!w) return { miss: 'no unit' };
+        Desk.restore(w.id); Desk.front(w.id); Desk.route(w.u);
+        const visit = (root) => root && root.querySelector && root.querySelector('.tgdrop');
+        let box = visit(document.querySelector(`.dkw[data-id="${w.id}"]`));
+        if (!box) Desk.hosts().forEach((h) => { if (!box) box = visit(h) || (h.shadowRoot && visit(h.shadowRoot)); });
+        // A second itemClick on the same bound weapon collapses the targeter (UI.tgc). Only click if it is not already open.
+        if (!box) {
+          const S = Forge.state();
+          let i = -1;
+          try { const W = typeof weapons === 'function' ? weapons() : []; i = (S.items || []).findIndex(x => W.includes(x)); } catch (e) { i = (S.items || []).findIndex(x => x && x.c === 'A'); }
+          if (i < 0) return { miss: 'no weapon', id: w.id };
+          if (typeof awBind === 'function' && typeof weapons === 'function') {
+            const k = weapons().indexOf(S.items[i]);
+            if (k >= 0) { if (typeof UI !== 'undefined' && UI.tgc) delete UI.tgc[awKey()]; awBind(k); R(); }
+          } else if (typeof itemClick === 'function') itemClick(i);
+          return { id: w.id, i, opened: true };
+        }
+        try { box.scrollIntoView({ block: 'nearest', inline: 'nearest' }); } catch (e) { /* ok */ }
+        return { id: w.id, already: true };
+      });
+      await wait(600);
+      const vis = await p.evaluate((id) => {
+        const visit = (root) => root && root.querySelector && root.querySelector('.tgdrop');
+        let box = visit(document.querySelector(`.dkw[data-id="${id}"]`));
+        if (!box) Desk.hosts().forEach((h) => { if (!box) box = visit(h) || (h.shadowRoot && visit(h.shadowRoot)) || (h.shadowRoot && visit(h.shadowRoot.querySelector('.dk-in'))); });
+        if (box) { try { box.scrollIntoView({ block: 'nearest', inline: 'nearest' }); } catch (e) { /* ok */ } }
+        const body = document.querySelector(`.dkw[data-id="${id}"] .dk-b`);
+        if (!box || !body) return { has: !!box, body: !!body };
+        const br = box.getBoundingClientRect(), bb = body.getBoundingClientRect();
+        return { has: true, topIn: br.top >= bb.top - 4, botIn: br.bottom <= bb.bottom + 4, h: Math.round(br.height) };
+      }, tg && tg.id);
+      ok(vis && vis.has && vis.topIn && vis.botIn, 'p3: at ' + width + ' the targeter is scrolled into view ' + JSON.stringify({ tg, vis }));
+      if (shotName) await shotP3(p, shotName);
+    };
+    await openTg(1280, 720, 'p3-tg-1280.png');
+    await openTg(1366, 768, 'p3-tg-1366.png');
+    await p.setViewportSize({ width: 1600, height: 900 }); await wait(300);
 
     // shots: 1366 and 1920, both themes
     const themeP1 = async (th) => { await p.click('.dk-ico[data-ico=set]'); await wait(400); const sid = await p.evaluate(() => Desk.wins().find(w => w.k === 'set').id); await p.click(`.dkw[data-id="${sid}"] button:has-text("${th}")`); await wait(400); await p.evaluate((id) => Desk.minimize(id), sid); await wait(200); };
@@ -811,7 +896,20 @@ const cyanScan = p => p.evaluate(() => {
     };
     const H = await seat('HOSTA');
     await loadUnits(H.p, ['HST-1 / HOSTUNIT'], true);
+    await H.p.evaluate(() => { const c = document.querySelector('.dkw[data-k=con]'); if (c && !c.hidden) { const b = document.getElementById('dktray'); if (b) b.click(); } });
+    await wait(200);
+    await waitLogIdle(H.p, 600, 20000);
+    const hU = await H.p.evaluate(() => { const w = Desk.wins().find(w => w.k === 'unit'); if (w) { Desk.restore(w.id); Desk.front(w.id); Desk.route(w.u); return w.u; } return null; });
+    if (hU) {
+      const hb = H.p.locator(`.dk-sec[data-u="${hU}"][data-s=rolls] button:has-text("[ROLL]")`).first();
+      if (await hb.count()) { await hb.click(); await wait(2800); }
+      else { await H.p.evaluate(() => { try { atkRoll(0); } catch (e) {} }); await wait(2800); }
+    }
+    const hostLastBefore = await H.p.evaluate(() => { const el = document.querySelector('#dkstat .dk-last'); return el ? el.textContent : ''; });
+    ok(/^LAST:/.test(hostLastBefore || '') && !/COMPONENT TABLE/.test(hostLastBefore || ''), 'p3 mp: a real new roll on the host with the console closed shows LAST: ' + JSON.stringify(hostLastBefore));
     const Pl = await seat('PILOTB', '#ff8800');
+    const lastAtLogin = await Pl.p.evaluate(() => { const el = document.querySelector('#dkstat .dk-last'); return el ? el.textContent : ''; });
+    ok(!lastAtLogin, 'p3 mp: LAST: is not set from history replayed at login ' + JSON.stringify(lastAtLogin));
     await loadUnits(Pl.p, ['PB-7 / KAGE'], true); await wait(3500);
     await H.p.evaluate(() => Forge.render()); await wait(1500);
     const autoOf = (page) => page.evaluate(() => {
@@ -968,10 +1066,16 @@ const cyanScan = p => p.evaluate(() => {
     await wait(200);
     const lastJunkMp = await lastOf(H2.p);
     ok(!/COMPONENT TABLE/.test(lastJunkMp || ''), 'p2 mp: LAST: ignores a non-roll log line after a simultaneous load ' + JSON.stringify(lastJunkMp));
-    await H2.p.evaluate(() => { const log = document.getElementById('log'); const wrap = document.createElement('div'); wrap.innerHTML = '<div class="rc" data-rcid="p2mp-rc">HOSTC / HOSTTWO · SENSORS · SKILL · +1 DoS <span class=rcx>[+]</span></div>'; log.appendChild(wrap); });
-    await wait(250);
+    await waitLogIdle(H2.p, 600, 20000);
+    const h2u = await H2.p.evaluate(() => { const w = Desk.wins().find(w => w.k === 'unit'); if (w) { Desk.restore(w.id); Desk.front(w.id); Desk.route(w.u); return w.u; } return null; });
+    if (h2u) {
+      const b2 = H2.p.locator(`.dk-sec[data-u="${h2u}"][data-s=rolls] button:has-text("[ROLL]")`).first();
+      if (await b2.count()) { await b2.click(); await wait(2800); }
+      else { await H2.p.evaluate(() => { try { atkRoll(0); } catch (e) {} }); await wait(2800); }
+    }
     const lastMp = await lastOf(H2.p);
-    ok(/^LAST:/.test(lastMp) && /HOSTTWO|SENSORS/.test(lastMp) && !/COMPONENT TABLE/.test(lastMp), 'p2 mp: LAST: shows only roll card text ' + JSON.stringify(lastMp));
+    ok(/^LAST:/.test(lastMp || '') && !/COMPONENT TABLE/.test(lastMp || ''), 'p3 mp: a real new roll after a simultaneous load shows LAST: ' + JSON.stringify(lastMp));
+    await shotP3(H2.p, 'p3-mp-last-1366.png');
 
     const widths = [[1280, 720], [1366, 768], [1920, 1080]];
     for (const [w, h] of widths) {
