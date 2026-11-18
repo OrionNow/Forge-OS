@@ -31,6 +31,8 @@ const P2r = process.env.P2SHOTS || '/workspace/forge-os/feedback/v555-d1/passes/
 const shotP2 = (p, f) => p.screenshot({ path: P2r + '/' + f });
 const P3r = process.env.P3SHOTS || '/workspace/forge-os/feedback/v555-d1/passes/p3'; fs.mkdirSync(P3r, { recursive: true });
 const shotP3 = (p, f) => p.screenshot({ path: P3r + '/' + f });
+const P4r = process.env.P4SHOTS || '/workspace/forge-os/feedback/v555-d1/passes/p4'; fs.mkdirSync(P4r, { recursive: true });
+const shotP4 = (p, f) => p.screenshot({ path: P4r + '/' + f });
 async function pickGroupCol(p, id, c) {
   if (!await p.evaluate(() => !!document.querySelector('.dk-gcol-menu'))) {
     await p.click(`.dkw[data-id="${id}"] .dk-gcol`); await wait(200);
@@ -722,8 +724,62 @@ const cyanScan = p => p.evaluate(() => {
     ok(/^LAST:/.test(lastLive.last || '') && !/COMPONENT TABLE/.test(lastLive.last || '') && !/REPLAYUNIT/.test(lastLive.last || '') && /Do[SF]|SKILL|SENSORS|ROLL|\+/.test(lastLive.last || ''), 'p3: a real new roll with the console closed shows LAST: with the finished roll text ' + JSON.stringify(lastLive));
     await p.setViewportSize({ width: 1366, height: 768 }); await wait(300);
     await shotP3(p, 'p3-last-1366.png');
+    // p4: result-first LAST, full title, DMG via rcRefresh, then clear on console open
+    await p.evaluate(() => { const c = document.querySelector('.dkw[data-k=con]'); if (c && !c.hidden) { const b = document.getElementById('dktray'); if (b) b.click(); } });
+    await wait(200);
+    const p4atk = await p.evaluate(() => {
+      const rc = { id: 'rcp4atk1', u: 'PILOTB', c: '#ff8800', fc: 'var(--ac)', by: 'local', f: 'PD-9 PILOTUNIT', a: '30mm AUTOCANNON', r: '1 HIT · +2 DoS', o: 'ok', d: ['ATK'] };
+      RC.set(rc.id, rc);
+      const wrap = document.createElement('div');
+      wrap.innerHTML = (typeof rcHtml === 'function') ? rcHtml(rc) : ('<div class="rc ok" data-rcid="'+rc.id+'">PILOTB / PD-9 PILOTUNIT · 30mm AUTOCANNON · 1 HIT · +2 DoS <span class=rcx>[+]</span></div>');
+      document.getElementById('log').appendChild(wrap);
+      if (typeof logPost === 'function') logPost(wrap);
+      const el = document.querySelector('#dkstat .dk-last');
+      const r = el && el.getBoundingClientRect();
+      let resultW = 0;
+      if (el) {
+        const cs = getComputedStyle(el);
+        const tmp = document.createElement('span');
+        tmp.style.cssText = 'position:absolute;left:-9999px;visibility:hidden;white-space:nowrap;font:' + cs.font;
+        tmp.textContent = 'LAST: 1 HIT · +2 DoS';
+        document.body.appendChild(tmp);
+        resultW = Math.round(tmp.getBoundingClientRect().width);
+        tmp.remove();
+      }
+      return {
+        text: el ? el.textContent.replace(/\s+/g, ' ').trim() : '',
+        title: el ? (el.getAttribute('title') || '') : '',
+        w: r ? Math.round(r.width) : 0,
+        sw: el ? Math.round(el.scrollWidth) : 0,
+        cw: el ? Math.round(el.clientWidth) : 0,
+        maxW: el ? Math.round(parseFloat(getComputedStyle(el).maxWidth) || 0) : 0,
+        resultW
+      };
+    });
+    ok(p4atk && p4atk.text === 'LAST: 1 HIT · +2 DoS · 30mm AUTOCANNON · PILOTB', 'p4: LAST: leads with the result and names the weapon and caller ' + JSON.stringify(p4atk));
+    ok(p4atk && /PILOTB \/ PD-9 PILOTUNIT/.test(p4atk.title) && /30mm AUTOCANNON/.test(p4atk.title) && /1 HIT/.test(p4atk.title) && /\+2 DoS/.test(p4atk.title), 'p4: the LAST: title holds the full card text ' + JSON.stringify(p4atk && p4atk.title));
+    ok(p4atk && p4atk.w > 0 && p4atk.resultW > 0 && p4atk.resultW <= p4atk.cw + 1 && p4atk.cw <= (p4atk.maxW || 264) + 1, 'p4: the result-first LAST: text fits in the status slot ' + JSON.stringify(p4atk));
+    await shotP4(p, 'p4-last-status-1366.png');
+    const p4dmg = await p.evaluate(() => {
+      const rc = RC.get('rcp4atk1');
+      if (!rc) return { miss: 'no card' };
+      rc.r = String(rc.r || '').replace(/ · DMG .*$/, '') + ' · DMG 7, 9';
+      RC.set(rc.id, rc);
+      if (typeof rcRefresh === 'function') rcRefresh(rc.id);
+      const el = document.querySelector('#dkstat .dk-last');
+      return { text: el ? el.textContent.replace(/\s+/g, ' ').trim() : '', title: el ? (el.getAttribute('title') || '') : '' };
+    });
+    ok(p4dmg && /^LAST: 1 HIT · \+2 DoS · DMG 7, 9 · 30mm AUTOCANNON · PILOTB$/.test(p4dmg.text || ''), 'p4: a DMG update via rcRefresh updates LAST: ' + JSON.stringify(p4dmg));
+    ok(p4dmg && /DMG 7, 9/.test(p4dmg.title || ''), 'p4: the LAST: title includes the damage after rcRefresh ' + JSON.stringify(p4dmg && p4dmg.title));
+    await shotP4(p, 'p4-last-dmg-1366.png');
     await p.click('#dkstat .dk-last'); await wait(300);
-    ok(await p.evaluate(() => { const c = document.querySelector('.dkw[data-k=con]'); return !!(c && !c.hidden); }), 'p3: clicking LAST: in the status bar opens the console');
+    const p4clear = await p.evaluate(() => {
+      const c = document.querySelector('.dkw[data-k=con]');
+      const last = document.querySelector('#dkstat .dk-last');
+      return { open: !!(c && !c.hidden), last: last ? last.textContent : '' };
+    });
+    ok(p4clear && p4clear.open, 'p3: clicking LAST: in the status bar opens the console');
+    ok(p4clear && !p4clear.last, 'p4: LAST: clears when the console opens ' + JSON.stringify(p4clear));
     await p.click('#dktray'); await wait(200);
     const tabLab = await p.evaluate(() => {
       const w = Desk.wins().find(w => w.k === 'unit' && !w.min && !w.hidden) || Desk.wins().find(w => w.k === 'unit');

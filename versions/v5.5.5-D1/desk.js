@@ -825,13 +825,25 @@
     }).join("");
   }
   tabsEl.addEventListener("click", (e) => { const b = e.target.closest("button[data-id]"); if (!b) return; const id = b.dataset.id, x = W.get(id); if (!x) return; if (x.w.min) restore(id); else if (activeId() === id) minimize(id); else front(id); });
-  let lastRoll = "", lastRollUntil = 0, lastRollTimer = 0;
+  let lastRoll = "", lastRollFull = "", lastRollUntil = 0, lastRollTimer = 0;
+  function lastRollDisplay(text) {
+    const raw = String(text || "").replace(/\s+/g, " ").trim();
+    const stripped = raw.replace(/\s*\[\+\]\s*$/, "").trim();
+    const seg = stripped.split(" · ").map((s) => s.trim()).filter(Boolean);
+    if (!seg.length) return { short: raw, full: raw };
+    const who = (seg[0].split(" / ")[0] || "").trim();
+    const mid = seg.length > 1 ? seg[1] : "";
+    const rest = seg.length > 2 ? seg.slice(2).join(" · ") : "";
+    const short = [rest, mid, who === "LOCAL" ? "" : who].filter(Boolean).join(" · ") || stripped || raw;
+    return { short: short.replace(/\s+/g, " ").trim().slice(0, 90), full: raw };
+  }
   function showLastRoll(text) {
-    lastRoll = String(text || "").replace(/\s+/g, " ").trim().slice(0, 90);
-    if (!lastRoll) return;
+    const v = lastRollDisplay(text);
+    if (!v.short) return;
+    lastRoll = v.short; lastRollFull = v.full;
     lastRollUntil = Date.now() + 8000;
     clearTimeout(lastRollTimer);
-    lastRollTimer = setTimeout(() => { lastRoll = ""; lastRollUntil = 0; try { paintStat(); } catch (e) { /* ok */ } }, 8000);
+    lastRollTimer = setTimeout(() => { lastRoll = ""; lastRollFull = ""; lastRollUntil = 0; try { paintStat(); } catch (e) { /* ok */ } }, 8000);
     try { paintStat(); } catch (e) { /* ok */ }
   }
   function paintStat() {
@@ -844,7 +856,7 @@
     const viewing = document.body.classList.contains("mp-view");
     const actX = ai >= 0 ? uwOf(ukey(sheets()[ai])) : null, actMin = !!(actX && actX.w.min);
     const actH = ai >= 0 ? `<span class="act${viewing ? " view" : ""}${actMin ? " min" : ""}"${actMin ? ' role=button tabindex=0 title="Restore the acting unit"' : ""}>${viewing ? "VIEWING" : "ACTING"}: <b>${esc(safeLabel(ai))}</b>${actMin ? " (MIN)" : ""}</span>` : "";
-    const lastH = (!trayOpen() && lastRoll && Date.now() < lastRollUntil) ? `<span class=dk-last role=button tabindex=0 title="Open the operator console">LAST: ${esc(lastRoll)}</span>` : "";
+    const lastH = (!trayOpen() && lastRoll && Date.now() < lastRollUntil) ? `<span class=dk-last role=button tabindex=0 title="${esc(lastRollFull || lastRoll)}">LAST: ${esc(lastRoll)}</span>` : "";
     const html = `<span class=dk-clr>CLEARANCE <b>${esc(r)}</b></span>${cs ? `<span>CALLSIGN <b>${esc(cs)}</b></span>` : ""}${actH}${lastH}<span>UNITS <b>${sheets().filter(vis).length}</b></span><span>ISB <b>${esc(isb)}</b></span><span class=ver role=button tabindex=0 title="Open the changelog">v${BUILD}</span><span><b>${esc(t.t)}</b></span>`;
     if ($("dkstat").innerHTML !== html) $("dkstat").innerHTML = html;
   }
@@ -860,6 +872,7 @@
     const x = conWin(), b = $("dktray"); x.w.min = !on; x.e.hidden = !on;
     if (on) { front(x.w.id); b.classList.remove("new"); const lg = $("log"); if (lg) lg.scrollTop = lg.scrollHeight; } else { const a = activeId(); if (a) front(a); else paintTabs(); }
     b.classList.toggle("on", on); b.setAttribute("aria-pressed", String(on)); P.tray = on; persist();
+    try { paintStat(); } catch (e) { /* ok */ }
   }
   const trayOpen = () => { const x = findW((v) => v.w.k === "con"); return !!x && !x.e.hidden; };
   $("dktray").addEventListener("click", () => { // open but covered: bring it to the front; only an on-top console toggles closed
@@ -896,6 +909,17 @@
     logPost = function (d) {
       const out = _lpLast.apply(this, arguments);
       try { noteLastFromNode(d); } catch (e) { /* ok */ }
+      return out;
+    };
+  }
+  if (typeof rcRefresh === "function") {
+    const _rcLast = rcRefresh;
+    rcRefresh = function (id) {
+      const out = _rcLast.apply(this, arguments);
+      try {
+        const el = document.querySelector("#log .rc[data-rcid=\"" + id + "\"]");
+        if (el) noteLastFromNode(el);
+      } catch (e) { /* ok */ }
       return out;
     };
   }

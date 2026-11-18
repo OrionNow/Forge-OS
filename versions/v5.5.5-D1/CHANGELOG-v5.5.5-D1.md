@@ -147,6 +147,12 @@ Live-table fixes from the 8fc06ae audit (host + pilot):
 2. **Taskbar unit name.** A unit window's taskbar tab is `機` plus the unit name (and `//` colour when it has one). The window title bar keeps the long `UNITS // …` form.
 3. **Targeter in view.** After the targeter renders, `.tgdrop` is scrolled into view (`block: "nearest"`), the same way as the STABILITY strip.
 
+## Pass 4 (Overseer improvement series, Nov 18)
+
+1. **LAST on damage.** A `[DMG]` update rewrites the existing ATK card through `rcRefresh`, not `logPost`. The desk now hooks `rcRefresh` the same way as `logPost`, so `LAST:` updates from the filled card (still skipping history replay, and only when the lock is hidden, the console is closed, and more than 2 seconds have passed since login).
+2. **Result first.** `LAST:` leads with the outcome (`1 HIT · +2 DoS`, then the weapon, then the caller if it is not `LOCAL`) so the result fits in the status bar. The span's `title` holds the full card text.
+3. **Clear on open.** Opening the operator console repaints the status bar so `LAST:` disappears.
+
 ## Known limits
 
 - An open native select in a unit window that is not yet the one you are using may close on the first click. The second click works.
