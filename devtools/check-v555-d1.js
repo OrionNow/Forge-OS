@@ -12,6 +12,8 @@ let fails = 0, n = 0; const ok = (c, m) => { n++; console.log((c ? 'PASS ' : 'FA
 const wait = ms => new Promise(r => setTimeout(r, ms));
 fs.mkdirSync(shots, { recursive: true });
 const shot = (p, f) => p.screenshot({ path: shots + '/' + f });
+const S4r = process.env.R4SHOTS || '/workspace/forge-os/feedback/v555-d1/round4/shots'; fs.mkdirSync(S4r, { recursive: true });
+const shot4 = (p, f) => p.screenshot({ path: S4r + '/' + f });
 const NAMES = ['MSH-01 / MUSHA TEST', 'ICR-07 / ICARUS', 'RVN-06 / RAVEN'];
 async function loadUnits(p, names, arm) {
   await p.evaluate(async ([fx, names, arm]) => {
@@ -254,7 +256,9 @@ const cyanScan = p => p.evaluate(() => {
     const shield = nw && await p.evaluate((u) => { const h = Desk.hosts().get(u + '|doll'); const r = h.firstChild ? h : h.shadowRoot; const s = r.querySelector('.shieldrow'); return !s || s.getBoundingClientRect().height > 0; /* the test frame has no shields */ }, kB);
     const impVis = nw && await p.evaluate((id) => { const e = document.querySelector(`.dkw[data-id="${id}"]`), b = e.querySelector('.dk-b').getBoundingClientRect(), s = e.querySelector('.dk-seg[data-s=impact]').getBoundingClientRect(); return { top: Math.round(s.top - b.top), bot: Math.round(b.bottom - s.bottom), title: /IMPACT/.test(e.querySelector('.dk-seg[data-s=impact] .dk-sh').textContent) }; }, nw.id);
     ok(nw && impVis.bot >= -1 && impVis.top >= 0 && impVis.title && g6.h > 500 && nw.pz === 'S', 'r3 #3: a unit window opened from the group starts taller (SMALL preset) with IMPACT RESOLUTION fully visible on open ' + JSON.stringify({ g6, impVis }));
-    ok(nw && nw.c === 1 && Math.abs(g6.w - 600) <= 2 && wide.n === 8 && !wide.bad.length && wide.sides[0] > 0 && wide.sides[1] > 0 && shield, 'a unit window created from the group opens 600 wide (ref2 width): wide doll with labels on both sides, shield row (when the frame has shields) visible ' + JSON.stringify({ g6, sides: wide && wide.sides, bad: wide && wide.bad, shield }));
+    ok(nw && nw.c === 1 && Math.abs(g6.w - 620) <= 2 && wide.n === 8 && !wide.bad.length && wide.sides[0] > 0 && wide.sides[1] > 0 && wide.below === 0 && shield, 'r4: a unit window created from the group opens 620 wide (SMALL) with the doll side by side (unstacked), shield row (when the frame has shields) visible ' + JSON.stringify({ g6, sides: wide && wide.sides, below: wide && wide.below, bad: wide && wide.bad, shield }));
+    await p.evaluate((id) => Desk.front(id), nw.id); await wait(200);
+    await shot4(p, 'r4-02-group-open-doll.png');
     await shot(p, 'r2-08-unit-from-group.png');
     // 13 console window
     const conId = await p.evaluate(() => (Desk.conWin() || {}).w ? Desk.conWin().w.id : (Desk.wins().find(w => w.k === 'con') || {}).id);
@@ -309,7 +313,7 @@ const cyanScan = p => p.evaluate(() => {
     const gid3_3 = await p.evaluate(() => Desk.wins().filter(w => w.k === 'group').pop().id);
     await p.locator(`.dkw[data-id="${gid3_3}"] .dk-card:has-text("MUSHA")`).click(); await wait(500);
     const g2_3 = await p.evaluate((id) => { const g = document.querySelector(`.dkw[data-id="${id}"]`); const cd = g.querySelector('.dk-cards').getBoundingClientRect(), gs = g.querySelector('.dk-gsel').getBoundingClientRect(), win = g.getBoundingClientRect(); const cs = [...g.querySelectorAll('.dk-card')].map(c => c.getBoundingClientRect());
-      return { n: cs.length, side: cd.left >= gs.right - 1 && win.right - cd.right < 16, vert: cs.every((c, i) => !i || (c.top >= cs[i - 1].bottom - 3 && Math.abs(c.left - cs[0].left) < 6)), cw: Math.round(cd.width), sw: Math.round(gs.width), rs: cs.map(c => [c.left | 0, c.top | 0, c.bottom | 0]), top: Math.abs(cd.top - gs.top) < 2 }; }, gid3_3);
+      return { n: cs.length, side: cd.left >= gs.right - 1 && win.right - cd.right < 16, vert: cs.every((c, i) => !i || (c.top >= cs[i - 1].bottom - 3 && Math.abs(c.left - cs[0].left) < 6)), cw: Math.round(cd.width), sw: Math.round(gs.width), rs: cs.map(c => [c.left | 0, c.top | 0, c.bottom | 0]), top: gs.top <= cd.top + 2 }; }, gid3_3);
     ok(g2_3.n >= 2 && g2_3.side && g2_3.vert && g2_3.top && g2_3.sw > 2 * g2_3.cw, 'r3 #2: the unit group window shows its mini-doll tiles as a vertical sidebar on the right, the selected unit beside it ' + JSON.stringify(g2_3));
     await shot3_3('r3-02-group-sidebar.png');
     await p.evaluate((id) => Desk.close(id), gid3_3); await wait(300);
@@ -324,11 +328,15 @@ const cyanScan = p => p.evaluate(() => {
     for (let k = 0; k < 2 && (await pzOf_3(u6_3.id)) !== 'L'; k++) { await p.click(`.dkw[data-id="${u6_3.id}"] .dk-sz`); await wait(500); }
     const mL_3 = await p.evaluate((id) => { const e = document.querySelector(`.dkw[data-id="${id}"]`), b = e.querySelector('.dk-b'), br = b.getBoundingClientRect(), col = e.querySelector('.dk-col').getBoundingClientRect(), A = document.getElementById('dkarea').getBoundingClientRect(), r = e.getBoundingClientRect();
       return { w: Math.round(r.width), aw: Math.round(A.width), gap: Math.round(br.bottom - parseFloat(getComputedStyle(b).paddingBottom) - col.bottom), scroll: b.scrollHeight > b.clientHeight + 2 ? b.scrollHeight - b.clientHeight : 0, lab: e.querySelector('.dk-t .dk-sz').textContent, pg: !!e.querySelector('.dk-seg[data-s=rolls] .dk-sec') && !Desk.hosts().get(Desk.wins().find(w => w.id === id).u + '|rolls').shadowRoot.querySelector('.pg') && !Desk.hosts().get(Desk.wins().find(w => w.id === id).u + '|rolls').querySelector('.pg') }; }, u6_3.id);
-    ok(pzBtn_3.b && pzBtn_3.left && pzBtn_3.h === 22 && mL_3.w === Math.min(1000, mL_3.aw - 16) && mL_3.gap >= 0 && mL_3.gap <= 8 && mL_3.pg && mL_3.lab === '▣ LG', 'r3 #6: the size button sits left of the NOMINAL badge; LARGE = the full sheet with the left panel exactly the window height (skill inputs collapsed) ' + JSON.stringify({ pzBtn_3, mL_3 }));
+    ok(pzBtn_3.b && pzBtn_3.left && pzBtn_3.h === 22 && mL_3.w === Math.min(1120, mL_3.aw - 16) && mL_3.gap >= 0 && mL_3.gap <= 8 && mL_3.pg && mL_3.lab === '▣ LG', 'r3 #6: the size button sits left of the NOMINAL badge; LARGE = the full sheet with the left panel exactly the window height (skill inputs collapsed) ' + JSON.stringify({ pzBtn_3, mL_3 }));
+    const largeDoll = await labels(p, u6_3.id);
+    ok(largeDoll.n === 8 && largeDoll.below === 0 && largeDoll.sides[0] > 0 && largeDoll.sides[1] > 0 && !largeDoll.bad.length, 'r4: at LARGE the default paper doll is side by side (unstacked) ' + JSON.stringify(largeDoll));
+    await p.evaluate((id) => Desk.front(id), u6_3.id); await wait(200);
+    await shot4(p, 'r4-01-large-doll.png');
     await shot3_3('r3-06a-preset-large.png');
     await p.click(`.dkw[data-id="${u6_3.id}"] .dk-sz`); await wait(500);
     const mS_3 = await p.evaluate((id) => { const e = document.querySelector(`.dkw[data-id="${id}"]`), b = e.querySelector('.dk-b').getBoundingClientRect(), im = e.querySelector('.dk-seg[data-s=impact]').getBoundingClientRect(), d = e.querySelector('.dk-seg[data-s=doll]').getBoundingClientRect(), r = e.getBoundingClientRect(); return { w: Math.round(r.width), h: Math.round(r.height), imp: Math.round(b.bottom - im.bottom), doll: d.top >= b.top - 1, lab: e.querySelector('.dk-t .dk-sz').textContent, tip: e.querySelector('.dk-t .dk-sz').title }; }, u6_3.id);
-    ok((await pzOf_3(u6_3.id)) === 'S' && mS_3.w === 600 && mS_3.imp >= -1 && mS_3.imp <= 12 && mS_3.doll && mS_3.lab === '▭ SM' && /Size preset: SMALL .* click for LARGE/.test(mS_3.tip), 'r3 #6: SMALL = doll-focused (600 wide, down to IMPACT RESOLUTION); the button cycles LARGE <-> SMALL ' + JSON.stringify(mS_3));
+    ok((await pzOf_3(u6_3.id)) === 'S' && mS_3.w === 620 && mS_3.imp >= -1 && mS_3.imp <= 12 && mS_3.doll && mS_3.lab === '▭ SM' && /Size preset: SMALL .* click for LARGE/.test(mS_3.tip), 'r3 #6: SMALL = doll-focused (620 wide, down to IMPACT RESOLUTION); the button cycles LARGE <-> SMALL ' + JSON.stringify(mS_3));
     await shot3_3('r3-06b-preset-small.png');
     await p.setViewportSize({ width: 1600, height: 900 }); await wait(500);
     // #7: right-click an encounter tile -> open its character sheet in the LARGE view
@@ -340,7 +348,7 @@ const cyanScan = p => p.evaluate(() => {
     await shot3_3('r3-07a-encounter-right-click.png');
     await p.click('#tabmenu button:has-text("Open sheet window (LARGE)")'); await wait(1200);
     const o7_3 = await p.evaluate((u) => { const w = Desk.wins().find(w => w.k === 'unit' && w.u === u), A = document.getElementById('dkarea').getBoundingClientRect(); return w && { pz: w.pz, w: Math.round(w.w), aw: Math.round(A.width), cur: Desk.curKey() === u, sheet: !!document.querySelector(`.dkw[data-id="${w.id}"] .dk-seg[data-s=sheet] .dk-sec`) }; }, kC);
-    ok(tm_3[0] === 'Open sheet window (LARGE)' && o7_3 && o7_3.pz === 'L' && o7_3.w === Math.min(1000, o7_3.aw - 16) && o7_3.cur && o7_3.sheet, 'r3 #7: right-clicking an encounter tile offers "Open sheet window (LARGE)", which opens it in the LARGE view ' + JSON.stringify({ tm_3, o7_3 }));
+    ok(tm_3[0] === 'Open sheet window (LARGE)' && o7_3 && o7_3.pz === 'L' && o7_3.w === Math.min(1120, o7_3.aw - 16) && o7_3.cur && o7_3.sheet, 'r3 #7: right-clicking an encounter tile offers "Open sheet window (LARGE)", which opens it in the LARGE view ' + JSON.stringify({ tm_3, o7_3 }));
     await shot3_3('r3-07b-sheet-opened-large.png');
     // #10: pilot / owner name next to the mech name (solo: tab colour for a named pilot, LOCAL in grey otherwise)
     await p.evaluate((u) => { const S = Forge.state(); const i = S.sheets.findIndex(s => Desk.ukey(s) === u); shClick(i); S.own = 'VEGA'; Forge.save(); Forge.render(); }, kA); await wait(800);
@@ -362,6 +370,35 @@ const cyanScan = p => p.evaluate(() => {
     await shot3_3('r3-11-pilot-name-focused-amber.png');
     ok(cr11.on && cr11.title.opaque && cr11.title.cr >= 4.5 && cr11.title.before && cr11.title.fs === '11px' && cr11.tab && cr11.tab.opaque && cr11.tab.cr >= 4.5 && cr11.tab.fs === '11px' && /\/\/ PILOT: VEGA/.test(cr11.tip), 'Misaki fix 1+5: the pilot name on a focused title bar and the acting tab sits on the page background (contrast >= 4.5:1 on REMUS amber), 11px, and is in the tab tooltip ' + JSON.stringify(cr11));
     await theme3('IMPERIAL NAVY');
+    // r4: colour selector in the mini-doll sidebar; pilot name on each card
+    const colA4 = await p.evaluate(([a, b]) => { const S = Forge.state(), ia = S.sheets.findIndex(s => Desk.ukey(s) === a), ib = S.sheets.findIndex(s => Desk.ukey(s) === b); if (ia >= 0) { shClick(ia); S.own = 'VEGA'; if (S.sheets[ia].d) S.sheets[ia].d.own = 'VEGA'; } const c = ia >= 0 ? (S.sheets[ia].col || 0) : 1; if (ib >= 0) { S.sheets[ib].col = c; if (S.sheets[ib].d) S.sheets[ib].d.own = ''; } Forge.render(); return c; }, [kA, kB]); await wait(300);
+    await p.click('.dk-ico[data-ico=units]'); await wait(700);
+    const gid4 = await p.evaluate(() => Desk.wins().filter(w => w.k === 'group').pop().id);
+    await p.evaluate((id) => { Desk.restore(id); Desk.geo(id, { x: 88, y: 8, w: 840, h: 700 }); Desk.front(id); }, gid4); await wait(300);
+    if (await p.evaluate((id) => document.querySelectorAll(`.dkw[data-id="${id}"] .sw button[data-c]`).length === 0, gid4)) {
+      await p.click(`.dkw[data-id="${gid4}"] [data-swt]`); await wait(300);
+    }
+    await p.click(`.dkw[data-id="${gid4}"] .sw button[data-c="${colA4}"]`); await wait(400);
+    const r4g = await p.evaluate((id) => {
+      const g = document.querySelector(`.dkw[data-id="${id}"]`), sw = g.querySelector('.sw').getBoundingClientRect(), cd = g.querySelector('.dk-cards').getBoundingClientRect(), gs = g.querySelector('.dk-gsel').getBoundingClientRect(), win = g.querySelector('.dk-b').getBoundingClientRect();
+      const cards = [...g.querySelectorAll('.dk-card')].map(c => {
+        const pil = c.querySelector('.nm2 .dk-pil'), nm = c.querySelector('.nm2');
+        const cs = pil && getComputedStyle(pil);
+        return { n: (nm && nm.textContent) || '', name: c.querySelector('.nm2') && [...c.querySelector('.nm2').childNodes].filter(n => n.nodeType === 3).map(n => n.textContent).join('').trim(), pil: pil && pil.textContent, tip: pil && pil.title, ctip: c.title, fs: cs && cs.fontSize, col: cs && cs.color, omit: !pil, overflow: nm && (nm.getBoundingClientRect().right > c.getBoundingClientRect().right + 1 || c.scrollWidth > c.clientWidth + 1) };
+      });
+      return { inBar: sw.left >= cd.left - 4 && sw.right <= cd.right + 4 && sw.bottom <= cd.top + 2 && sw.top >= win.top - 2, side: cd.left >= gs.right - 1 && win.right - cd.right < 16, expanded: g.querySelectorAll('.sw button[data-c]').length === 6, cards };
+    }, gid4);
+    ok(r4g.inBar && r4g.side && r4g.expanded, 'r4: the tab-colour selector sits in the right-hand mini-doll sidebar, above the cards ' + JSON.stringify({ inBar: r4g.inBar, side: r4g.side, expanded: r4g.expanded }));
+    const vega = r4g.cards.find(c => /MUSHA/.test(c.name) || /MUSHA/.test(c.n));
+    const loc = r4g.cards.find(c => /ICARUS/.test(c.name) || /ICARUS/.test(c.n));
+    const muted4 = await p.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue('--muted').trim() || getComputedStyle(document.body).getPropertyValue('--muted').trim());
+    const vegaCol = await p.evaluate((c) => (typeof SH_COL !== 'undefined' && SH_COL[c]) || '', colA4);
+    ok(vega && vega.pil === 'VEGA' && /\/\/ PILOT: VEGA/.test(vega.tip) && /\/\/ PILOT: VEGA/.test(vega.ctip) && vega.fs === '11px' && !vega.overflow && await colEq_3(vega.col, vegaCol), 'r4: the group card shows the pilot after the mech name (11px, tab colour, tooltip // PILOT: name, no overflow) ' + JSON.stringify({ vega, vegaCol, colA4, cards: r4g.cards }));
+    ok(loc && loc.pil === 'LOCAL' && /\/\/ PILOT: LOCAL/.test(loc.tip) && !loc.overflow && await colEq_3(loc.col, muted4), 'r4: a group card with no named pilot shows LOCAL in grey and does not overflow ' + JSON.stringify({ loc, muted4 }));
+    const cardSel4 = vega ? `.dkw[data-id="${gid4}"] .dk-card:has-text("MUSHA")` : `.dkw[data-id="${gid4}"] .dk-card`;
+    await p.locator(cardSel4).first().click({ timeout: 5000 }).catch(() => {}); await wait(400);
+    await shot4(p, 'r4-03-group-sidebar-selector-pilot.png');
+    await p.evaluate((id) => Desk.close(id), gid4); await wait(300);
     // #1: a sheet with a shield takes no more vertical space than one without (wide and narrow doll)
     const shM = (u, add) => p.evaluate(async ([u, add]) => { const S = Forge.state();
       if (add) { const sd = DB.find(x => isShield(x)); S.items.push(Object.assign(structuredClone(sd), { mount: 'LH' })); } else S.items = S.items.filter(x => !isShield(x));
@@ -372,7 +409,7 @@ const cyanScan = p => p.evaluate(() => {
       return { h: Math.round(document.querySelector(`.dkw[data-id="${w.id}"] .dk-seg[data-s=doll]`).getBoundingClientRect().height), row: !!(rr && rr.height > 0), up: !!(rr && rr.top < mr.bottom), ovl, name: add ? DB.find(x => isShield(x)).n : '' }; }, [u, add]);
     await p.evaluate((u) => { const S = Forge.state(); shClick(S.sheets.findIndex(s => Desk.ukey(s) === u)); }, kA); await wait(500);
     const wA = (await uw(p)).find(w => w.u === kA);
-    await p.evaluate((id) => Desk.geo(id, { w: 1000, h: 860 }), wA.id); await wait(400);
+    await p.evaluate((id) => Desk.geo(id, { w: 1120, h: 860 }), wA.id); await wait(400);
     const sW0 = await shM(kA, false), sW1 = await shM(kA, true);
     await shot3_3('r3-01-shield-tile.png');
     await p.evaluate((id) => Desk.geo(id, { w: 480 }), wA.id); await wait(500);
@@ -391,6 +428,8 @@ const cyanScan = p => p.evaluate(() => {
       return { pz: w.pz, y: Math.round(w.y), h: Math.round(w.h), shield: !!sr.querySelector('.shieldrow .mlab'), impBot: Math.round(b.bottom - im.bottom), impTop: Math.round(im.top - b.top), apply: apr ? Math.round(b.bottom - apr.bottom) : null }; }, kB);
     await shot3_3('r3-12-large-1366-impact.png');
     ok(i12.shield && i12.impBot >= 0 && i12.impTop >= 0 && i12.apply !== null && i12.apply >= 0, 'Misaki fix 2: at 1366x768 a unit with a shield auto-opens with IMPACT RESOLUTION and its [APPLY] row fully visible (LARGE, or SMALL when LARGE would hide it) ' + JSON.stringify(i12));
+    const i12doll = await labels(p, await p.evaluate((u) => Desk.wins().find(w => w.k === 'unit' && w.u === u).id, kB));
+    ok(i12doll.n >= 8 && i12doll.below === 0 && i12doll.sides[0] > 0 && i12doll.sides[1] > 0 && !i12doll.bad.length, 'r4: at 1366x768 the auto-opened sheet (LARGE, or SMALL fallback) still shows the doll side by side ' + JSON.stringify({ pz: i12.pz, doll: i12doll }));
     await p.evaluate(() => { const S = Forge.state(); S.items = S.items.filter(x => !isShield(x)); Forge.render(); }); await wait(400);
     await p.setViewportSize({ width: 1600, height: 900 }); await wait(500);
     // settings, 7 REMUS accents

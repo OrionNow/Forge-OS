@@ -15,10 +15,10 @@
 ## Units
 
 - **Tabbed UNIT windows, all units live.** Units are tabs in unit windows. The first time a unit opens, it goes into the window for its tab colour; that window is created if needed, and units with no colour share a grey window. Changing a unit's colour later does not move it. Drag a tab onto another unit window to move it there. Drop it on the desktop to tear it off into a window of its own. × on a tab closes it, and the last tab closes the window. Each tab is the combined unit view: paper doll and telemetry, impact resolution, rolls // skills // heat (skill inputs collapsed inside it), character sheet, loadout. The active tab is the acting unit. Background tabs keep rendering from their own data, so health stays live, and permissions are unchanged.
-- **Narrow paper doll.** When the doll section is under 560 px wide, the doll sits on top and the 8 parts sit under it in two even columns (4 + 4). A unit window at about 600 x 500 keeps the wide doll, with labels on both sides.
+- **Narrow paper doll.** When the doll section is under 560 px wide, the doll sits on top and the 8 parts sit under it in two even columns (4 + 4). A unit window at the SMALL preset (620 wide) keeps the wide doll, with labels on both sides.
 - **Sections.** Each section collapses in place or pops out into its own window. Popped sections stay live and dock back with ⇲.
 - **Permissions (live table).** Rolling and editing stay with the host and the unit's assigned pilot, enforced by the 5.5.5 bridge guards ("ASSIGNED PILOT OR HOST ONLY"). Everyone else gets view-only live health: no skills, rolls or loadout roll buttons.
-- **UNIT GROUP windows.** Choose a tab colour to get mini paper-doll cards with name and condition. The cards keep the tab colour but drop the selected-part highlight. The TAB COLOUR selector collapses to the current colour. Clicking a card selects it, and that unit's paper doll and impact resolution open in the group's SELECTED UNIT area: live, with the same roll and edit permissions as anywhere else. [OPEN ↗] or a double-click on a card focuses the unit's tab in its window. A new window opened this way is about 600 x 500. Several group windows can be open at once.
+- **UNIT GROUP windows.** Choose a tab colour to get mini paper-doll cards with name and condition. The cards keep the tab colour but drop the selected-part highlight. The TAB COLOUR selector collapses to the current colour. Clicking a card selects it, and that unit's paper doll and impact resolution open in the group's SELECTED UNIT area: live, with the same roll and edit permissions as anywhere else. [OPEN ↗] or a double-click on a card focuses the unit's tab in its window. A new window opened this way is the SMALL preset (620 wide). Several group windows can be open at once.
 - **Auto-open.** Solo opens up to six units as tabs. On the live table it opens your own units plus up to two more. Open the rest from the ENCOUNTER tabs or a group card. The ENCOUNTER window has no sheet search bar.
 
 ## Console, settings, keys
@@ -97,6 +97,13 @@ UI SCALE is unchanged. Tests: the D1 suite adds checks for all ten items; the ea
    - login labels and layout buttons
 
    The encounter tile menu item is now **Open sheet window (LARGE)**.
+
+
+## Round 4 (Overseer feedback, Nov 18)
+
+1. **Side-by-side doll at the default sizes.** LARGE is 1120 wide (was 1000) so the left column is just wide enough for the paper doll's part labels to sit on both sides of the doll, not stacked 4 + 4 underneath. A unit window opened from a group, and the SMALL preset, are 620 wide (was 600) so the same layout holds even when a classic scrollbar takes a little width. Auto-open still falls back to SMALL when LARGE would hide IMPACT RESOLUTION (for example at 1366 x 768).
+2. **Group colour selector.** The collapsible ▾ TAB COLOUR picker now sits at the top of the right-hand mini-doll sidebar, above the cards. SELECTED UNIT still fills the left of the window.
+3. **Pilot name on group cards.** Each mini paper-doll card shows the pilot name after the mech name, in the same colour rules as the unit window (11 px, tooltip `// PILOT: <name>`). It is omitted when there is no pilot, and a long name ellipsizes so it stays inside the card.
 
 ## Known limits
 
