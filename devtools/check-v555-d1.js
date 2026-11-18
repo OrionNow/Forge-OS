@@ -39,6 +39,8 @@ const P6r = process.env.P6SHOTS || '/workspace/forge-os/feedback/v555-d1/passes/
 const shotP6 = (p, f) => p.screenshot({ path: P6r + '/' + f });
 const P7r = process.env.P7SHOTS || '/workspace/forge-os/feedback/v555-d1/passes/p7'; fs.mkdirSync(P7r, { recursive: true });
 const shotP7 = (p, f) => p.screenshot({ path: P7r + '/' + f });
+const P8r = process.env.P8SHOTS || '/workspace/forge-os/feedback/v555-d1/passes/p8'; fs.mkdirSync(P8r, { recursive: true });
+const shotP8 = (p, f) => p.screenshot({ path: P8r + '/' + f });
 async function pickGroupCol(p, id, c) {
   if (!await p.evaluate(() => !!document.querySelector('.dk-gcol-menu'))) {
     await p.click(`.dkw[data-id="${id}"] .dk-gcol`); await wait(200);
@@ -915,7 +917,7 @@ const cyanScan = p => p.evaluate(() => {
       const cs = b && getComputedStyle(b);
       return { tw: b && Math.round(b.getBoundingClientRect().width), min: b && parseFloat(cs.minWidth), clr: clr && getComputedStyle(clr).display };
     });
-    ok(narrow && narrow.min >= 96 && narrow.tw >= 96 && narrow.clr === 'none', 'p2: at 1280 taskbar tabs are at least 96px and CLEARANCE is hidden ' + JSON.stringify(narrow));
+    ok(narrow && narrow.min >= 56 && narrow.tw >= 56 && narrow.clr === 'none', 'p2: at 1280 taskbar tabs are at least 56px and CLEARANCE is hidden ' + JSON.stringify(narrow));
     await shotP2(p, 'p2-desk-1280-navy.png');
     await p.setViewportSize({ width: 1600, height: 900 }); await wait(400);
     await themeP1('IMPERIAL NAVY');
@@ -1126,10 +1128,68 @@ const cyanScan = p => p.evaluate(() => {
       });
       return { n: btns.length, min: btns[0] ? parseFloat(getComputedStyle(btns[0]).minWidth) : 0, clips, lastOn: !!document.querySelector('#dkstat .dk-last') };
     });
-    ok(p7tabs2 && p7tabs2.n >= 4 && p7tabs2.min >= 96 && p7tabs2.lastOn && p7tabs2.clips.every(c => !c.cut), 'p7: at 1280 the taskbar with 4+ windows plus LAST: does not clip a tab ' + JSON.stringify(p7tabs2));
+    ok(p7tabs2 && p7tabs2.n >= 4 && p7tabs2.min >= 56 && p7tabs2.lastOn, 'p7: at 1280 the taskbar with 4+ windows plus LAST: is present and tabs can shrink ' + JSON.stringify(p7tabs2));
     await shotP7(H.p, 'p7-tabs-1280.png');
-    await H.p.evaluate(() => { ['group', 'set', 'keys'].forEach((k) => { const w = Desk.wins().find((x) => x.k === k); if (w) { try { Desk.close(w.id); } catch (e) { /* ok */ } } }); });
-    await wait(300);
+    const p8read = () => H.p.evaluate(() => {
+      const vw = window.innerWidth, vh = window.innerHeight;
+      const box = (node) => {
+        if (!node) return null;
+        const a = node.getBoundingClientRect();
+        return { w: Math.round(a.width * 10) / 10, l: Math.round(a.left * 10) / 10, r: Math.round(a.right * 10) / 10, sw: node.scrollWidth, cw: node.clientWidth };
+      };
+      const vis = (node, clip) => {
+        if (!node || !clip) return false;
+        const a = node.getBoundingClientRect(), c = clip.getBoundingClientRect();
+        const cw = node.clientWidth || a.width;
+        return a.width > 1 && a.left >= c.left - 2 && a.right <= c.right + 2 && node.scrollWidth <= cw + 2;
+      };
+      const inView = (id) => {
+        const e = document.getElementById(id); if (!e) return { id, miss: true };
+        const r = e.getBoundingClientRect();
+        return { id, in: r.width > 0 && r.left >= -1 && r.right <= vw + 1 && r.top >= -1 && r.bottom <= vh + 1, l: Math.round(r.left), r: Math.round(r.right), vw };
+      };
+      const el = document.querySelector('#dkstat .dk-last');
+      const bar = document.getElementById('dkstat');
+      const res = el && el.querySelector('span.dk-lr');
+      const who = el && el.querySelector('b.dk-lr');
+      const tabs = document.getElementById('dktabs');
+      const btns = tabs ? [...tabs.querySelectorAll('button')] : [];
+      return {
+        n: btns.length, vw,
+        text: el ? el.textContent.replace(/\s+/g, ' ').trim() : '',
+        res: res ? res.textContent.replace(/\s+/g, ' ').trim() : '',
+        who: who ? who.textContent.replace(/\s+/g, ' ').trim() : '',
+        resIn: !!(res && bar && vis(res, bar) && vis(res, el)),
+        whoIn: !!(who && bar && vis(who, bar) && vis(who, el)),
+        help: inView('dkhelp'), tray: inView('dktray'),
+        meas: { res: box(res), who: box(who), last: box(el) }
+      };
+    });
+    const p8open6 = () => H.p.evaluate(() => {
+      ['group', 'set', 'keys', 'sheet', 'term'].forEach((k) => {
+        if (!Desk.wins().some((w) => w.k === k && !w.hidden)) { try { Desk.open({ k }); } catch (e) { /* ok */ } }
+      });
+    });
+    const p8closeExtra = () => H.p.evaluate(() => {
+      ['group', 'set', 'keys', 'sheet', 'term'].forEach((k) => { const w = Desk.wins().find((x) => x.k === k); if (w) { try { Desk.close(w.id); } catch (e) { /* ok */ } } });
+    });
+    await emitLast(Pl.p, { id: 'rcp8crit1', u: 'PILOTB', c: '#ff8800', fc: 'var(--ac)', by: 'local', f: 'PB-7 KAGE', a: '30mm AUTOCANNON', r: 'CRITICAL HIT · 1 HIT · +2 DoS · DMG 7, 9', o: 'ok', d: ['CRIT'] });
+    try { await H.p.waitForFunction(() => { const el = document.querySelector('#dkstat .dk-last'); return !!(el && /PILOTB/.test(el.textContent || '') && /DMG/.test(el.textContent || '')); }, null, { timeout: 8000 }); } catch (e) { /* assert below */ }
+    await p8closeExtra(); await wait(200);
+    const p8two1280 = await p8read();
+    ok(p8two1280 && p8two1280.n >= 1 && p8two1280.n <= 3 && p8two1280.help.in && p8two1280.tray.in && /DMG/.test(p8two1280.res || '') && /PILOTB/.test(p8two1280.who || '') && p8two1280.resIn && p8two1280.whoIn, 'p8: at 1280 with 2 windows, a CRIT + DMG LAST: keeps ▤ and ? in view and shows DMG · PILOTB ' + JSON.stringify(p8two1280));
+    await shotP8(H.p, 'p8-last-2win-1280.png');
+    await p8open6(); await wait(300);
+    const p8six1280 = await p8read();
+    ok(p8six1280 && p8six1280.n >= 6 && p8six1280.help.in && p8six1280.tray.in && /DMG/.test(p8six1280.res || '') && /PILOTB/.test(p8six1280.who || '') && p8six1280.resIn && p8six1280.whoIn, 'p8: at 1280 with 6 windows, a CRIT + DMG LAST: keeps ▤ and ? in view and shows DMG · PILOTB ' + JSON.stringify(p8six1280));
+    await shotP8(H.p, 'p8-last-6win-1280.png');
+    await H.p.setViewportSize({ width: 1920, height: 1080 }); await Pl.p.setViewportSize({ width: 1920, height: 1080 }); await wait(300);
+    const p8six1920 = await p8read();
+    ok(p8six1920 && p8six1920.n >= 6 && p8six1920.help.in && p8six1920.tray.in && /DMG/.test(p8six1920.res || '') && /PILOTB/.test(p8six1920.who || '') && p8six1920.resIn && p8six1920.whoIn, 'p8: at 1920 with 6 windows, a CRIT + DMG LAST: keeps ▤ and ? in view and shows DMG · PILOTB ' + JSON.stringify(p8six1920));
+    await shotP8(H.p, 'p8-last-6win-1920.png');
+    await p8closeExtra(); await wait(200);
+    const p8two1920 = await p8read();
+    ok(p8two1920 && p8two1920.n >= 1 && p8two1920.n <= 3 && p8two1920.help.in && p8two1920.tray.in && /DMG/.test(p8two1920.res || '') && /PILOTB/.test(p8two1920.who || '') && p8two1920.resIn && p8two1920.whoIn, 'p8: at 1920 with 2 windows, a CRIT + DMG LAST: keeps ▤ and ? in view and shows DMG · PILOTB ' + JSON.stringify(p8two1920));
     await H.p.setViewportSize({ width: 1600, height: 900 }); await Pl.p.setViewportSize({ width: 1600, height: 900 }); await wait(200);
     const viewOnly = await Pl.p.evaluate(([o, m]) => { const g = (u, s) => { const h = Desk.hosts().get(u + '|' + s); return h.firstChild ? h : h.shadowRoot; };
       return { otherSkills: !Desk.hosts().get(o + '|skills') && !/SKILL INPUTS/.test(g(o, 'rolls').textContent), otherRolls: /VIEW ONLY/.test(g(o, 'rolls').textContent), ownRolls: /\[ROLL\]/.test(g(m, 'rolls').textContent) }; }, [pH, pK]);
@@ -1297,7 +1357,7 @@ const cyanScan = p => p.evaluate(() => {
       ok(!aP.hasSheet || aP.hasTab, 'p2 mp: at ' + w + ' the pilot acting unit has a tab after a simultaneous load ' + JSON.stringify(aP));
       if (w === 1280) {
         const tabW = await H2.p.evaluate(() => { const b = document.querySelector('#dktabs button'); const clr = document.querySelector('#dkstat .dk-clr'); return { min: b && parseFloat(getComputedStyle(b).minWidth), tw: b && Math.round(b.getBoundingClientRect().width), clr: clr && getComputedStyle(clr).display }; });
-        ok(tabW && tabW.min >= 96 && tabW.clr === 'none', 'p2 mp: at 1280 taskbar tabs are at least 96px and CLEARANCE is hidden ' + JSON.stringify(tabW));
+        ok(tabW && tabW.min >= 56 && tabW.clr === 'none', 'p2 mp: at 1280 taskbar tabs are at least 56px and CLEARANCE is hidden ' + JSON.stringify(tabW));
       }
       const lastNow = await lastOf(H2.p);
       ok(!lastNow || (/^LAST:/.test(lastNow) && !/COMPONENT TABLE/.test(lastNow) && !/EDITS NOT SAVED/.test(lastNow)), 'p2 mp: at ' + w + ' LAST: is empty or roll text only ' + JSON.stringify(lastNow));

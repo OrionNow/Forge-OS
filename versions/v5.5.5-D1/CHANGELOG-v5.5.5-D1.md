@@ -167,6 +167,10 @@ Live-table fixes from the 8fc06ae audit (host + pilot):
 1. **LAST does not clip the result or callsign.** The status line is `LAST:` + the result + the callsign (if not `LOCAL`) + the detail. Only the detail is allowed to ellipsize. In `LAST:` only, `CRITICAL` is shortened to `CRIT`. The title still holds the full card text. The STABILITY and solo order is unchanged.
 2. **Narrow taskbar tabs.** Below 1366 px, taskbar tabs use a 96 px minimum width so the last tab is less likely to clip when four or more windows are open and `LAST:` is showing.
 
+## Pass 8 (Overseer improvement series, Nov 18)
+
+1. **A long LAST does not push the tray off-screen.** With three or more windows, `#dktabs` can shrink or scroll (`min-width:0`). `?` and `▤` do not shrink. Below 1600 px, while `LAST:` is showing, `#dkstat` hides everything except `ACTING`/`VIEWING` and `LAST:`. Below 1366 px, tab minimum width is 56 px. Only the LAST detail ellipsizes; the result and callsign stay intact.
+
 ## Known limits
 
 - An open native select in a unit window that is not yet the one you are using may close on the first click. The second click works.
