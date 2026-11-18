@@ -175,6 +175,10 @@ Live-table fixes from the 8fc06ae audit (host + pilot):
 
 1. **ACTING stays whole.** `#dkstat .act` no longer shrinks or ellipsizes, so `ACTING:` (and `ACTING: … (MIN)`) stays at full width. The `(MIN)` restore control stays visible. While `LAST:` is showing, non-essential status items are hidden at every width, not only below 1600 px. At 1366 px and wider, taskbar tabs use a 96 px minimum width.
 
+## Pass 10 (Overseer improvement series, Nov 18)
+
+1. **Taskbar tab overflow.** The 96 px tab minimum applies from 1600 px up, so tabs can overflow and scroll at 1366. `paintTabs` scrolls the active tab into view without moving the page or the windows. A wheel gesture on the tab strip maps vertical delta to horizontal `scrollLeft`, and only prevents the default when the strip actually scrolls.
+
 ## Known limits
 
 - An open native select in a unit window that is not yet the one you are using may close on the first click. The second click works.

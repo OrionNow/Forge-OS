@@ -43,6 +43,8 @@ const P8r = process.env.P8SHOTS || '/workspace/forge-os/feedback/v555-d1/passes/
 const shotP8 = (p, f) => p.screenshot({ path: P8r + '/' + f });
 const P9r = process.env.P9SHOTS || '/workspace/forge-os/feedback/v555-d1/passes/p9'; fs.mkdirSync(P9r, { recursive: true });
 const shotP9 = (p, f) => p.screenshot({ path: P9r + '/' + f });
+const P10r = process.env.P10SHOTS || '/workspace/forge-os/feedback/v555-d1/passes/p10'; fs.mkdirSync(P10r, { recursive: true });
+const shotP10 = (p, f) => p.screenshot({ path: P10r + '/' + f });
 async function pickGroupCol(p, id, c) {
   if (!await p.evaluate(() => !!document.querySelector('.dk-gcol-menu'))) {
     await p.click(`.dkw[data-id="${id}"] .dk-gcol`); await wait(200);
@@ -1268,6 +1270,74 @@ const cyanScan = p => p.evaluate(() => {
     const p9nolast = await p9read();
     ok(p9nolast && p9nolast.n >= 4 && !p9nolast.lastOn && p9nolast.actIn && /^ACTING: /.test(p9nolast.act || '') && !/\.\.\.|…/.test(p9nolast.act || ''), 'p9: at 1280 with 4+ windows and no LAST, ACTING is not clipped ' + JSON.stringify(p9nolast));
     await shotP9(H.p, 'p9-acting-nolast-1280.png');
+    await p9closeExtra(); await wait(200);
+    const p10probe = () => H.p.evaluate(() => {
+      const tabs = document.getElementById('dktabs');
+      const tb = tabs && tabs.getBoundingClientRect();
+      const btns = tabs ? [...tabs.querySelectorAll('button')] : [];
+      const vis = (b) => {
+        if (!b || !tb) return false;
+        const r = b.getBoundingClientRect();
+        return r.width > 0 && r.left >= tb.left - 2 && r.right <= tb.right + 2;
+      };
+      const inView = (id) => {
+        const e = document.getElementById(id); if (!e) return { id, miss: true };
+        const r = e.getBoundingClientRect(), vw = window.innerWidth, vh = window.innerHeight;
+        return { id, in: r.width > 0 && r.left >= -1 && r.right <= vw + 1 && r.top >= -1 && r.bottom <= vh + 1, l: Math.round(r.left), r: Math.round(r.right), vw };
+      };
+      const reached = [];
+      for (const b of btns) {
+        let n = 0;
+        while (!vis(b) && n < 50) {
+          const before = tabs.scrollLeft;
+          const need = b.getBoundingClientRect().left < tb.left ? -120 : 120;
+          tabs.dispatchEvent(new WheelEvent('wheel', { deltaY: need, bubbles: true, cancelable: true }));
+          if (tabs.scrollLeft === before) break;
+          n++;
+        }
+        reached.push({ vis: vis(b), t: (b.getAttribute('title') || b.textContent || '').trim() });
+      }
+      const on = tabs && tabs.querySelector('button.on');
+      const wins = [...document.querySelectorAll('.dkw')].map((e) => { const r = e.getBoundingClientRect(); return { id: e.dataset.id, st: e.scrollTop, sl: e.scrollLeft, x: Math.round(r.x), y: Math.round(r.y) }; });
+      return {
+        n: btns.length, vw: window.innerWidth,
+        overflow: !!(tabs && tabs.scrollWidth > tabs.clientWidth + 1),
+        min: btns[0] ? parseFloat(getComputedStyle(btns[0]).minWidth) : 0,
+        allReached: reached.length === btns.length && reached.every((x) => x.vis),
+        reached,
+        onVis: !!(on && vis(on)),
+        page: { x: window.scrollX, y: window.scrollY },
+        help: inView('dkhelp'), tray: inView('dktray'),
+        wins
+      };
+    });
+    const p10frontLast = () => H.p.evaluate(() => {
+      const wins0 = [...document.querySelectorAll('.dkw')].map((e) => { const r = e.getBoundingClientRect(); return { id: e.dataset.id, st: e.scrollTop, sl: e.scrollLeft, x: Math.round(r.x), y: Math.round(r.y) }; });
+      const tabs = document.getElementById('dktabs');
+      const btns = tabs ? [...tabs.querySelectorAll('button')] : [];
+      const last = btns[btns.length - 1];
+      const id = last && last.dataset.id;
+      if (id && typeof Desk.front === 'function') Desk.front(id);
+      const tb = tabs && tabs.getBoundingClientRect();
+      const on = tabs && tabs.querySelector('button.on');
+      const r = on && on.getBoundingClientRect();
+      const onVis = !!(on && r && r.width > 0 && r.left >= tb.left - 2 && r.right <= tb.right + 2);
+      const wins1 = [...document.querySelectorAll('.dkw')].map((e) => { const r = e.getBoundingClientRect(); return { id: e.dataset.id, st: e.scrollTop, sl: e.scrollLeft, x: Math.round(r.x), y: Math.round(r.y) }; });
+      const same = JSON.stringify(wins0.map((w) => [w.id, w.st, w.sl, w.x, w.y])) === JSON.stringify(wins1.map((w) => [w.id, w.st, w.sl, w.x, w.y]));
+      return { id, onVis, onId: on && on.dataset.id, page: { x: window.scrollX, y: window.scrollY }, winsStill: same };
+    });
+    await p9open8(); await wait(300);
+    await H.p.setViewportSize({ width: 1366, height: 768 }); await Pl.p.setViewportSize({ width: 1366, height: 768 }); await wait(300);
+    const p10a = await p10probe();
+    const p10b = await p10frontLast();
+    ok(p10a && p10a.n >= 8 && p10a.overflow && p10a.allReached && p10a.help.in && p10a.tray.in && p10a.page.x === 0 && p10a.page.y === 0, 'p10: at 1366 with 8 windows, every taskbar tab is reachable by wheel scroll and ▤ and ? stay on-screen ' + JSON.stringify(p10a));
+    ok(p10b && p10b.onVis && p10b.onId === p10b.id && p10b.page.x === 0 && p10b.page.y === 0 && p10b.winsStill, 'p10: at 1366 the just-opened or active taskbar tab is scrolled into view without moving the page or the windows ' + JSON.stringify(p10b));
+    await shotP10(H.p, 'p10-tabs-1366.png');
+    await H.p.setViewportSize({ width: 1280, height: 800 }); await Pl.p.setViewportSize({ width: 1280, height: 800 }); await wait(300);
+    const p10c = await p10probe();
+    const p10d = await p10frontLast();
+    ok(p10c && p10c.n >= 8 && p10c.allReached && p10c.help.in && p10c.tray.in && p10c.page.x === 0 && p10c.page.y === 0, 'p10: at 1280 with 8 windows, every taskbar tab is reachable by wheel scroll and ▤ and ? stay on-screen ' + JSON.stringify(p10c));
+    ok(p10d && p10d.onVis && p10d.onId === p10d.id && p10d.page.x === 0 && p10d.page.y === 0 && p10d.winsStill, 'p10: at 1280 the just-opened or active taskbar tab is scrolled into view without moving the page or the windows ' + JSON.stringify(p10d));
     await p9closeExtra(); await wait(200);
     await H.p.setViewportSize({ width: 1600, height: 900 }); await Pl.p.setViewportSize({ width: 1600, height: 900 }); await wait(200);
     const viewOnly = await Pl.p.evaluate(([o, m]) => { const g = (u, s) => { const h = Desk.hosts().get(u + '|' + s); return h.firstChild ? h : h.shadowRoot; };
