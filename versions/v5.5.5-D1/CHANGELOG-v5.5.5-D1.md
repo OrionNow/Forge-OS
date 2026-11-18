@@ -102,8 +102,18 @@ UI SCALE is unchanged. Tests: the D1 suite adds checks for all ten items; the ea
 ## Round 4 (Overseer feedback, Nov 18)
 
 1. **Side-by-side doll at the default sizes.** LARGE is 1120 wide (was 1000) so the left column is just wide enough for the paper doll's part labels to sit on both sides of the doll, not stacked 4 + 4 underneath. A unit window opened from a group, and the SMALL preset, are 620 wide (was 600) so the same layout holds even when a classic scrollbar takes a little width. Auto-open still falls back to SMALL when LARGE would hide IMPACT RESOLUTION (for example at 1366 x 768).
-2. **Group colour selector.** The collapsible ▾ TAB COLOUR picker now sits at the top of the right-hand mini-doll sidebar, above the cards. SELECTED UNIT still fills the left of the window.
+2. **Group colour dropdown.** The group window's tab-colour control is a dropdown in the title bar: a small swatch, the colour name, and ▾, styled like the other title-bar buttons, at 12 px. Click it (including the first click when the window is in the background) to open a list of colours, NONE included. A pick, an outside click, or Escape closes it, and the list is keyboard-friendly (arrows, Home, End, Enter, Esc). The mini-doll cards start at the top of the right-hand sidebar. (This replaces the earlier sidebar ▾ TAB COLOUR picker.)
 3. **Pilot name on group cards.** Each mini paper-doll card shows the pilot name after the mech name, in the same colour rules as the unit window (11 px, tooltip `// PILOT: <name>`). It is omitted when there is no pilot, and a long name ellipsizes so it stays inside the card.
+
+### Review polish (Misaki)
+
+1. **▣ LG no longer covers ENCOUNTER.** The size button uses the same ENCOUNTER floor as a new window, and only lifts as far as needed to keep IMPACT RESOLUTION in view. Auto-open still falls back to SMALL when LARGE would hide it.
+2. **Solo cards omit LOCAL.** Mini-doll cards show a pilot only when it is a real name, not the grey LOCAL / Open / Closed label (that still appears on the unit window's title bar and tab).
+3. **Even mini-doll cards.** Cards in the group sidebar all have the same width and left edge.
+4. **Card status.** STATUS and INTEGRITY sit on two lines, so `//` is not left wrapping on its own.
+5. **Colour dropdown, not a sidebar picker.** The Overseer moved the selector into the title-bar dropdown (see Round 4 item 2), so the mini dolls start at the top of the sidebar and the third card stays in view at 1366. Shot: `r4-07-group-colour-dropdown.png`.
+6. **Open from group.** A new unit window opened from a group starts just below ENCOUNTER, not over it at y=40.
+7. **Tab pilot name** can be up to 140 px (was 110) before it ellipsizes.
 
 ## Known limits
 

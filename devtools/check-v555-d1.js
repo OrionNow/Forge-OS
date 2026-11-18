@@ -1,6 +1,6 @@
 // FORGE-OS v5.5.5-D1 desktop checks (Overseer spec feedback/v555-d1/SPEC.md + round2/NOTES.md). Usage: node check-v555-d1.js [base] [shotdir]
 // Solo: login form (no role rows, layout toggle), icons under windows, tabbed unit windows (colour routing on first open, tab drag,
-// no move on colour change, background tabs live), narrow 4+4 doll, window chrome, sections, group window (collapsible selector,
+// no move on colour change, background tabs live), narrow 4+4 doll, window chrome, sections, group window (title-bar colour dropdown,
 // mini dolls, SELECTED UNIT area, OPEN / double-click), console window, settings + REMUS accents, workstation windows, classic toggle.
 // MP (fresh dev server): login on connect + prefill, roll permissions across tabs and the group area, tall console user strip.
 const { chromium } = require('/workspace/pw/node_modules/playwright-core');
@@ -14,6 +14,12 @@ fs.mkdirSync(shots, { recursive: true });
 const shot = (p, f) => p.screenshot({ path: shots + '/' + f });
 const S4r = process.env.R4SHOTS || '/workspace/forge-os/feedback/v555-d1/round4/shots'; fs.mkdirSync(S4r, { recursive: true });
 const shot4 = (p, f) => p.screenshot({ path: S4r + '/' + f });
+async function pickGroupCol(p, id, c) {
+  if (!await p.evaluate(() => !!document.querySelector('.dk-gcol-menu'))) {
+    await p.click(`.dkw[data-id="${id}"] .dk-gcol`); await wait(200);
+  }
+  await p.click(`.dk-gcol-menu button[data-c="${c}"]`); await wait(400);
+}
 const NAMES = ['MSH-01 / MUSHA TEST', 'ICR-07 / ICARUS', 'RVN-06 / RAVEN'];
 async function loadUnits(p, names, arm) {
   await p.evaluate(async ([fx, names, arm]) => {
@@ -42,7 +48,7 @@ async function dragBy(p, sel, dx, dy) { const t = await p.locator(sel).boundingB
 /* REMUS: no cyan accents anywhere except the deliberate tab-colour palette (paper doll data-tt, tab/colour swatches, coloured sheet tabs) */
 const cyanScan = p => p.evaluate(() => {
   const cyan = (c) => { const m = /rgba?\((\d+), (\d+), (\d+)(?:, ([\d.]+))?\)/.exec(c || ''); if (!m || (m[4] !== undefined && +m[4] < .25)) return false; const [r, g, b] = [+m[1], +m[2], +m[3]]; return r < 120 && g > 150 && b > 150 && g - r > 60 && b - r > 60; };
-  const skip = '[data-tt],.dk-sw,.dk-ut i,.sw i,.cur i,.dk-mini,[onclick^=shClick],#dklkcol,.mptint,#mptint,[style*="2ee6e6"],[style*="46, 230, 230"]';
+  const skip = '[data-tt],.dk-sw,.dk-ut i,.sw i,.cur i,.dk-gcol i,.dk-gcol-menu i,.dk-mini,[onclick^=shClick],#dklkcol,.mptint,#mptint,[style*="2ee6e6"],[style*="46, 230, 230"]';
   const out = {};
   const scan = (root, tag) => root.querySelectorAll('*').forEach((e) => { if (e.closest(skip)) return; const cs = getComputedStyle(e); if (cs.display === 'none' || cs.visibility === 'hidden') return;
     for (const q of ['borderTopColor', 'borderLeftColor', 'outlineColor', 'color', 'backgroundColor', 'boxShadow', 'fill', 'stroke']) { const v = cs[q]; if ((q === 'outlineColor' && cs.outlineStyle === 'none') || (q.startsWith('border') && cs[q.replace('Color', 'Width')] === '0px')) continue;
@@ -201,20 +207,25 @@ const cyanScan = p => p.evaluate(() => {
     await p.click('.dk-ico[data-ico=units]'); await wait(600);
     const gw = await p.evaluate(() => Desk.wins().filter(w => w.k === 'group').pop());
     await p.evaluate((id) => Desk.geo(id, { x: 88, y: 8, w: 620, h: 860 }), gw.id); await wait(200);
-    await p.click(`.dkw[data-id="${gw.id}"] .sw button[data-c="1"]`); await wait(400);
+    await pickGroupCol(p, gw.id, 1);
     const cards = await p.evaluate((id) => [...document.querySelectorAll(`.dkw[data-id="${id}"] .dk-card`)].map(c => { const s = c.querySelector('svg'), cr = c.getBoundingClientRect(), sr = s.getBoundingClientRect(), z = s.querySelector('g.mz,.mz'); return { n: c.querySelector('.nm2').textContent, inCard: sr.top >= cr.top - 1 && sr.bottom <= cr.bottom + 1, sel: s.querySelectorAll('.sel,.ld.on').length, tt: c.querySelector('.doll').dataset.tt, stroke: z && getComputedStyle(z).stroke, fill: z && getComputedStyle(z.querySelector('path,polygon,rect') || z).fill }; }), gw.id);
     const realFill = await p.evaluate((u) => { const h = Desk.hosts().get(u + '|doll'); const r = h.firstChild ? h : h.shadowRoot; const z = [...r.querySelectorAll('.mechmap g.mz')].find(g => !g.classList.contains('sel')); return getComputedStyle(z.querySelector('path,polygon,rect') || z).fill; }, kA);
     const realSel = await p.evaluate((u) => { const h = Desk.hosts().get(u + '|doll'); const r = h.firstChild ? h : h.shadowRoot; return r.querySelectorAll('.mechmap g.mz.sel').length; }, kA);
     ok(cards.length === 2 && cards.every(c => c.inCard) && cards.some(c => /MUSHA/.test(c.n)) && cards.some(c => /ICARUS/.test(c.n)), 'group window (CYAN): the two CYAN units as mini paper-doll cards, each doll inside its card ' + JSON.stringify(cards.map(c => [c.n, c.inCard])));
     ok(realSel === 1 && cards.every(c => c.sel === 0 && /46, 230, 230/.test(c.stroke || '')), 'group mini dolls show no selected-component highlight (the unit window still does) ' + JSON.stringify([realSel, cards.map(c => [c.sel, c.stroke])]));
     ok(cards.every(c => c.tt === 'navy') && cards.some(c => /MUSHA/.test(c.n) && c.fill === realFill), 'group mini dolls keep inheriting the tab colour (data-tt navy, same zone fill as the full doll) ' + JSON.stringify([realFill, cards.map(c => [c.tt, c.fill])]));
-    await p.click(`.dkw[data-id="${gw.id}"] [data-swt]`); await wait(300);
-    const col1 = await p.evaluate((id) => { const e = document.querySelector(`.dkw[data-id="${id}"]`); return { btns: e.querySelectorAll('.sw button[data-c]').length, cur: (e.querySelector('.sw .cur') || {}).textContent, ex: e.querySelector('[data-swt]').getAttribute('aria-expanded') }; }, gw.id);
-    ok(col1.btns === 0 && /CYAN/.test(col1.cur || '') && col1.ex === 'false', 'group window: the tab-colour selector collapses to the current colour ' + JSON.stringify(col1));
+    const col1 = await p.evaluate((id) => { const e = document.querySelector(`.dkw[data-id="${id}"]`), b = e.querySelector('.dk-gcol');
+      return { name: b && b.textContent, ex: b && b.getAttribute('aria-expanded'), menu: !!document.querySelector('.dk-gcol-menu'), inTitle: !!(b && b.closest('.dk-t')), fs: b && parseFloat(getComputedStyle(b).fontSize) }; }, gw.id);
+    ok(/CYAN/.test(col1.name || '') && col1.ex === 'false' && !col1.menu && col1.inTitle && col1.fs >= 11, 'group window: the title-bar colour dropdown shows the current colour and starts closed ' + JSON.stringify(col1));
     await p.evaluate((id) => Desk.front(id), gw.id); await shot(p, 'r2-05-group-selector-collapsed.png');
-    await p.click(`.dkw[data-id="${gw.id}"] [data-swt]`); await wait(300);
-    ok(await p.evaluate((id) => document.querySelectorAll(`.dkw[data-id="${id}"] .sw button[data-c]`).length === 6, gw.id), 'group window: the selector expands again (6 colours)');
+    await p.click(`.dkw[data-id="${gw.id}"] .dk-gcol`); await wait(200);
+    const col2 = await p.evaluate(() => { const m = document.querySelector('.dk-gcol-menu'); const opts = m ? [...m.querySelectorAll('button[data-c]')].map(b => +b.dataset.c) : [];
+      const fs = m && m.querySelector('button') && parseFloat(getComputedStyle(m.querySelector('button')).fontSize);
+      return { n: opts.length, opts, hasNone: opts.includes(0), fs }; });
+    ok(col2.n === 6 && col2.hasNone && col2.fs >= 11, 'group window: the title-bar dropdown opens a list of 6 colours (NONE included), 11px or larger ' + JSON.stringify(col2));
     await shot(p, 'r2-06-group-selector-expanded.png');
+    await p.keyboard.press('Escape'); await wait(200);
+    ok(await p.evaluate(() => !document.querySelector('.dk-gcol-menu')), 'group window: Escape closes the colour dropdown');
     // 15 select a card -> SELECTED UNIT area (live, routed); no window opens
     const nW0 = (await uw(p)).length;
     await p.locator(`.dkw[data-id="${gw.id}"] .dk-card:has-text("ICARUS")`).click(); await wait(800);
@@ -257,6 +268,8 @@ const cyanScan = p => p.evaluate(() => {
     const impVis = nw && await p.evaluate((id) => { const e = document.querySelector(`.dkw[data-id="${id}"]`), b = e.querySelector('.dk-b').getBoundingClientRect(), s = e.querySelector('.dk-seg[data-s=impact]').getBoundingClientRect(); return { top: Math.round(s.top - b.top), bot: Math.round(b.bottom - s.bottom), title: /IMPACT/.test(e.querySelector('.dk-seg[data-s=impact] .dk-sh').textContent) }; }, nw.id);
     ok(nw && impVis.bot >= -1 && impVis.top >= 0 && impVis.title && g6.h > 500 && nw.pz === 'S', 'r3 #3: a unit window opened from the group starts taller (SMALL preset) with IMPACT RESOLUTION fully visible on open ' + JSON.stringify({ g6, impVis }));
     ok(nw && nw.c === 1 && Math.abs(g6.w - 620) <= 2 && wide.n === 8 && !wide.bad.length && wide.sides[0] > 0 && wide.sides[1] > 0 && wide.below === 0 && shield, 'r4: a unit window created from the group opens 620 wide (SMALL) with the doll side by side (unstacked), shield row (when the frame has shields) visible ' + JSON.stringify({ g6, sides: wide && wide.sides, below: wide && wide.below, bad: wide && wide.bad, shield }));
+    const fl6 = nw && await p.evaluate((id) => { const u = document.querySelector(`.dkw[data-id="${id}"]`).getBoundingClientRect(), en = document.querySelector('.dkw[data-k=enc]'); const er = en && !en.hidden ? en.getBoundingClientRect() : null; return { y: Math.round(u.top), eb: er ? Math.round(er.bottom) : null }; }, nw.id);
+    ok(fl6 && (fl6.eb == null || fl6.y + 1 >= fl6.eb - 2), 'r4 polish #6: a unit window opened from the group starts below ENCOUNTER, not over it ' + JSON.stringify(fl6));
     await p.evaluate((id) => Desk.front(id), nw.id); await wait(200);
     await shot4(p, 'r4-02-group-open-doll.png');
     await shot(p, 'r2-08-unit-from-group.png');
@@ -370,34 +383,57 @@ const cyanScan = p => p.evaluate(() => {
     await shot3_3('r3-11-pilot-name-focused-amber.png');
     ok(cr11.on && cr11.title.opaque && cr11.title.cr >= 4.5 && cr11.title.before && cr11.title.fs === '11px' && cr11.tab && cr11.tab.opaque && cr11.tab.cr >= 4.5 && cr11.tab.fs === '11px' && /\/\/ PILOT: VEGA/.test(cr11.tip), 'Misaki fix 1+5: the pilot name on a focused title bar and the acting tab sits on the page background (contrast >= 4.5:1 on REMUS amber), 11px, and is in the tab tooltip ' + JSON.stringify(cr11));
     await theme3('IMPERIAL NAVY');
-    // r4: colour selector in the mini-doll sidebar; pilot name on each card
+    // r4: colour dropdown in the group title bar; mini dolls start at the top of the sidebar; pilot name on each card
     const colA4 = await p.evaluate(([a, b]) => { const S = Forge.state(), ia = S.sheets.findIndex(s => Desk.ukey(s) === a), ib = S.sheets.findIndex(s => Desk.ukey(s) === b); if (ia >= 0) { shClick(ia); S.own = 'VEGA'; if (S.sheets[ia].d) S.sheets[ia].d.own = 'VEGA'; } const c = ia >= 0 ? (S.sheets[ia].col || 0) : 1; if (ib >= 0) { S.sheets[ib].col = c; if (S.sheets[ib].d) S.sheets[ib].d.own = ''; } Forge.render(); return c; }, [kA, kB]); await wait(300);
     await p.click('.dk-ico[data-ico=units]'); await wait(700);
     const gid4 = await p.evaluate(() => Desk.wins().filter(w => w.k === 'group').pop().id);
     await p.evaluate((id) => { Desk.restore(id); Desk.geo(id, { x: 88, y: 8, w: 840, h: 700 }); Desk.front(id); }, gid4); await wait(300);
-    if (await p.evaluate((id) => document.querySelectorAll(`.dkw[data-id="${id}"] .sw button[data-c]`).length === 0, gid4)) {
-      await p.click(`.dkw[data-id="${gid4}"] [data-swt]`); await wait(300);
-    }
-    await p.click(`.dkw[data-id="${gid4}"] .sw button[data-c="${colA4}"]`); await wait(400);
+    await pickGroupCol(p, gid4, colA4);
     const r4g = await p.evaluate((id) => {
-      const g = document.querySelector(`.dkw[data-id="${id}"]`), sw = g.querySelector('.sw').getBoundingClientRect(), cd = g.querySelector('.dk-cards').getBoundingClientRect(), gs = g.querySelector('.dk-gsel').getBoundingClientRect(), win = g.querySelector('.dk-b').getBoundingClientRect();
+      const g = document.querySelector(`.dkw[data-id="${id}"]`), btn = g.querySelector('.dk-t .dk-gcol'), tb = g.querySelector('.dk-t');
+      const cd = g.querySelector('.dk-cards').getBoundingClientRect(), gs = g.querySelector('.dk-gsel').getBoundingClientRect(), win = g.querySelector('.dk-b').getBoundingClientRect();
+      const br = btn && btn.getBoundingClientRect(), tbr = tb.getBoundingClientRect();
       const cards = [...g.querySelectorAll('.dk-card')].map(c => {
         const pil = c.querySelector('.nm2 .dk-pil'), nm = c.querySelector('.nm2');
         const cs = pil && getComputedStyle(pil);
         return { n: (nm && nm.textContent) || '', name: c.querySelector('.nm2') && [...c.querySelector('.nm2').childNodes].filter(n => n.nodeType === 3).map(n => n.textContent).join('').trim(), pil: pil && pil.textContent, tip: pil && pil.title, ctip: c.title, fs: cs && cs.fontSize, col: cs && cs.color, omit: !pil, overflow: nm && (nm.getBoundingClientRect().right > c.getBoundingClientRect().right + 1 || c.scrollWidth > c.clientWidth + 1) };
       });
-      return { inBar: sw.left >= cd.left - 4 && sw.right <= cd.right + 4 && sw.bottom <= cd.top + 2 && sw.top >= win.top - 2, side: cd.left >= gs.right - 1 && win.right - cd.right < 16, expanded: g.querySelectorAll('.sw button[data-c]').length === 6, cards };
+      return { inTitle: !!(btn && btn.closest('.dk-t')),
+        noSw: !g.querySelector('.dk-grp .sw, .dk-grp [data-swt]'), side: cd.left >= gs.right - 1 && win.right - cd.right < 16,
+        cardsTop: cd.top <= win.top + 8, fs: btn && parseFloat(getComputedStyle(btn).fontSize), name: btn && btn.textContent, ex: btn && btn.getAttribute('aria-expanded'), cards };
     }, gid4);
-    ok(r4g.inBar && r4g.side && r4g.expanded, 'r4: the tab-colour selector sits in the right-hand mini-doll sidebar, above the cards ' + JSON.stringify({ inBar: r4g.inBar, side: r4g.side, expanded: r4g.expanded }));
+    ok(r4g.inTitle && r4g.noSw && r4g.side && r4g.cardsTop && r4g.fs >= 11 && r4g.ex === 'false', 'r4: the tab-colour control is a title-bar dropdown (11px or larger); mini dolls start at the top of the sidebar ' + JSON.stringify({ inTitle: r4g.inTitle, noSw: r4g.noSw, side: r4g.side, cardsTop: r4g.cardsTop, fs: r4g.fs, name: r4g.name, ex: r4g.ex }));
     const vega = r4g.cards.find(c => /MUSHA/.test(c.name) || /MUSHA/.test(c.n));
     const loc = r4g.cards.find(c => /ICARUS/.test(c.name) || /ICARUS/.test(c.n));
     const muted4 = await p.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue('--muted').trim() || getComputedStyle(document.body).getPropertyValue('--muted').trim());
     const vegaCol = await p.evaluate((c) => (typeof SH_COL !== 'undefined' && SH_COL[c]) || '', colA4);
     ok(vega && vega.pil === 'VEGA' && /\/\/ PILOT: VEGA/.test(vega.tip) && /\/\/ PILOT: VEGA/.test(vega.ctip) && vega.fs === '11px' && !vega.overflow && await colEq_3(vega.col, vegaCol), 'r4: the group card shows the pilot after the mech name (11px, tab colour, tooltip // PILOT: name, no overflow) ' + JSON.stringify({ vega, vegaCol, colA4, cards: r4g.cards }));
-    ok(loc && loc.pil === 'LOCAL' && /\/\/ PILOT: LOCAL/.test(loc.tip) && !loc.overflow && await colEq_3(loc.col, muted4), 'r4: a group card with no named pilot shows LOCAL in grey and does not overflow ' + JSON.stringify({ loc, muted4 }));
+    ok(loc && loc.omit && !/LOCAL/.test(loc.n) && !/PILOT: LOCAL/.test(loc.ctip || '') && !loc.overflow, 'r4 polish #2: a group card with no real pilot omits LOCAL (the grey label stays on the unit title bar and tab) ' + JSON.stringify({ loc }));
     const cardSel4 = vega ? `.dkw[data-id="${gid4}"] .dk-card:has-text("MUSHA")` : `.dkw[data-id="${gid4}"] .dk-card`;
     await p.locator(cardSel4).first().click({ timeout: 5000 }).catch(() => {}); await wait(400);
     await shot4(p, 'r4-03-group-sidebar-selector-pilot.png');
+    // title-bar dropdown: first click works when the group is in the background; list of colours; shot r4-07
+    await p.evaluate((id) => { Desk.geo(id, { x: 88, y: 120, w: 840, h: 700 }); }, gid4); await wait(200);
+    const encR4 = await p.evaluate(() => { const w = Desk.wins().find(w => w.k === 'enc'); if (w) { Desk.restore(w.id); Desk.geo(w.id, { x: 88, y: 8, w: 900, h: 96 }); Desk.front(w.id); } return w && w.id; });
+    await wait(200);
+    const behind = await p.evaluate((id) => { const g = document.querySelector(`.dkw[data-id="${id}"]`); return { on: g.classList.contains('on'), vis: !g.hidden }; }, gid4);
+    await p.click(`.dkw[data-id="${gid4}"] .dk-gcol`); await wait(250);
+    const dd = await p.evaluate((id) => {
+      const g = document.querySelector(`.dkw[data-id="${id}"]`), btn = g.querySelector('.dk-gcol'), m = document.querySelector('.dk-gcol-menu');
+      const opts = m ? [...m.querySelectorAll('button[data-c]')].map(b => ({ c: +b.dataset.c, t: b.textContent.trim(), fs: parseFloat(getComputedStyle(b).fontSize) })) : [];
+      return { on: g.classList.contains('on'), ex: btn && btn.getAttribute('aria-expanded'), n: opts.length, none: opts.some(o => o.c === 0 && /NONE/.test(o.t)), fs: opts.length ? Math.min(...opts.map(o => o.fs)) : 0, names: opts.map(o => o.t) };
+    }, gid4);
+    await shot4(p, 'r4-07-group-colour-dropdown.png');
+    ok(behind && behind.vis && !behind.on && dd.on && dd.ex === 'true' && dd.n === 6 && dd.none && dd.fs >= 11, 'r4: the colour dropdown opens on the first click even when the group window is in the background (6 colours, NONE included, 11px or larger) ' + JSON.stringify({ behind, dd }));
+    await p.keyboard.press('Escape'); await wait(200);
+    ok(await p.evaluate(() => !document.querySelector('.dk-gcol-menu')), 'r4: Escape closes the title-bar colour dropdown');
+    await p.click(`.dkw[data-id="${gid4}"] .dk-gcol`); await wait(200);
+    await p.evaluate(() => document.body.click()); await wait(200);
+    // body click may not be "outside" if the menu is in #dk; click the desk instead
+    if (await p.evaluate(() => !!document.querySelector('.dk-gcol-menu'))) {
+      await p.click('#dkdesk', { position: { x: 20, y: 20 } }); await wait(200);
+    }
+    ok(await p.evaluate(() => !document.querySelector('.dk-gcol-menu')), 'r4: an outside click closes the title-bar colour dropdown');
     await p.evaluate((id) => Desk.close(id), gid4); await wait(300);
     // #1: a sheet with a shield takes no more vertical space than one without (wide and narrow doll)
     const shM = (u, add) => p.evaluate(async ([u, add]) => { const S = Forge.state();
@@ -430,7 +466,75 @@ const cyanScan = p => p.evaluate(() => {
     ok(i12.shield && i12.impBot >= 0 && i12.impTop >= 0 && i12.apply !== null && i12.apply >= 0, 'Misaki fix 2: at 1366x768 a unit with a shield auto-opens with IMPACT RESOLUTION and its [APPLY] row fully visible (LARGE, or SMALL when LARGE would hide it) ' + JSON.stringify(i12));
     const i12doll = await labels(p, await p.evaluate((u) => Desk.wins().find(w => w.k === 'unit' && w.u === u).id, kB));
     ok(i12doll.n >= 8 && i12doll.below === 0 && i12doll.sides[0] > 0 && i12doll.sides[1] > 0 && !i12doll.bad.length, 'r4: at 1366x768 the auto-opened sheet (LARGE, or SMALL fallback) still shows the doll side by side ' + JSON.stringify({ pz: i12.pz, doll: i12doll }));
+    // r4 polish #1: ▣ LG must stay below ENCOUNTER at 1366 (force a button apply, not auto-open)
+    const u12id = await p.evaluate((u) => Desk.wins().find(w => w.k === 'unit' && w.u === u).id, kB);
+    await p.evaluate((id) => { Desk.restore(id); Desk.front(id); }, u12id); await wait(300);
+    if ((await p.evaluate((id) => Desk.wins().find(w => w.id === id).pz, u12id)) === 'L') { await p.click(`.dkw[data-id="${u12id}"] .dk-sz`); await wait(500); }
+    await p.click(`.dkw[data-id="${u12id}"] .dk-sz`); await wait(800);
+    const lg1366 = await p.evaluate((id) => {
+      const u = document.querySelector(`.dkw[data-id="${id}"]`).getBoundingClientRect(), en = document.querySelector('.dkw[data-k=enc]').getBoundingClientRect();
+      const b = document.querySelector(`.dkw[data-id="${id}"] .dk-b`).getBoundingClientRect(), im = document.querySelector(`.dkw[data-id="${id}"] .dk-seg[data-s=impact]`);
+      const ir = im && im.getBoundingClientRect(), A = document.getElementById('dkarea').getBoundingClientRect();
+      return { pz: Desk.wins().find(w => w.id === id).pz, y: Math.round(u.top - A.top), h: Math.round(u.height), eb: Math.round(en.bottom - A.top), et: Math.round(en.top - A.top),
+        cover: u.top < en.bottom - 2 && u.bottom > en.top + 2 && u.left < en.right - 2 && u.right > en.left + 2,
+        impTop: ir ? Math.round(ir.top - b.top) : null, impBot: ir ? Math.round(b.bottom - ir.bottom) : null };
+    }, u12id);
+    await p.evaluate((id) => Desk.front(id), u12id); await wait(200);
+    await shot4(p, 'r4-04-lg-preset-1366.png');
+    ok(lg1366.pz === 'L' && !lg1366.cover && lg1366.y + 1 >= lg1366.eb - 2, 'r4 polish #1: at 1366, ▣ LG stays below ENCOUNTER and does not cover it ' + JSON.stringify(lg1366));
+    ok(lg1366.impTop >= 0 && lg1366.impBot >= -1, 'r4 polish #1: IMPACT RESOLUTION stays visible after a (non-auto) LARGE apply at 1366 ' + JSON.stringify(lg1366));
     await p.evaluate(() => { const S = Forge.state(); S.items = S.items.filter(x => !isShield(x)); Forge.render(); }); await wait(400);
+    // r4 polish #2/3/5 at 1366: even cards, compact picker (NONE last), real pilot + solo card, third card in view
+    await p.evaluate(([a, b, c]) => {
+      const S = Forge.state();
+      const idOf = (u) => S.sheets.findIndex(s => Desk.ukey(s) === u);
+      const ia = idOf(a), ib = idOf(b), ic = idOf(c);
+      if (ia >= 0) { shClick(ia); S.own = 'VEGA'; if (S.sheets[ia].d) S.sheets[ia].d.own = 'VEGA'; }
+      const col = ia >= 0 ? (S.sheets[ia].col || 1) : 1;
+      [ib, ic].forEach(i => { if (i >= 0) { S.sheets[i].col = col; if (S.sheets[i].d) S.sheets[i].d.own = ''; } });
+      Forge.render();
+    }, [kA, kB, kC]); await wait(300);
+    await p.evaluate(() => { Desk.wins().filter(w => w.k === 'unit' || w.k === 'sec').forEach(w => Desk.minimize(w.id)); }); await wait(200);
+    await p.click('.dk-ico[data-ico=units]'); await wait(700);
+    const gid1366 = await p.evaluate(() => Desk.wins().filter(w => w.k === 'group').pop().id);
+    await p.evaluate((id) => { Desk.restore(id); Desk.geo(id, { x: 200, y: 112, w: 840, h: 620 }); Desk.front(id); }, gid1366); await wait(300);
+    const col1366 = await p.evaluate((u) => { const sh = Forge.state().sheets.find(s => Desk.ukey(s) === u); return (sh && sh.col) || 1; }, kA);
+    await pickGroupCol(p, gid1366, col1366);
+    const g1366 = await p.evaluate((id) => {
+      const g = document.querySelector(`.dkw[data-id="${id}"]`), body = g.querySelector('.dk-b').getBoundingClientRect();
+      const btn = g.querySelector('.dk-t .dk-gcol'), tb = g.querySelector('.dk-t');
+      const cd = g.querySelector('.dk-cards').getBoundingClientRect();
+      const cards = [...g.querySelectorAll('.dk-card')].map(c => { const r = c.getBoundingClientRect(), pil = c.querySelector('.nm2 .dk-pil'), nm = c.querySelector('.nm2');
+        return { x: Math.round(r.left), w: Math.round(r.width), t: Math.round(r.top), b: Math.round(r.bottom), name: nm && [...nm.childNodes].filter(n => n.nodeType === 3).map(n => n.textContent).join('').trim(), pil: pil && pil.textContent, omit: !pil }; });
+      const br = btn && btn.getBoundingClientRect(), tbr = tb.getBoundingClientRect();
+      return { n: cards.length, cards, even: cards.length >= 2 && cards.every(c => Math.abs(c.x - cards[0].x) <= 2 && Math.abs(c.w - cards[0].w) <= 2),
+        inTitle: !!(btn && btn.closest('.dk-t')), noSw: !g.querySelector('.dk-grp .sw, .dk-grp [data-swt]'),
+        cardsTop: cd.top <= body.top + 8, thirdIn: cards.length < 3 || (cards[2].t < body.bottom - 8 && cards[2].b <= body.bottom + 2) };
+    }, gid1366);
+    await p.locator(`.dkw[data-id="${gid1366}"] .dk-card:has-text("MUSHA")`).first().click({ timeout: 5000 }).catch(() => {}); await wait(300);
+    await p.evaluate((id) => Desk.front(id), gid1366); await wait(200);
+    await shot4(p, 'r4-05-group-cards-1366.png');
+    ok(g1366.even && g1366.n >= 2, 'r4 polish #3: group mini-doll cards share a left edge and width ' + JSON.stringify({ even: g1366.even, cards: g1366.cards.map(c => [c.name, c.x, c.w]) }));
+    ok(g1366.inTitle && g1366.noSw && g1366.cardsTop && g1366.thirdIn, 'r4: at 1366 the colour dropdown is in the title bar, mini dolls start at the top, and the third card stays in view ' + JSON.stringify({ inTitle: g1366.inTitle, noSw: g1366.noSw, cardsTop: g1366.cardsTop, thirdIn: g1366.thirdIn, n: g1366.n }));
+    const mushaC = g1366.cards.find(c => /MUSHA/.test(c.name)), soloC = g1366.cards.find(c => c.omit);
+    ok(mushaC && mushaC.pil === 'VEGA' && soloC && soloC.omit, 'r4 polish #2 at 1366: a piloted card shows the name and a solo card omits LOCAL ' + JSON.stringify({ mushaC, soloC }));
+    // r4 polish #6 at 1366 + shot: close unit windows so OPEN creates a new one
+    await p.evaluate(() => { Desk.wins().filter(w => w.k === 'unit' || w.k === 'sec').forEach(w => Desk.close(w.id)); }); await wait(400);
+    await p.locator(`.dkw[data-id="${gid1366}"] .dk-card`).last().click(); await wait(300);
+    await p.click(`.dkw[data-id="${gid1366}"] .dk-gsel [data-g=open]`); await wait(900);
+    const open1366 = await p.evaluate(() => {
+      const w = Desk.wins().filter(w => w.k === 'unit' && !w.min && !w.hidden).sort((a, b) => b.z - a.z)[0];
+      if (!w) return null;
+      const u = document.querySelector(`.dkw[data-id="${w.id}"]`).getBoundingClientRect(), en = document.querySelector('.dkw[data-k=enc]').getBoundingClientRect();
+      const A = document.getElementById('dkarea').getBoundingClientRect();
+      const im = document.querySelector(`.dkw[data-id="${w.id}"] .dk-seg[data-s=impact]`);
+      const b = document.querySelector(`.dkw[data-id="${w.id}"] .dk-b`).getBoundingClientRect(), ir = im && im.getBoundingClientRect();
+      return { y: Math.round(u.top - A.top), eb: Math.round(en.bottom - A.top), cover: u.top < en.bottom - 2 && u.bottom > en.top + 2, pz: w.pz, w: Math.round(w.w),
+        impTop: ir ? Math.round(ir.top - b.top) : null, impBot: ir ? Math.round(b.bottom - ir.bottom) : null };
+    });
+    if (open1366) await p.evaluate(() => { const w = Desk.wins().filter(w => w.k === 'unit').sort((a, b) => b.z - a.z)[0]; if (w) Desk.front(w.id); }); await wait(200);
+    await shot4(p, 'r4-06-group-open-1366.png');
+    ok(open1366 && !open1366.cover && open1366.y + 1 >= open1366.eb - 2 && open1366.pz === 'S' && open1366.impTop >= 0, 'r4 polish #6 at 1366: opening from the group places the unit window below ENCOUNTER with IMPACT RESOLUTION in view ' + JSON.stringify(open1366));
     await p.setViewportSize({ width: 1600, height: 900 }); await wait(500);
     // settings, 7 REMUS accents
     await p.click('.dk-ico[data-ico=set]'); await wait(500);
@@ -445,6 +549,7 @@ const cyanScan = p => p.evaluate(() => {
     await p.click('#dktray'); await wait(200);
     await p.evaluate(() => { Desk.wins().filter(w => w.k === 'set' || w.k === 'group').forEach(w => Desk.minimize(w.id)); }); await wait(300);
     await shot(p, 'r2-12-desktop-amber.png');
+    await shot4(p, 'r4-desktop-amber.png');
     await p.evaluate(() => { const s = Desk.wins().find(w => w.k === 'set'); Desk.restore(s.id); }); await wait(200);
     await p.click(`.dkw[data-id="${sw.id}"] [data-ss="2"]`); await wait(300);
     const nWin = await p.evaluate(() => Desk.wins().length);
