@@ -8,6 +8,7 @@ FORGE-OS is an in-world mech sheet and terminal for a GURPS mecha campaign. It l
 |---|---|
 | [`versions/`](versions/) | Every base build of the app. Start here. |
 | [`versions/v5.5.5/`](versions/v5.5.5/) | **Current / recommended build** (patch overlay onto v5.0-stable). |
+| [`versions/v5.5.6/`](versions/v5.5.6/) | **Preview, awaiting Overseer review**: v5.5.5 plus the LOADOUT TERMINAL catalogue (patch overlay onto v5.0-stable). |
 | [`versions/v5.0-stable/`](versions/v5.0-stable/) | **Stable v5.0**: the full app (terminal + server) that newer builds are applied to. |
 | [`versions/v5.5.5-D1/`](versions/v5.5.5-D1/) | **Active desktop build**: v5.5.5 with a desktop-style UI (patch overlay onto v5.0-stable). |
 | [`desktop-fork-archived/`](desktop-fork-archived/) | The earlier desktop-fork builds (v5.5.1-D1, v5.5.1-D2), archived for reference. |
@@ -28,6 +29,7 @@ Base builds use plain numbers (v5.5.0, v5.5.1, ...). Desktop builds add `-D1`, `
 | [v5.5.2](versions/v5.5.2/) | Component right-click actions, Evaluate +2/+4/+6, persistent seat colors (migration 0003), plus Misaki's review fixes (roll-spoofing protection, "(via SEAT)", solo LOCAL). |
 | [v5.5.3](versions/v5.5.3/) | UI pass (refined surfaces, keyboard access, sheet search, narrow layouts) plus username rename and saved-name auto-connect. **Known issues:** branched before the 5.5.2 review fixes, so roll-spoofing protection is missing. All fixed in 5.5.4. |
 | [v5.5.4](versions/v5.5.4/) | Previous. 5.5.3 plus the Overseer-approved fixes: spoofing protection restored, vent rule, shield DR, Parry degree step, LOST frames can't attack, RoF bonus from rounds fired, gold DoS/damage numbers, phone layouts removed. |
+| [v5.5.6](versions/v5.5.6/) | **Preview, awaiting Overseer review.** 5.5.5 plus the LOADOUT TERMINAL catalogue: category tabs from the catalogue's own categories, subtype chips, search across all categories, grid cards and a detail pane with ADD. No rules or data changes. |
 | [**v5.5.5**](versions/v5.5.5/) | **Current / recommended.** 5.5.4 plus an aspect-ratio layout: two columns below 17:10; at 17:10 or wider (min 1280 px) the OPERATOR CONSOLE becomes a full-height third column with a user strip; 963 px hard floor. |
 | [v5.5.5-D1](versions/v5.5.5-D1/) | **Active desktop build.** v5.5.5 with a desktop-style UI: every function in its own window, one live window per unit with collapsible and pop-out sections, unit group windows, console in a taskbar tray, themes and layout slots in SETTINGS, lock-screen login on every connect. Same rules, multiplayer and security as v5.5.5; `?classic` gives the v5.5.5 layout. |
 | [Desktop fork (archived)](desktop-fork-archived/) | v5.5.1-D1 (first desktop window shell) and v5.5.1-D2 (Modular Cockpit, shipped untested). Paused and abandoned for now. |
