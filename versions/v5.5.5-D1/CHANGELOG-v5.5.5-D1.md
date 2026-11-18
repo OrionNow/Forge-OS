@@ -158,6 +158,10 @@ Live-table fixes from the 8fc06ae audit (host + pilot):
 1. **STABILITY LAST.** A STABILITY CHECK card is long, and the DoS was last, so it was cut off. `LAST:` now leads with the DoS, then `STABILITY`, then the location (for example `LAST: +3 DoS · STABILITY · RIGHT ARM (100 > 41.5)`).
 2. **Seen rolls stay gone.** Opening the console clears `lastRoll` / `lastRollFull` / `lastRollUntil` and the expiry timer, so closing the console within 8 seconds does not bring a roll that was already seen back into the status bar.
 
+## Pass 6 (Overseer improvement series, Nov 18)
+
+1. **Callsign after the result.** `LAST:` now puts the callsign immediately after the outcome (`LAST: 1 HIT · +2 DoS · PILOTB · 30mm AUTOCANNON`, and `LAST: +3 DoS · PILOTB · STABILITY · RIGHT ARM (100 > 41.5)`). `LOCAL` is still omitted, so solo lines are unchanged. At 1600 px and wider, the `LAST:` slot can grow to 40em.
+
 ## Known limits
 
 - An open native select in a unit window that is not yet the one you are using may close on the first click. The second click works.

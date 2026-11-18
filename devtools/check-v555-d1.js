@@ -35,6 +35,8 @@ const P4r = process.env.P4SHOTS || '/workspace/forge-os/feedback/v555-d1/passes/
 const shotP4 = (p, f) => p.screenshot({ path: P4r + '/' + f });
 const P5r = process.env.P5SHOTS || '/workspace/forge-os/feedback/v555-d1/passes/p5'; fs.mkdirSync(P5r, { recursive: true });
 const shotP5 = (p, f) => p.screenshot({ path: P5r + '/' + f });
+const P6r = process.env.P6SHOTS || '/workspace/forge-os/feedback/v555-d1/passes/p6'; fs.mkdirSync(P6r, { recursive: true });
+const shotP6 = (p, f) => p.screenshot({ path: P6r + '/' + f });
 async function pickGroupCol(p, id, c) {
   if (!await p.evaluate(() => !!document.querySelector('.dk-gcol-menu'))) {
     await p.click(`.dkw[data-id="${id}"] .dk-gcol`); await wait(200);
@@ -758,7 +760,7 @@ const cyanScan = p => p.evaluate(() => {
         resultW
       };
     });
-    ok(p4atk && p4atk.text === 'LAST: 1 HIT · +2 DoS · 30mm AUTOCANNON · PILOTB', 'p4: LAST: leads with the result and names the weapon and caller ' + JSON.stringify(p4atk));
+    ok(p4atk && p4atk.text === 'LAST: 1 HIT · +2 DoS · PILOTB · 30mm AUTOCANNON', 'p4: LAST: leads with the result and names the weapon and caller ' + JSON.stringify(p4atk));
     ok(p4atk && /PILOTB \/ PD-9 PILOTUNIT/.test(p4atk.title) && /30mm AUTOCANNON/.test(p4atk.title) && /1 HIT/.test(p4atk.title) && /\+2 DoS/.test(p4atk.title), 'p4: the LAST: title holds the full card text ' + JSON.stringify(p4atk && p4atk.title));
     ok(p4atk && p4atk.w > 0 && p4atk.resultW > 0 && p4atk.resultW <= p4atk.cw + 1 && p4atk.cw <= (p4atk.maxW || 264) + 1, 'p4: the result-first LAST: text fits in the status slot ' + JSON.stringify(p4atk));
     await shotP4(p, 'p4-last-status-1366.png');
@@ -771,7 +773,7 @@ const cyanScan = p => p.evaluate(() => {
       const el = document.querySelector('#dkstat .dk-last');
       return { text: el ? el.textContent.replace(/\s+/g, ' ').trim() : '', title: el ? (el.getAttribute('title') || '') : '' };
     });
-    ok(p4dmg && /^LAST: 1 HIT · \+2 DoS · DMG 7, 9 · 30mm AUTOCANNON · PILOTB$/.test(p4dmg.text || ''), 'p4: a DMG update via rcRefresh updates LAST: ' + JSON.stringify(p4dmg));
+    ok(p4dmg && /^LAST: 1 HIT · \+2 DoS · DMG 7, 9 · PILOTB · 30mm AUTOCANNON$/.test(p4dmg.text || ''), 'p4: a DMG update via rcRefresh updates LAST: ' + JSON.stringify(p4dmg));
     ok(p4dmg && /DMG 7, 9/.test(p4dmg.title || ''), 'p4: the LAST: title includes the damage after rcRefresh ' + JSON.stringify(p4dmg && p4dmg.title));
     await shotP4(p, 'p4-last-dmg-1366.png');
     await p.click('#dkstat .dk-last'); await wait(300);
@@ -815,6 +817,28 @@ const cyanScan = p => p.evaluate(() => {
     ok(p5stab && p5stab.text === 'LAST: +3 DoS · STABILITY · RIGHT ARM (100 > 41.5)', 'p5: a STABILITY CHECK LAST: leads with the DoS ' + JSON.stringify(p5stab));
     ok(p5stab && /\+3 DoS/.test(p5stab.text || '') && p5stab.resultW > 0 && p5stab.resultW <= p5stab.cw + 1, 'p5: the STABILITY DoS is visible within the status slot at 1280 ' + JSON.stringify(p5stab));
     await shotP5(p, 'p5-last-stability-1280.png');
+    const p6soloAtk = await p.evaluate(() => {
+      const rc = { id: 'rcp6local1', u: 'LOCAL', c: 'var(--muted)', fc: 'var(--ac)', by: 'local', f: 'MSH-01 MUSHA TEST', a: '30mm AUTOCANNON', r: '1 HIT · +2 DoS', o: 'ok', d: ['ATK'] };
+      RC.set(rc.id, rc);
+      const wrap = document.createElement('div');
+      wrap.innerHTML = (typeof rcHtml === 'function') ? rcHtml(rc) : ('<div class="rc ok" data-rcid="'+rc.id+'">LOCAL / MSH-01 MUSHA TEST · 30mm AUTOCANNON · 1 HIT · +2 DoS <span class=rcx>[+]</span></div>');
+      document.getElementById('log').appendChild(wrap);
+      if (typeof logPost === 'function') logPost(wrap);
+      const el = document.querySelector('#dkstat .dk-last');
+      return el ? el.textContent.replace(/\s+/g, ' ').trim() : '';
+    });
+    ok(p6soloAtk === 'LAST: 1 HIT · +2 DoS · 30mm AUTOCANNON', 'p6: a solo LAST: line is unchanged (no LOCAL callsign) ' + JSON.stringify(p6soloAtk));
+    const p6soloStab2 = await p.evaluate(() => {
+      const rc = { id: 'rcp6local2', u: 'LOCAL', c: 'var(--muted)', fc: 'var(--ac)', by: 'local', f: 'MSH-01 MUSHA TEST', a: 'STABILITY CHECK · PILOTING (14) + STABILITY · RIGHT ARM (100 > 41.5)', r: '+3 DoS', o: 'ok', d: ['STABILITY'] };
+      RC.set(rc.id, rc);
+      const wrap = document.createElement('div');
+      wrap.innerHTML = (typeof rcHtml === 'function') ? rcHtml(rc) : '';
+      document.getElementById('log').appendChild(wrap);
+      if (typeof logPost === 'function') logPost(wrap);
+      const el = document.querySelector('#dkstat .dk-last');
+      return el ? el.textContent.replace(/\s+/g, ' ').trim() : '';
+    });
+    ok(p6soloStab2 === 'LAST: +3 DoS · STABILITY · RIGHT ARM (100 > 41.5)', 'p6: a solo STABILITY LAST: line is unchanged (no LOCAL callsign) ' + JSON.stringify(p6soloStab2));
     const tabLab = await p.evaluate(() => {
       const w = Desk.wins().find(w => w.k === 'unit' && !w.min && !w.hidden) || Desk.wins().find(w => w.k === 'unit');
       if (!w) return null;
@@ -1014,6 +1038,31 @@ const cyanScan = p => p.evaluate(() => {
     const pw = await uw(Pl.p), hw = await uw(H.p);
     const pK = await keyOf(Pl.p, 'PB-7 / KAGE'), pH = await keyOf(Pl.p, 'HST-1 / HOSTUNIT');
     ok(pw.length === 1 && pw[0].tabs.length === 2 && hw.length === 1 && hw[0].tabs.length === 2, 'both seats: both units as tabs in one grey-bucket unit window ' + JSON.stringify([pw, hw].map(x => x.map(w => w.tabs))));
+    await H.p.setViewportSize({ width: 1280, height: 720 }); await Pl.p.setViewportSize({ width: 1280, height: 720 }); await wait(300);
+    for (const s of [H, Pl]) { await s.p.evaluate(() => { const c = document.querySelector('.dkw[data-k=con]'); if (c && !c.hidden) { const b = document.getElementById('dktray'); if (b) b.click(); } }); }
+    await wait(200);
+    await waitLogIdle(Pl.p, 600, 15000); await waitLogIdle(H.p, 600, 15000);
+    const emitLast = async (page, rc) => page.evaluate((rc) => {
+      RC.set(rc.id, rc);
+      if (typeof rcEmit === 'function') rcEmit(rc);
+      else {
+        const wrap = document.createElement('div');
+        wrap.innerHTML = (typeof rcHtml === 'function') ? rcHtml(rc) : '';
+        document.getElementById('log').appendChild(wrap);
+        if (typeof logPost === 'function') logPost(wrap);
+        if (typeof mpCard === 'function') mpCard(rc, false);
+      }
+    }, rc);
+    await emitLast(Pl.p, { id: 'rcp6atk1', u: 'PILOTB', c: '#ff8800', fc: 'var(--ac)', by: 'local', f: 'PB-7 KAGE', a: '30mm AUTOCANNON', r: '1 HIT · +2 DoS', o: 'ok', d: ['ATK'] });
+    try { await H.p.waitForFunction(() => { const el = document.querySelector('#dkstat .dk-last'); return !!(el && /PILOTB/.test(el.textContent || '') && /1 HIT/.test(el.textContent || '')); }, null, { timeout: 8000 }); } catch (e) { /* assert below */ }
+    const p6atkMp = await H.p.evaluate(() => { const el = document.querySelector('#dkstat .dk-last'); return el ? el.textContent.replace(/\s+/g, ' ').trim() : ''; });
+    ok(/^LAST: 1 HIT · \+2 DoS · PILOTB · 30mm AUTOCANNON$/.test(p6atkMp || ''), 'p6 mp: at 1280 the other seat\'s callsign is visible in LAST: after an ATK, right after the result ' + JSON.stringify(p6atkMp));
+    await emitLast(Pl.p, { id: 'rcp6stab1', u: 'PILOTB', c: '#ff8800', fc: 'var(--ac)', by: 'local', f: 'PB-7 KAGE', a: 'STABILITY CHECK · PILOTING (14) + STABILITY · RIGHT ARM (100 > 41.5)', r: '+3 DoS', o: 'ok', d: ['STABILITY'] });
+    try { await H.p.waitForFunction(() => { const el = document.querySelector('#dkstat .dk-last'); return !!(el && /PILOTB/.test(el.textContent || '') && /STABILITY/.test(el.textContent || '') && /\+3 DoS/.test(el.textContent || '')); }, null, { timeout: 8000 }); } catch (e) { /* assert below */ }
+    const p6stabMp = await H.p.evaluate(() => { const el = document.querySelector('#dkstat .dk-last'); return el ? el.textContent.replace(/\s+/g, ' ').trim() : ''; });
+    ok(/^LAST: \+3 DoS · PILOTB · STABILITY · RIGHT ARM \(100 > 41\.5\)$/.test(p6stabMp || ''), 'p6 mp: at 1280 the other seat\'s callsign is visible in LAST: after a STABILITY CHECK, right after the result ' + JSON.stringify(p6stabMp));
+    await shotP6(H.p, 'p6-last-mp-1280.png');
+    await H.p.setViewportSize({ width: 1600, height: 900 }); await Pl.p.setViewportSize({ width: 1600, height: 900 }); await wait(200);
     const viewOnly = await Pl.p.evaluate(([o, m]) => { const g = (u, s) => { const h = Desk.hosts().get(u + '|' + s); return h.firstChild ? h : h.shadowRoot; };
       return { otherSkills: !Desk.hosts().get(o + '|skills') && !/SKILL INPUTS/.test(g(o, 'rolls').textContent), otherRolls: /VIEW ONLY/.test(g(o, 'rolls').textContent), ownRolls: /\[ROLL\]/.test(g(m, 'rolls').textContent) }; }, [pH, pK]);
     const wid = pw[0].id;
