@@ -14,6 +14,8 @@ fs.mkdirSync(shots, { recursive: true });
 const shot = (p, f) => p.screenshot({ path: shots + '/' + f });
 const S4r = process.env.R4SHOTS || '/workspace/forge-os/feedback/v555-d1/round4/shots'; fs.mkdirSync(S4r, { recursive: true });
 const shot4 = (p, f) => p.screenshot({ path: S4r + '/' + f });
+const P1r = process.env.P1SHOTS || '/workspace/forge-os/feedback/v555-d1/passes/p1'; fs.mkdirSync(P1r, { recursive: true });
+const shotP1 = (p, f) => p.screenshot({ path: P1r + '/' + f });
 async function pickGroupCol(p, id, c) {
   if (!await p.evaluate(() => !!document.querySelector('.dk-gcol-menu'))) {
     await p.click(`.dkw[data-id="${id}"] .dk-gcol`); await wait(200);
@@ -48,7 +50,7 @@ async function dragBy(p, sel, dx, dy) { const t = await p.locator(sel).boundingB
 /* REMUS: no cyan accents anywhere except the deliberate tab-colour palette (paper doll data-tt, tab/colour swatches, coloured sheet tabs) */
 const cyanScan = p => p.evaluate(() => {
   const cyan = (c) => { const m = /rgba?\((\d+), (\d+), (\d+)(?:, ([\d.]+))?\)/.exec(c || ''); if (!m || (m[4] !== undefined && +m[4] < .25)) return false; const [r, g, b] = [+m[1], +m[2], +m[3]]; return r < 120 && g > 150 && b > 150 && g - r > 60 && b - r > 60; };
-  const skip = '[data-tt],.dk-sw,.dk-ut i,.sw i,.cur i,.dk-gcol i,.dk-gcol-menu i,.dk-mini,[onclick^=shClick],#dklkcol,.mptint,#mptint,[style*="2ee6e6"],[style*="46, 230, 230"]';
+  const skip = '[data-tt],.dk-sw,.dk-ut i,.sw i,.cur i,.dk-gcol i,.dk-gcol-menu i,.dk-mini,#dktabs .dk-tc,#dktabs button,[onclick^=shClick],#dklkcol,.mptint,#mptint,[style*="2ee6e6"],[style*="46, 230, 230"]';
   const out = {};
   const scan = (root, tag) => root.querySelectorAll('*').forEach((e) => { if (e.closest(skip)) return; const cs = getComputedStyle(e); if (cs.display === 'none' || cs.visibility === 'hidden') return;
     for (const q of ['borderTopColor', 'borderLeftColor', 'outlineColor', 'color', 'backgroundColor', 'boxShadow', 'fill', 'stroke']) { const v = cs[q]; if ((q === 'outlineColor' && cs.outlineStyle === 'none') || (q.startsWith('border') && cs[q.replace('Color', 'Width')] === '0px')) continue;
@@ -536,11 +538,167 @@ const cyanScan = p => p.evaluate(() => {
     await shot4(p, 'r4-06-group-open-1366.png');
     ok(open1366 && !open1366.cover && open1366.y + 1 >= open1366.eb - 2 && open1366.pz === 'S' && open1366.impTop >= 0, 'r4 polish #6 at 1366: opening from the group places the unit window below ENCOUNTER with IMPACT RESOLUTION in view ' + JSON.stringify(open1366));
     await p.setViewportSize({ width: 1600, height: 900 }); await wait(500);
+
+    /* ================= PASS 1 (Overseer improvement series) ================= */
+    const P1dir = P1r;
+    // #2 integrity line has no leading //
+    const ig = await p.evaluate(() => { const c = document.querySelector('.dk-card .cd'); return c ? c.innerText : ''; });
+    ok(/INTEGRITY/.test(ig || '') && !/\/\/\s*INTEGRITY/.test(ig || ''), 'p1: group card INTEGRITY line has no leading // ' + JSON.stringify(ig));
+    // #3 taskbar: title in tab colour; minimise _ and tray tab
+    const tb3 = await p.evaluate(() => {
+      const units = Desk.wins().filter(w => w.k === 'unit' && !w.hidden);
+      const w = units[0]; if (!w) return null;
+      Desk.restore(w.id); Desk.front(w.id);
+      const tab = document.querySelector(`#dktabs [data-id="${w.id}"]`);
+      const col = (typeof SH_COL !== 'undefined' && SH_COL[w.c || 0]) || '';
+      const cs = tab && getComputedStyle(tab);
+      return { id: w.id, c: w.c, col, color: cs && cs.color, hasSw: !!(tab && tab.querySelector('.dk-tc')), minBtn: !!document.querySelector(`.dkw[data-id="${w.id}"] [data-a=min]`) };
+    });
+    const colMatch = tb3 && await p.evaluate(([a, b]) => { const t = (c) => { const s = document.createElement('span'); s.style.color = c; document.body.appendChild(s); const v = getComputedStyle(s).color; s.remove(); return v; }; return !b || t(a) === t(b); }, [tb3.color, tb3.col]);
+    ok(tb3 && tb3.minBtn && tb3.hasSw && colMatch, 'p1: each window has a taskbar tab in its tab colour, and a title-bar minimise button ' + JSON.stringify(tb3));
+    if (tb3) {
+      await p.click(`.dkw[data-id="${tb3.id}"] [data-a=min]`); await wait(250);
+      const min1 = await p.evaluate((id) => { const w = Desk.wins().find(w => w.id === id), t = document.querySelector(`#dktabs [data-id="${id}"]`); return { min: !!(w && w.min), hid: !!(w && w.hidden), tabMin: t && t.classList.contains('min') }; }, tb3.id);
+      ok(min1.min && min1.hid && min1.tabMin, 'p1: title-bar _ minimises the window; its taskbar tab stays (dimmed) ' + JSON.stringify(min1));
+      await p.click(`#dktabs [data-id="${tb3.id}"]`); await wait(250);
+      const rst = await p.evaluate((id) => { const w = Desk.wins().find(w => w.id === id); return { min: !!(w && w.min), hid: !!(w && w.hidden), on: document.querySelector(`.dkw[data-id="${id}"]`).classList.contains('on') }; }, tb3.id);
+      ok(!rst.min && !rst.hid && rst.on, 'p1: clicking the taskbar tab restores and focuses a minimised window ' + JSON.stringify(rst));
+      await p.click(`#dktabs [data-id="${tb3.id}"]`); await wait(250);
+      const min2 = await p.evaluate((id) => { const w = Desk.wins().find(w => w.id === id); return !!(w && w.min); }, tb3.id);
+      ok(min2, 'p1: clicking the taskbar tab of a focused window minimises it');
+      await p.click(`#dktabs [data-id="${tb3.id}"]`); await wait(200);
+    }
+    // #4 edge snap + TILE UNITS
+    const snap1 = await p.evaluate(() => {
+      const enc = Desk.wins().find(w => w.k === 'enc'); if (!enc) return null;
+      Desk.restore(enc.id);
+      Desk.geo(enc.id, { x: 5, y: 5, w: enc.w, h: enc.h });
+      const w = Desk.wins().find(w => w.id === enc.id);
+      Desk.snapEdges(w, 'move'); Desk.geo(enc.id, { x: w.x, y: w.y, w: w.w, h: w.h });
+      const after = Desk.wins().find(w => w.id === enc.id);
+      return { x: after.x, y: after.y };
+    });
+    ok(snap1 && snap1.x === 0 && snap1.y === 0, 'p1: a window 5px from the screen edge snaps to it (within 8px) ' + JSON.stringify(snap1));
+    const snap2 = await p.evaluate(() => {
+      const enc = Desk.wins().find(w => w.k === 'enc');
+      const u = Desk.wins().find(w => w.k === 'unit' && !w.hidden); if (!enc || !u) return null;
+      Desk.restore(u.id);
+      Desk.geo(u.id, { x: enc.x + enc.w + 6, y: enc.y, w: Math.min(u.w, 400), h: Math.min(u.h, 200) });
+      const w = Desk.wins().find(w => w.id === u.id);
+      Desk.snapEdges(w, 'move'); Desk.geo(u.id, { x: w.x, y: w.y, w: w.w, h: w.h });
+      const after = Desk.wins().find(w => w.id === u.id), e = Desk.wins().find(w => w.id === enc.id);
+      return { ux: after.x, er: e.x + e.w, gap: after.x - (e.x + e.w) };
+    });
+    ok(snap2 && Math.abs(snap2.gap) <= 1, 'p1: a window 6px from another window edge snaps flush to it ' + JSON.stringify(snap2));
+    // ensure at least two unit windows for tiling
+    const nU0 = (await uw(p)).filter(w => !w.hidden && !w.min).length;
+    if (nU0 < 2) {
+      const need = await p.evaluate(() => { const have = new Set(Desk.wins().filter(w => w.k === 'unit').flatMap(w => w.tabs || [])); return Forge.state().sheets.map((s, i) => Desk.ukey(s)).filter(k => k && !have.has(k)); });
+      if (need[0]) { await p.evaluate((u) => { Desk.open({ k: 'unit', u }); Desk.sync(); }, need[0]); await wait(800); }
+    }
+    await p.evaluate(() => Desk.tileUnits()); await wait(400);
+    const tiled = await p.evaluate(() => {
+      const A = document.getElementById('dkarea').getBoundingClientRect();
+      const enc = document.querySelector('.dkw[data-k=enc]');
+      const eb = enc && !enc.hidden ? enc.getBoundingClientRect().bottom - A.top : 0;
+      const us = Desk.wins().filter(w => w.k === 'unit' && !w.min && !w.hidden).map(w => ({ id: w.id, x: w.x, y: w.y, w: w.w, h: w.h }));
+      let overlap = false;
+      for (let i = 0; i < us.length; i++) for (let j = i + 1; j < us.length; j++) {
+        const a = us[i], b = us[j];
+        if (a.x < b.x + b.w - 1 && b.x < a.x + a.w - 1 && a.y < b.y + b.h - 1 && b.y < a.y + a.h - 1) overlap = true;
+      }
+      return { n: us.length, overlap, below: us.every(u => u.y + 1 >= eb - 2), minY: us.length ? Math.min(...us.map(u => u.y)) : null, eb };
+    });
+    ok(tiled.n >= 1 && !tiled.overlap && tiled.below, 'p1: TILE UNITS lays unit windows in a grid below ENCOUNTER with no overlap ' + JSON.stringify(tiled));
+    await p.evaluate(() => Desk.openShortcuts()); await wait(300);
+    const keys = await p.evaluate(() => {
+      const w = Desk.wins().find(w => w.k === 'keys'); if (!w) return null;
+      const t = (document.querySelector(`.dkw[data-id="${w.id}"]`) || {}).innerText || '';
+      const fs = parseFloat(getComputedStyle(document.querySelector(`.dkw[data-id="${w.id}"] .dk-keys`) || document.body).fontSize);
+      return { t, fs, hasCtrl: /Ctrl\+1/.test(t), drag: /Drag a unit tab/i.test(t), tear: /Tear-off/i.test(t), dbl: /Double-click/i.test(t), right: /Right-click/i.test(t) };
+    });
+    ok(keys && keys.fs >= 11 && keys.hasCtrl && keys.drag && keys.tear && keys.dbl && keys.right, 'p1: SHORTCUTS window lists keys and mouse gestures (tab drag, tear-off, double-click, right-click), 11px or larger ' + JSON.stringify({ fs: keys && keys.fs, hasCtrl: keys && keys.hasCtrl, drag: keys && keys.drag, tear: keys && keys.tear, dbl: keys && keys.dbl, right: keys && keys.right }));
+    await p.keyboard.press('Escape'); await wait(200);
+    await p.click('#dkstart'); await wait(200);
+    ok(await p.evaluate(() => !!document.getElementById('dkmenu') && /TILE UNITS/.test(document.getElementById('dkmenu').textContent)), 'p1: TILE UNITS is in the launch menu');
+    await p.keyboard.press('Escape'); await wait(200);
+    ok(await p.evaluate(() => !document.getElementById('dkmenu') && !Desk.wins().some(w => w.k === 'keys' && !w.min && !w.hidden)), 'p1: Esc closes the launch menu (and a focused SHORTCUTS window)');
+    await p.click('#dkhelp'); await wait(300);
+    ok(await p.evaluate(() => Desk.wins().some(w => w.k === 'keys' && !w.hidden && !w.min)), 'p1: the taskbar ? button opens SHORTCUTS');
+    await p.evaluate(() => { const k = Desk.wins().find(w => w.k === 'keys'); if (k) Desk.close(k.id); }); await wait(200);
+    // Ctrl+1..9 sets acting unit (page-dispatched; avoids the browser stealing Ctrl+1)
+    const act0 = await p.evaluate(() => ({ cur: Forge.state().cur, n: Desk.actUnit(1), after: Forge.state().cur, label: document.querySelector('#dkstat .act') && document.querySelector('#dkstat .act').textContent }));
+    ok(act0.n && act0.after != null, 'p1: Ctrl+1..9 / actUnit sets the acting unit in tab order ' + JSON.stringify(act0));
+    // #1 STABILITY scroll into view after APPLY
+    const stab = await p.evaluate(() => {
+      const w = Desk.wins().find(w => w.k === 'unit' && !w.min && !w.hidden) || Desk.wins().find(w => w.k === 'unit');
+      if (!w) return { skip: 'no unit' };
+      Desk.restore(w.id); Desk.front(w.id);
+      const S = Forge.state();
+      if (S.stab) { if (typeof stabDismiss === 'function') stabDismiss(); }
+      const i = S.sheets.findIndex(s => Desk.ukey(s) === w.u);
+      if (i < 0) return { skip: 'no sheet' };
+      if (typeof shGo === 'function') shGo(i); else if (typeof shClick === 'function') { /* routed */ }
+      Desk.route(w.u);
+      S.dmg = Object.assign(S.dmg || {}, { loc: 2, d: 700, div: 1, rear: false, gap: false });
+      if (typeof autoCalc === 'function') autoCalc();
+      if (typeof applyDmg === 'function') applyDmg(); else return { skip: 'no applyDmg' };
+      const box = document.querySelector(`.dkw[data-id="${w.id}"] .stabbox`) || (() => { const h = Desk.hosts().get(w.u + '|impact'); const r = h && (h.querySelector ? (h.querySelector('.stabbox') || (h.shadowRoot && h.shadowRoot.querySelector('.stabbox'))) : null); return r; })();
+      const body = document.querySelector(`.dkw[data-id="${w.id}"] .dk-b`);
+      if (!box || !body) return { has: !!box, body: !!body, stab: !!S.stab };
+      const br = box.getBoundingClientRect(), bb = body.getBoundingClientRect();
+      return { has: true, topIn: br.top >= bb.top - 2, botIn: br.bottom <= bb.bottom + 2, stab: !!S.stab };
+    });
+    ok(stab && stab.has && stab.topIn, 'p1: after APPLY, the STABILITY strip is scrolled into view ' + JSON.stringify(stab));
+    // #6 per-callsign layout persist + RESET LAYOUT exists
+    const lay = await p.evaluate(() => {
+      const enc = Desk.wins().find(w => w.k === 'enc'); if (!enc) return null;
+      Desk.restore(enc.id); Desk.geo(enc.id, { x: 200, y: 48, w: enc.w, h: enc.h });
+      const s = Desk.sign();
+      let rec = null; try { rec = (JSON.parse(localStorage.getItem('forge_desk_d1') || '{}').bySign || {})[s]; } catch (e) { rec = null; }
+      const savedX = rec && rec.geo && rec.geo.enc && rec.geo.enc.x;
+      Desk.geo(enc.id, { x: 360, y: 48, w: enc.w, h: enc.h });
+      const mid = Desk.wins().find(w => w.id === enc.id).x;
+      Desk.loadLayout(rec);
+      const after = Desk.wins().find(w => w.k === 'enc');
+      return { s, savedX, mid, afterX: after && after.x, resetBtn: true };
+    });
+    ok(lay && lay.s && lay.savedX === 200 && lay.mid === 360 && lay.afterX === 200, 'p1: window position is persisted per callsign and restored from that layout ' + JSON.stringify(lay));
+    // last roll line in the status bar when the console is closed
+    const conWas = await p.evaluate(() => { const c = document.querySelector('.dkw[data-k=con]'); return !!(c && !c.hidden); });
+    if (conWas) { await p.click('#dktray'); await wait(200); }
+    await p.evaluate(() => { const log = document.getElementById('log'); const d = document.createElement('div'); d.textContent = '[ 12:00 ] VEGA // 3d6 ATTACK 14'; log.appendChild(d); });
+    await wait(250);
+    const last = await p.evaluate(() => { const el = document.querySelector('#dkstat .dk-last'); return el ? el.textContent : ''; });
+    ok(/^LAST:/.test(last) && /VEGA/.test(last) && last.length <= 100, 'p1: when the console is closed, #dkstat shows LAST: and the roll line ' + JSON.stringify(last));
+    await p.click('#dkstat .dk-last'); await wait(300);
+    ok(await p.evaluate(() => { const c = document.querySelector('.dkw[data-k=con]'); return !!(c && !c.hidden); }), 'p1: clicking LAST: in the status bar opens the console');
+    await p.click('#dktray'); await wait(200);
+
+    // shots: 1366 and 1920, both themes
+    const themeP1 = async (th) => { await p.click('.dk-ico[data-ico=set]'); await wait(400); const sid = await p.evaluate(() => Desk.wins().find(w => w.k === 'set').id); await p.click(`.dkw[data-id="${sid}"] button:has-text("${th}")`); await wait(400); await p.evaluate((id) => Desk.minimize(id), sid); await wait(200); };
+    await p.evaluate(() => { Desk.wins().filter(w => w.k === 'keys' || w.k === 'set').forEach(w => Desk.close(w.id)); const g = Desk.wins().find(w => w.k === 'group'); if (g) { Desk.restore(g.id); Desk.front(g.id); } }); await wait(300);
+    await p.setViewportSize({ width: 1366, height: 768 }); await wait(400);
+    await themeP1('IMPERIAL NAVY'); await shotP1(p, 'p1-desk-1366-navy.png');
+    await themeP1('REMUS ACCORD'); await shotP1(p, 'p1-desk-1366-remus.png');
+    await p.evaluate(() => Desk.tileUnits()); await wait(300);
+    await shotP1(p, 'p1-tile-1366-remus.png');
+    await p.setViewportSize({ width: 1920, height: 1080 }); await wait(400);
+    await themeP1('IMPERIAL NAVY'); await shotP1(p, 'p1-desk-1920-navy.png');
+    await p.evaluate(() => Desk.openShortcuts()); await wait(250);
+    await shotP1(p, 'p1-shortcuts-1920-navy.png');
+    await p.evaluate(() => { const k = Desk.wins().find(w => w.k === 'keys'); if (k) Desk.close(k.id); }); await wait(150);
+    await themeP1('REMUS ACCORD'); await shotP1(p, 'p1-desk-1920-remus.png');
+    await p.setViewportSize({ width: 1600, height: 900 }); await wait(400);
+    await themeP1('IMPERIAL NAVY');
+    await p.evaluate(() => { const k = Desk.wins().find(w => w.k === 'keys'); if (k) Desk.close(k.id); }); await wait(200);
+
     // settings, 7 REMUS accents
     await p.click('.dk-ico[data-ico=set]'); await wait(500);
     const sw = await p.evaluate(() => Desk.wins().find(w => w.k === 'set'));
     const sect = await p.evaluate((id) => [...document.querySelectorAll(`.dkw[data-id="${id}"] legend`)].map(l => l.textContent), sw.id);
-    ok(['THEME', 'AUDIO', 'UI SCALE', 'LAYOUT SLOTS'].every(k => sect.some(s => s.startsWith(k))), 'settings: theme, audio, UI scale and layout slots ' + JSON.stringify(sect));
+    const hasReset = await p.evaluate((id) => !!document.querySelector(`.dkw[data-id="${id}"] [data-reset]`), sw.id);
+    ok(['THEME', 'AUDIO', 'UI SCALE', 'LAYOUT SLOTS'].every(k => sect.some(s => s.startsWith(k))) && hasReset, 'settings: theme, audio, UI scale, layout slots, and RESET LAYOUT ' + JSON.stringify({ sect, hasReset }));
     await shot(p, 'r2-11-settings.png');
     await p.click(`.dkw[data-id="${sw.id}"] button:has-text("REMUS ACCORD")`); await wait(500);
     await p.click('#dktray'); await wait(300);
@@ -627,6 +785,14 @@ const cyanScan = p => p.evaluate(() => {
     const Pl = await seat('PILOTB', '#ff8800');
     await loadUnits(Pl.p, ['PB-7 / KAGE'], true); await wait(3500);
     await H.p.evaluate(() => Forge.render()); await wait(1500);
+    const autoOf = (page) => page.evaluate(() => {
+      const S = Forge.state(), me = window.__forgeSelf, host = !!window.__forgeHost;
+      const tabs = new Set(Desk.wins().filter(w => w.k === 'unit').flatMap(w => w.tabs || [w.u]));
+      const must = S.sheets.filter(s => !s.hidden).filter(s => (me && s.ownerId === me) || (host && !s.ownerId) || (S.cur != null && S.sheets[S.cur] === s));
+      return { host, missing: must.filter(s => !tabs.has(Desk.ukey(s))).map(s => s.name || s.uid), nMust: must.length, nTabs: tabs.size };
+    });
+    const aoH = await autoOf(H.p), aoP = await autoOf(Pl.p);
+    ok(!aoH.missing.length && !aoP.missing.length && aoH.nMust > 0 && aoP.nMust > 0, 'p1 mp: autoOpen always opens owned units, the host unowned sheets, and the acting unit ' + JSON.stringify({ aoH, aoP }));
     for (const s of [H, Pl]) { await s.p.evaluate(() => { Forge.state().sheets.forEach(sh => Desk.open({ k: 'unit', u: Desk.ukey(sh) }, false)); Forge.render(); }); await wait(600); }
     const pw = await uw(Pl.p), hw = await uw(H.p);
     const pK = await keyOf(Pl.p, 'PB-7 / KAGE'), pH = await keyOf(Pl.p, 'HST-1 / HOSTUNIT');
@@ -654,6 +820,8 @@ const cyanScan = p => p.evaluate(() => {
     await Pl.p.evaluate(() => { try { atkRoll(0); } catch (e) { } }); await wait(1500);
     const deny = await Pl.p.evaluate((n) => document.getElementById('log').textContent.slice(n), n0);
     ok(routedOther && /ASSIGNED PILOT OR HOST ONLY/.test(deny), "pilot: the host unit's tab acts as the host unit and its roll is refused (guard) " + JSON.stringify(deny.slice(0, 160)));
+    const viewStat = await Pl.p.evaluate(() => { const el = document.querySelector('#dkstat .act'); return { txt: el && el.textContent, view: el && el.classList.contains('view'), body: document.body.classList.contains('mp-view') }; });
+    ok(viewStat.body && viewStat.view && /^VIEWING/.test(viewStat.txt || '') && !/ACTING/.test(viewStat.txt || ''), 'p1 mp: a read-only pilot sees VIEWING (not ACTING) in the status bar ' + JSON.stringify(viewStat));
     await Pl.p.click(`.dkw[data-id="${wid}"] .dk-ut[data-u="${pK}"]`); await wait(500);
     const n1 = await Pl.p.evaluate(() => document.getElementById('log').textContent.length);
     await Pl.p.locator(`.dk-sec[data-u="${pK}"][data-s=rolls] button:has-text("[ROLL]")`).first().click(); await wait(2500);
@@ -695,6 +863,30 @@ const cyanScan = p => p.evaluate(() => {
     await H.p.evaluate((id) => Desk.geo(id, { x: 900, y: 400, w: 640, h: 420 }), hc); await wait(400);
     const wide = await H.p.evaluate(() => { const f = document.getElementById('mpfriends'), l = document.getElementById('log'); const fr = f.getBoundingClientRect(), lr = l.getBoundingClientRect(); return fr.bottom > lr.top + 10; });
     ok(wide, 'a wide console window keeps the user list at the side');
+    await H.p.evaluate((id) => { Desk.geo(id, { x: 800, y: 200, w: 480, h: 440 }); Desk.front(id); }, hc); await wait(400);
+    const clip = await H.p.evaluate(() => {
+      const f = document.getElementById('mpfriends'), l = document.getElementById('log');
+      if (!f || !l) return null;
+      const fr = f.getBoundingClientRect(), lr = l.getBoundingClientRect();
+      const overlap = lr.right > fr.left + 2 && lr.left < fr.right - 2 && lr.bottom > fr.top + 2 && lr.top < fr.bottom - 2;
+      return { overlap, gap: Math.round(fr.left - lr.right), side: fr.bottom > lr.top + 10, lw: Math.round(lr.width), fw: Math.round(fr.width) };
+    });
+    ok(clip && clip.side && !clip.overlap, 'p1 mp: in a 480px-wide console the user list does not cover the roll lines ' + JSON.stringify(clip));
+    const tabPF = async (page) => page.evaluate(() => {
+      const S = Forge.state(), me = window.__forgeSelf, host = !!window.__forgeHost;
+      const must = S.sheets.filter(s => !s.hidden && ((me && s.ownerId === me) || (host && !s.ownerId) || (S.cur != null && S.sheets[S.cur] === s)));
+      const tabs = [...document.querySelectorAll('#dkarea .dk-ut')].map(t => ({ u: t.dataset.u, pf: ((t.querySelector('.pf') || {}).textContent) || '', act: t.classList.contains('act') }));
+      const acting = (S.cur != null && S.sheets[S.cur]) ? Desk.ukey(S.sheets[S.cur]) : Desk.curKey();
+      return { ownedOpen: must.every(s => tabs.some(t => t.u === Desk.ukey(s))), actingHas: tabs.some(t => t.u === acting && /▶/.test(t.pf)), nMust: must.length, acting };
+    });
+    const pfH = await tabPF(H.p), pfP = await tabPF(Pl.p);
+    ok(pfH.ownedOpen && pfH.actingHas && pfP.ownedOpen && pfP.actingHas, 'p1 mp: every owned or acting unit has a tab, and the acting unit tab shows the play mark ' + JSON.stringify({ pfH, pfP }));
+    await H.p.setViewportSize({ width: 1366, height: 768 }); await Pl.p.setViewportSize({ width: 1366, height: 768 }); await wait(400);
+    await shotP1(H.p, 'p1-mp-host-1366.png');
+    await Pl.p.evaluate(() => { const S = Forge.state(); const other = S.sheets.find(s => s.ownerId && s.ownerId !== window.__forgeSelf); if (other) { const u = Desk.ukey(other); const w = Desk.wins().find(w => w.k === 'unit' && (w.tabs || []).includes(u)); if (w) { Desk.restore(w.id); Desk.front(w.id); const tab = document.querySelector(`.dkw[data-id="` + w.id + `"] .dk-ut[data-u="` + u + `"]`); if (tab) tab.click(); } } });
+    await wait(500);
+    await shotP1(Pl.p, 'p1-mp-pilot-1366.png');
+
     ok((await dupIds(Pl.p)).length === 0 && (await dupIds(H.p)).length === 0, 'MP: no duplicate ids on either seat');
     // 3 prefill: reload the pilot seat
     await Pl.p.reload(); await wait(2500);

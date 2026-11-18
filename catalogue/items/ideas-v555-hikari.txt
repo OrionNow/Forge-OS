@@ -1,0 +1,66 @@
+FORGE-OS ROLE CONCEPTS vs v5.5.5 CATALOGUE (Hikari draft for Ryuji) - SCRATCH, DO NOT COMMIT
+Baseline: out-v5.5.5/terminal.html RAW (74 lines, includes batch 2) + catalogue/items/batch3-v1-raw.txt. No batch 4 file exists yet.
+Rules applied: no RAD, no new per-sortie limits, no new tokens/counters/stat fields, single-value shield DR, no melee multipliers,
+divisor ladder (3)-(6), TL bands (TL8 = match core, TL9 0..+2, TL10 +1..+3), guns on the lower range scale, HEAT moderate, Reman has no drawbacks.
+Factions as written in the catalogue: Core Empire = Imperial, Crow Republic = Crow, Reman.
+
+== GAP ANALYSIS ==
+- Artillery: one indirect weapon (105mm Siege Mortar) and nothing that improves spotting or indirect fire; the INDIRECT rule exists but has no support kit around it.
+- Offensive EW: ECM Suite, Countermeasure Pod and Decoy Beacon are all area or self defense. Nothing lets an EW pilot shut down one enemy's fire control.
+- Counter-stealth: Shinobi dampers, Kitsune Mirage and Smoke exist, but only Sensor Suite tiers answer them. No hunter item.
+- Anti-air/interceptor: fighters, helos, Tengu, jump jets, Icarus Wings and Spaceborn jets exist, but no weapon is tuned to hit airborne units.
+- Escort: every shield and defense protects only its bearer (the Convoy harness is movement only). Nothing lets a guard take hits for an ally.
+- Logistics: no way to rearm or cool an ally in the field. Ammo and heat are the two resources that end sorties.
+- Rescue: the Tow Winch and Armored Carrier move wrecks and cargo. Nothing secures a downed pilot or gets a knocked-down or stunned ally back up.
+- Command: the Heraldic Command Mast is the only command item, and it only adds to-hit. Nothing gives allies movement or tempo.
+- Breacher vs shield walls: the Pile Bunker and Breaching Torch hit hard, but Tower/Large shields and Aura-Guard blades still block them. Nothing answers a shield line.
+
+== ITEMS (name | faction | TL | slot | rough stats/effect | role) ==
+
+-- RECON / EW --
+LARK SPOTTER DRONE | Core Empire | 8 | U | EP2. Ready to launch or recall. While up, you count as "an ally with LOS" for any target within 250m of you, for SENSORS rolls only (feeds the 105mm Mortar INDIRECT -2 rule). Grounded while your Utility location is disabled. Cite: 3/51 Sensor Periscope p.26; HT Forward Observer/indirect fire pp.137-138. Overlap: Mesh Net Relay (tier boost, not LOS) | spotter
+BURN-THROUGH JAMMER | Crow Republic | 9 | U | EP2 HEAT:+2/use. Ready + EW vs the target's SENSORS, one enemy within 250m. On a win, the target's G-slot ACC-ALL/ACC-SPEC and Enhanced Targeting count as +0 until the end of its next turn. Cite: 3/51 Radar Jammer -6 p.26; UT Deceptive Radar Jammer. Overlap: ECM Suite (passive area); this one is single-target and active | EW attack
+YATA SIGHT-MIRROR | Reman | 10 | G | EP-2 ACC-ALL:+1. Your attacks ignore Shinobi Signature Dampers, the Kitsune Mirage -2, and Smoke Discharger COVER. Overlap: Shingan (ignores ECM tier 1); this one answers stealth instead | stealth hunter
+COLD-RUN BAFFLES | Crow Republic | 9 | U | EP2. While HEAT is below half cap and you did not fire last turn: DETECT -4, and enemy ranged attacks beyond half range are at -1. Lost while HEAT is at half cap or above. Overlap: Shinobi dampers (tiered, always-on); this one rewards holding fire and staying cool | stealth/scout
+
+-- ARTILLERY --
+ARBALEST FIRE-DIRECTION SUITE | Core Empire | 8 | G | EP-1. SPEC:INDIRECT: the spotted INDIRECT penalty goes from -2 to +0. ACC-OTHERS:-1. Cite: HT Forward Observer p.137-138 (a FO roll replacing a gunner roll) | artillery
+LOFT 60mm SWARM RACK | Crow Republic | 9 | A | EP3 ROF:3 DMG:4dx12(4) AVG:168(504) ACC:0 RCL:3 RNG:100/450 AMMO:6(2) SPARE:0. INDIRECT as the 105mm Mortar; minimum range 25. Cite: same warhead as the core 60mm pod (3/51 Light Missile Pod 6d×12(10) p.27, scaled). Overlap: Ripple Battery (same rockets, direct fire only) | artillery (salvo)
+HOSHI-OTOSHI STAR-FALL CANNON | Reman | 10 | A | EP5 ROF:1 DMG:6dx15(5) AVG:315 ACC:0 RCL:2 RNG:120/600 HEAT:+2/shot, no ammo. INDIRECT as the 105mm Mortar. TOP-ATTACK: ignores Targeter COVER. Cite: 3/51 Heavy Missile Pod 6d×15(10) p.27 to (5): TL10 +1 over the 105mm Mortar (4) | artillery (precision)
+
+-- BREACHER --
+SATCHEL BREACHING CHARGES | Core Empire | 8 | A | EP2 ROF:X DMG:6dx12(4) AVG:252 AMMO:3(1) SPARE:0. Placed on an adjacent target (melee roll). Cannot be Blocked by shields; Dodge only. Cite: 3/51 Heavy Missile Pod shaped charge 6d×12 pi++ p.26; HT AT4 6d×6(10) p.148. Overlap: Pile Bunker (bigger hit, but needs a charge turn and can be Blocked) | breacher
+RAIKIRI SHIELD-SUNDER | Reman | 10 | A | EP3 ROF:X DMG:72d(5) AVG:252. Cannot be Blocked by shields or Aura-Guard; Parry and Dodge only. No damage multiplier. Cite: UT superfine/monomolecular blades p.164; (5) is TL10 +2 over the VIBROBLADE (3) | shield-line breaker
+
+-- INTERCEPTOR / ANTI-AIR --
+SKYSCREEN 35mm FLAK CANNON | Core Empire | 8 | A | EP3 ROF:4 DMG:6dx4(3) AVG:84(336) ACC:3 RCL:2 RNG:120/478 AMMO:16(1) SPARE:1. FLAK: +3 to hit airborne units (fighter, helo, Tengu, any unit mid-jump or flying); -2 vs ground units. Cite: HT M242 25mm 6d×4 pi++ (cannon table, ~p.139). Overlap: 20mm Light Autocannon (general point defense, no AA bonus) | anti-air
+VIPER HEAT-SEEKER RAIL | Crow Republic | 9 | A | EP2 ROF:1 DMG:6dx6(4) AVG:126 ACC:4 RCL:2 RNG:90/420 AMMO:2(1) SPARE:1. SEEKER: +2 to hit a target that is airborne or has HEAT at half cap or above. Cite: HT AT4 6d×6(10) p.148 (warhead); HT Stinger IR homing ~p.152. (10) to (4), level with the core 60mm pod | interceptor/hunter
+HAYABUSA PURSUIT VANES | Reman | 10 | T | EP3 MOVE:+30% HND:+1. PURSUIT: +1 to hit a unit that moved more than half its MOVE this turn. Overlap: Kaze-no-Mai (+30%, HND+2, with drawbacks); this one trades handling for a chase bonus | interceptor
+
+-- DEFENSE / ESCORT --
+PAVISE ESCORT SHIELD | Core Empire | 8 | D | EP5 DR:220 HP:300. COVER-ALLY: you may Block an attack on an adjacent ally; that is your Block for the turn. Cite: 3/51 Mecha Shield Table, Large 480/360 p.27 (FORGE single-value scale). Overlap: Large Shield, Imperial Heater (self only) | bodyguard
+MAMORI WARD LANTERN | Reman | 10 | D | EP4 DR:250 HP:250, hands-free projected shield. One Block per turn, used for yourself or any ally within 1 hex. Cite: 3/51 shields p.27; UT force screens. Overlap: Hakkei Deflector (hand-held, heat, redline collapse); Pavise (adjacent only, needs a hand) | escort
+SPALL-CATCHER ACTIVE PROTECTION | Crow Republic | 9 | D | EP2 HEAT:+1/trigger. Once per turn, roll 11 or less to negate one ROCKET/MISSILE hit on you or an adjacent ally, checked before the Dodge. Cite: 3/51 Active Defense System 13 or less p.25 (dropped to 11 for Crow shortcuts). Overlap: Kaeshi PD Laser (+2 Dodge, self only), Countermeasure Pod | escort/missile screen
+
+-- SUPPORT / LOGISTICS --
+AMMUNITION TENDER RACK | Core Empire | 8 | U | EP2 AMMO:4(1). Ready: an adjacent ally regains 1 SPARE magazine for one weapon; spends 1 from the rack's AMMO, which the sheet already tracks. Overlap: none (Field Workshop is HP repair) | rearm/logistics
+COOLANT TRANSFER HOSE | Crow Republic | 8 | U | EP1. Ready: move up to 3 HEAT from an adjacent ally to yourself. Your HEAT can hit redline this way. Overlap: Onmyo fins and Slurry Flush (self only, Oleum only) | heat logistics
+
+-- RESCUE / COMMAND --
+PILOT RECOVERY CRADLE | Core Empire | 8 | U | EP1. Ready while adjacent to a disabled ally: its pilot is aboard and safe from attacks on the wreck. Holds 1 pilot. Overlap: Armored Carrier CARGO (a frame, not a slot item); Tow Winch (moves the wreck, not the pilot). Cite: 3/51 Ejection Seat p.25 | rescue
+HOTOKE RALLY CHIME | Reman | 10 | U | EP2. Ready: one ally within 2 hexes that is knocked down or stunned stands up or recovers immediately, no roll. Cite: 3/51 Psi-Amplifier p.26 (psionic channel) | medic/rally
+AQUILA MANEUVER NET | Core Empire | 9 (ultra-elite) | U | EP2. Ready: one ally with LOS within 300m takes an immediate free move of up to half its MOVE, no attack. Does not stack with the Heraldic Command Mast (one command item per mech). Overlap: Command Mast (to-hit), Convoy Harness (adjacent MOVE) | command/tempo
+
+20 items across 7 roles: Core Empire 9, Crow Republic 6, Reman 5. TL8 x9, TL9 x6, TL10 x5. Damage: 7 weapons; all divisors are in band (TL8 matches core, TL9 (4) on (4) items, TL10 +1/+2).
+
+== OPEN QUESTIONS FOR RYUJI ==
+1. ARBALEST "SPEC:INDIRECT": can the sheet's ACC-SPEC take a new INDIRECT choice, or is that a new field? Fallback: fold it into the Lark drone ("spotted INDIRECT is +0").
+2. LARK / HOTOKE / AQUILA / TENDER / HOSE all cost a Ready. Is a Ready on an ally a fair price at EP1-2, or do they need HEAT +1 for parity with the Mender and Workshop?
+3. TENDER RACK: does restoring a SPARE magazine break the "SPARE per sortie" read? Alternative: the ally reloads one weapon instantly with no SPARE spent.
+4. Reman no drawbacks: I kept modest HEAT only on the Star-Fall shot and left the other Reman items with none. OK, or should HEAT also count as a drawback?
+5. "Cannot be Blocked" on Satchel and Raikiri: too strong vs the Tower Shield and Whale meta? Option: allow the Block but the shield's DR counts as half for that hit (a divisor step, not a multiplier).
+6. SKYSCREEN -2 vs ground and VIPER SEEKER keyed on HEAT at half cap: do these overlap Oleum bloom too much (bloomers are always at half cap)?
+7. SPALL-CATCHER at 11 or less, once per turn, covering an adjacent ally: compare with Kaeshi's +2 Dodge. Is EP2 right?
+8. PAVISE / MAMORI Blocking for an ally: does the ally's attacker roll vs the guard's Block skill? I assume the guard's.
+9. LOFT RACK: is indirect at ROF 3, total 504, too much next to the 105mm's 273 at the same EP3?
+10. COLD-RUN BAFFLES "did not fire last turn": the player has to remember it, not the sheet. Is that acceptable or effectively a counter?

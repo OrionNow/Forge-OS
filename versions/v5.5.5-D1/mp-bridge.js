@@ -2535,6 +2535,7 @@
     MP.callsign = String(session.callsign || "USER UNKNOWN");
     restoreSelfTint(session.members || []);
     window.__forgeSelf = MP.selfId;
+    window.__forgeHost = MP.role === "host";
     if (!MP.members) MP.members = [];
     try { MP.seatsOpen = localStorage.getItem("forge_mp_seats_min") !== "1"; } catch (e) { MP.seatsOpen = true; }
     install();

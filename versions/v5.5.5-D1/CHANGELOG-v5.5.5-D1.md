@@ -115,6 +115,23 @@ UI SCALE is unchanged. Tests: the D1 suite adds checks for all ten items; the ea
 6. **Open from group.** A new unit window opened from a group starts just below ENCOUNTER, not over it at y=40.
 7. **Tab pilot name** can be up to 140 px (was 110) before it ellipsizes.
 
+## Pass 1 (Overseer improvement series, Nov 18)
+
+1. **STABILITY strip.** After APPLY, when a STABILITY CHECK first appears, the desktop scrolls it into view (`scrollIntoView`, `block: "nearest"`).
+2. **Card INTEGRITY.** The integrity line on a group mini-doll card no longer has a leading `//`.
+3. **Taskbar colour.** Each open window (except the console, which keeps the ▤ tray button) has a taskbar tab whose title is in that window's tab colour. Clicking a tab focuses the window, or minimises it if it is already focused. Minimised windows restore from the tab. The title-bar `_` button was already there.
+4. **Edge snap and TILE UNITS.** Dragging a window near a screen edge or another window's edge snaps it within 8 px (the 8 px grid snap in Settings is unchanged). 起動 LAUNCH → TILE UNITS lays open unit windows out in a grid below ENCOUNTER, with no overlap.
+5. **Keyboard and SHORTCUTS.** Ctrl+1…9 sets the acting unit in tab order. Esc closes menus (and the SHORTCUTS window if it is focused). `?` or the taskbar `?` button opens a SHORTCUTS window listing keys and mouse gestures (tab drag, tear-off, double-click, right-click, and the rest).
+6. **Per-callsign layout.** Window positions, sizes and minimised state are saved in localStorage for the current callsign and restored on login. SETTINGS already had RESET LAYOUT; it now also clears that callsign's saved layout.
+
+Live-table fixes from the 8fc06ae audit (host + pilot):
+
+7. **autoOpen.** Own units, the host's unowned sheets, and the acting unit always get a window. The open cap applies only to the rest. A sheet is marked seen only when it actually opens, so a later pass can still pick up a missed acting unit.
+8. **Console roll lines.** In the 480 px-wide (side-list) console, `#log`, `#pr` and `#hint` keep a 112 px right margin so the user list no longer covers the roll text. The tall top-strip layout is unchanged.
+9. **STABILITY button.** A newly appeared `[ROLL STABILITY]` button (or its `.stabbox`) is scrolled into view once, guarded by `dataset.seen`.
+10. **LAST roll.** When the console is closed, a new roll line is shown in the status bar as `LAST: …` (90 characters, about 8 seconds) and is clickable to open the console.
+11. **VIEWING.** A read-only pilot sees `VIEWING` (dimmer) in the status bar instead of `ACTING`.
+
 ## Known limits
 
 - An open native select in a unit window that is not yet the one you are using may close on the first click. The second click works.

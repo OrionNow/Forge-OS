@@ -1,0 +1,28 @@
+FORGE-OS ideas vs v5.5.5, Hikari pass 2 (SCRATCH, DO NOT COMMIT). Checked against /workspace/ryuji-ideas-v555-combined.md (33 items), v5.5.5 RAW and batch3-v1.
+Targets: Imperial and Crow ace frames, Reman reactor and thruster, transformable and mobile armor, Crow mass-production kit. Standing rules apply; heat counts as a cost; Reman has no drawbacks; unblockable only at TL10.
+Fields: name | faction | TL | slot | rough stats/effect | role
+
+## Ace frames
+- RX-ARC WHITE PROTOTYPE FRAME | Imperial (ultra-elite) | 9 | F | ST/HP160 DR600/300 MOVE11L/22S SM+6 HND+3 SR2 DEF:+1_Dodge, EP7; LEARNING-CORE: +1 to hit an enemy that attacked you last turn | the Federation's one-off ace machine, the "white devil"
+- BLACK TRI-STAR HOVER FRAME | Crow | 9 | F | ST/HP165 DR550/275 MOVE11L/22S SM+6 HND+2 SR2, EP7; SKIRT HOVER: ground MOVE treats difficult terrain and water as open; JET STREAM: attacks from your front on an ally directly behind you take Targeter COVER -2 | three-ace heavy hover charge; overlaps Suisen (terrain only, Reman thruster)
+
+## Transformable / mobile armor
+- WAVERIDER TRANSFORM FRAME | Imperial | 9 | F | ST/HP140 DR450/225 MOVE11L/36S SM+6 HND+3 SR1, EP5; TRANSFORM: a Ready switches modes. WAVERIDER: flight MOVE 36S, no melee, no Block, hand weapons can't fire (fixed/torso only). MS: flight MOVE drops to 18S | fast-strike transformer, re-entry raider; overlaps Tengu (always airborne)
+- ADZAM-PATTERN MOBILE ARMOR | Crow | 9 | F | ST/HP220 DR800/400 MOVE3L/14S SM+8 HND-1 SR4, EP14; NO HANDS (no hand-held weapons, no Block/Parry); I-FIELD: incoming no-ammo beam weapons drop 1 armor-divisor step | heavy-weapons mobile armor; anti-beam fortress
+
+## Mass production / refits
+- F2-TYPE FIELD REFIT KIT | Crow | 8 | U | EP1; only on the core LIGHT/MEDIUM/HEAVY FRAME or CHASSIS: MOVE+10% HND+1, and +1 to repair rolls on that frame (common parts) | Zaku-style rank-and-file upgrade that keeps old frames in the fight
+- FULL ARMOR PACK | Imperial | 9 | D | EP4 DR:+20% MOVE:-15% HND:-1; PURGE: a free action disables this item for the rest of the sortie, restoring MOVE and HND | Full Armor Gundam: armor up, then purge mid-fight; overlaps Tourney Barding (no purge), doesn't stack with % armor
+
+## Reman reactor / thruster
+- AMATERASU AWAKENING CORE | Reman | 10 | R | ST/HP+60% HEAT13 VENT2, EP5; AWAKENING: while HEAT is at half cap or above, DEF +1 Dodge and +1 melee to hit, no cost | divine-armor "awakening" berserker core; contrasts with Kami-Oroshi (sustain); overlaps Akeda Oni YURAGI (frame trait, different bonus)
+- HAGOROMO CELESTIAL VEIL WINGS | Reman | 10 | T | MOVE+30% HND+1, EP3; VEIL FLIGHT: may move flying up to half MOVE each turn, no heat, land free | heavenly-maiden wing pack (Freedom/Wing-style), gives any Reman frame flight; overlaps Tengu frame and Icarus Wings (heat, 1 turn)
+
+8 items: Imperial 3, Crow 3, Reman 2. TL8 1, TL9 5, TL10 2. No new weapons, so no damage cites.
+
+## Open questions for Ryuji
+1. RX-ARC DEF:+1 and LEARNING-CORE "attacked you last turn" is player memory. OK, or swap for HND+4?
+2. JET STREAM COVER -2: does the Targeter apply COVER per attacker cleanly?
+3. WAVERIDER: is the existing L/S MOVE pair enough to read mode, or does it need a toggle?
+4. ADZAM EP14 vs Whale EP12: right for a no-hands frame?
+5. FULL ARMOR PURGE "disables this item": can the sheet's location-disable cover it?
