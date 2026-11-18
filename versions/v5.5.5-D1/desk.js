@@ -834,7 +834,10 @@
     const who = (seg[0].split(" / ")[0] || "").trim();
     const mid = seg.length > 1 ? seg[1] : "";
     const rest = seg.length > 2 ? seg.slice(2).join(" · ") : "";
-    const short = [rest, mid, who === "LOCAL" ? "" : who].filter(Boolean).join(" · ") || stripped || raw;
+    let short = [rest, mid, who === "LOCAL" ? "" : who].filter(Boolean).join(" · ") || stripped || raw;
+    if (/STABILITY CHECK/.test(stripped) && seg.length > 3) {
+      short = [seg[seg.length - 1], "STABILITY", seg[seg.length - 2], who === "LOCAL" ? "" : who].filter(Boolean).join(" · ");
+    }
     return { short: short.replace(/\s+/g, " ").trim().slice(0, 90), full: raw };
   }
   function showLastRoll(text) {
@@ -870,7 +873,10 @@
   function conWin() { let x = findW((v) => v.w.k === "con"); if (!x) { const w = Object.assign({ id: nid(), k: "con" }, defGeo("con"), { min: true }); x = build(w); x.e.hidden = true; } return x; }
   function setTray(on) {
     const x = conWin(), b = $("dktray"); x.w.min = !on; x.e.hidden = !on;
-    if (on) { front(x.w.id); b.classList.remove("new"); const lg = $("log"); if (lg) lg.scrollTop = lg.scrollHeight; } else { const a = activeId(); if (a) front(a); else paintTabs(); }
+    if (on) {
+      front(x.w.id); b.classList.remove("new"); const lg = $("log"); if (lg) lg.scrollTop = lg.scrollHeight;
+      lastRoll = ""; lastRollFull = ""; lastRollUntil = 0; clearTimeout(lastRollTimer);
+    } else { const a = activeId(); if (a) front(a); else paintTabs(); }
     b.classList.toggle("on", on); b.setAttribute("aria-pressed", String(on)); P.tray = on; persist();
     try { paintStat(); } catch (e) { /* ok */ }
   }

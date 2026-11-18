@@ -33,6 +33,8 @@ const P3r = process.env.P3SHOTS || '/workspace/forge-os/feedback/v555-d1/passes/
 const shotP3 = (p, f) => p.screenshot({ path: P3r + '/' + f });
 const P4r = process.env.P4SHOTS || '/workspace/forge-os/feedback/v555-d1/passes/p4'; fs.mkdirSync(P4r, { recursive: true });
 const shotP4 = (p, f) => p.screenshot({ path: P4r + '/' + f });
+const P5r = process.env.P5SHOTS || '/workspace/forge-os/feedback/v555-d1/passes/p5'; fs.mkdirSync(P5r, { recursive: true });
+const shotP5 = (p, f) => p.screenshot({ path: P5r + '/' + f });
 async function pickGroupCol(p, id, c) {
   if (!await p.evaluate(() => !!document.querySelector('.dk-gcol-menu'))) {
     await p.click(`.dkw[data-id="${id}"] .dk-gcol`); await wait(200);
@@ -781,6 +783,38 @@ const cyanScan = p => p.evaluate(() => {
     ok(p4clear && p4clear.open, 'p3: clicking LAST: in the status bar opens the console');
     ok(p4clear && !p4clear.last, 'p4: LAST: clears when the console opens ' + JSON.stringify(p4clear));
     await p.click('#dktray'); await wait(200);
+    const p5back = await p.evaluate(() => { const el = document.querySelector('#dkstat .dk-last'); const c = document.querySelector('.dkw[data-k=con]'); return { last: el ? el.textContent : '', open: !!(c && !c.hidden) }; });
+    ok(p5back && !p5back.open && !p5back.last, 'p5: a seen roll does not come back after the console is opened then closed ' + JSON.stringify(p5back));
+    await p.setViewportSize({ width: 1280, height: 720 }); await wait(300);
+    const p5stab = await p.evaluate(() => {
+      const rc = { id: 'rcp5stab1', u: 'LOCAL', c: 'var(--muted)', fc: 'var(--ac)', by: 'local', f: 'MSH-01 MUSHA TEST', a: 'STABILITY CHECK · PILOTING (14) + STABILITY · RIGHT ARM (100 > 41.5)', r: '+3 DoS', o: 'ok', d: ['STABILITY'] };
+      RC.set(rc.id, rc);
+      const wrap = document.createElement('div');
+      wrap.innerHTML = (typeof rcHtml === 'function') ? rcHtml(rc) : ('<div class="rc ok" data-rcid="'+rc.id+'">LOCAL / MSH-01 MUSHA TEST · STABILITY CHECK · PILOTING (14) + STABILITY · RIGHT ARM (100 > 41.5) · +3 DoS <span class=rcx>[+]</span></div>');
+      document.getElementById('log').appendChild(wrap);
+      if (typeof logPost === 'function') logPost(wrap);
+      const el = document.querySelector('#dkstat .dk-last');
+      let resultW = 0;
+      if (el) {
+        const cs = getComputedStyle(el);
+        const tmp = document.createElement('span');
+        tmp.style.cssText = 'position:absolute;left:-9999px;visibility:hidden;white-space:nowrap;font:' + cs.font;
+        tmp.textContent = 'LAST: +3 DoS';
+        document.body.appendChild(tmp);
+        resultW = Math.round(tmp.getBoundingClientRect().width);
+        tmp.remove();
+      }
+      return {
+        text: el ? el.textContent.replace(/\s+/g, ' ').trim() : '',
+        title: el ? (el.getAttribute('title') || '') : '',
+        w: el ? Math.round(el.getBoundingClientRect().width) : 0,
+        cw: el ? Math.round(el.clientWidth) : 0,
+        resultW
+      };
+    });
+    ok(p5stab && p5stab.text === 'LAST: +3 DoS · STABILITY · RIGHT ARM (100 > 41.5)', 'p5: a STABILITY CHECK LAST: leads with the DoS ' + JSON.stringify(p5stab));
+    ok(p5stab && /\+3 DoS/.test(p5stab.text || '') && p5stab.resultW > 0 && p5stab.resultW <= p5stab.cw + 1, 'p5: the STABILITY DoS is visible within the status slot at 1280 ' + JSON.stringify(p5stab));
+    await shotP5(p, 'p5-last-stability-1280.png');
     const tabLab = await p.evaluate(() => {
       const w = Desk.wins().find(w => w.k === 'unit' && !w.min && !w.hidden) || Desk.wins().find(w => w.k === 'unit');
       if (!w) return null;

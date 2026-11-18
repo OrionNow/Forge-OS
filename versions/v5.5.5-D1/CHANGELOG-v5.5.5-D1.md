@@ -153,6 +153,11 @@ Live-table fixes from the 8fc06ae audit (host + pilot):
 2. **Result first.** `LAST:` leads with the outcome (`1 HIT · +2 DoS`, then the weapon, then the caller if it is not `LOCAL`) so the result fits in the status bar. The span's `title` holds the full card text.
 3. **Clear on open.** Opening the operator console repaints the status bar so `LAST:` disappears.
 
+## Pass 5 (Overseer improvement series, Nov 18)
+
+1. **STABILITY LAST.** A STABILITY CHECK card is long, and the DoS was last, so it was cut off. `LAST:` now leads with the DoS, then `STABILITY`, then the location (for example `LAST: +3 DoS · STABILITY · RIGHT ARM (100 > 41.5)`).
+2. **Seen rolls stay gone.** Opening the console clears `lastRoll` / `lastRollFull` / `lastRollUntil` and the expiry timer, so closing the console within 8 seconds does not bring a roll that was already seen back into the status bar.
+
 ## Known limits
 
 - An open native select in a unit window that is not yet the one you are using may close on the first click. The second click works.
