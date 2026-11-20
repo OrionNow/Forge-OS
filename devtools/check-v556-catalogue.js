@@ -98,11 +98,19 @@ const ok = (c, m, e) => { if (c) pass++; else fail++; console.log((c ? 'PASS ' :
   for (const [w, hh] of [[1280, 800], [1920, 1080]]) {
     await p.setViewportSize({ width: w, height: hh }); await p.waitForTimeout(250);
     await p.locator(`.lt-card[data-i="${pick}"]`).click();
-    const L = await p.evaluate(() => { const cs = [...document.querySelectorAll('.lt-card')].filter(e => !e.hidden).map(e => e.getBoundingClientRect()), hs = [...new Set(cs.map(r => Math.round(r.height)))], ws = [...new Set(cs.map(r => Math.round(r.width)))], wrap = document.querySelector('.lt-wrap').getBoundingClientRect(), pn = document.getElementById('ltpane').getBoundingClientRect(), a = document.querySelector('#ltpane .lt-add').getBoundingClientRect(), nm = document.querySelector('.lt-card .lt-top'); return { hs, ws, cols: getComputedStyle(document.getElementById('ltgrid')).gridTemplateColumns.split(' ').length, ratio: +(pn.width / wrap.width).toFixed(3), pane: Math.round(pn.width), add: a.height > 20 && a.top >= 0 && a.bottom <= innerHeight && a.width >= pn.width - 24, oneLine: getComputedStyle(nm).whiteSpace === 'nowrap' && getComputedStyle(nm).textOverflow === 'ellipsis', tile: Math.round(cs[0].width) + 'x' + Math.round(cs[0].height) }; });
+    const L = await p.evaluate(() => { const vis = [...document.querySelectorAll('.lt-card')].filter(e => !e.hidden), cs = vis.map(e => e.getBoundingClientRect()), hs = [...new Set(cs.map(r => Math.round(r.height)))], wrap = document.querySelector('.lt-wrap').getBoundingClientRect(), pn = document.getElementById('ltpane').getBoundingClientRect(), a = document.querySelector('#ltpane .lt-add').getBoundingClientRect(), con = document.getElementById('con').getBoundingClientRect(), sh = document.getElementById('sh').getBoundingClientRect();
+      const vb = vis.filter(e => /VIBROBLADE/.test(e.querySelector('.nm').textContent)).map(e => { const t = e.querySelector('.lt-top'); return t.scrollWidth <= t.clientWidth + 1 && getComputedStyle(t).textOverflow !== 'ellipsis' && e.scrollHeight <= e.clientHeight + 1 && t.getBoundingClientRect().bottom <= e.getBoundingClientRect().bottom; });
+      const clip = vis.filter(e => { const k = e.querySelector('.lt-ks'), r = k.getBoundingClientRect(), c = e.getBoundingClientRect(); return k.scrollWidth > k.clientWidth + 1 || r.bottom > c.bottom - 1 || e.scrollHeight > e.clientHeight + 1; }).map(e => e.querySelector('.nm').textContent);
+      const hdr = [...document.querySelectorAll('#sh .shh')].filter(e => e.offsetParent).map(e => { const r = e.getBoundingClientRect(), t = e.querySelector('.shtl'); return { t: e.textContent.slice(0, 30), ok: t.scrollWidth <= t.clientWidth + 1 && [...e.children].every(c => c.getBoundingClientRect().right <= r.right + 1 && c.getBoundingClientRect().width > 0) }; });
+      return { hs, n: vis.length, vb, clip, hdr: hdr.filter(x => !x.ok), nh: hdr.length, cols: getComputedStyle(document.getElementById('ltgrid')).gridTemplateColumns.split(' ').length, pane: Math.round(pn.width), split: +(con.width / (con.width + sh.width)).toFixed(3), add: a.height > 20 && a.top >= 0 && a.bottom <= innerHeight && a.width >= pn.width - 24, tile: Math.round(cs[0].width) + 'x' + Math.round(cs[0].height) }; });
     console.log('LAYOUT ' + w + ' ' + JSON.stringify(L));
-    ok(L.hs.length === 1 && L.ws.length === 1, `${w}: every tile is the same size (${L.tile})`, L);
-    ok(L.oneLine, `${w}: tile name is one line with ellipsis`);
-    ok(L.ratio >= 0.38, `${w}: detail pane is ${Math.round(L.ratio * 100)}% of the catalogue width (>= 38%)`, L);
+    ok(L.hs.length === 1, `${w}: every tile is the same height (${L.tile})`, L);
+    ok(L.vb.length >= 3 && L.vb.every(Boolean), `${w}: full VIBROBLADE names visible on up to 2 lines, no ellipsis`, L.vb);
+    ok(!L.clip.length, `${w}: no tile clips its stat row`, L.clip);
+    ok(L.cols === (w >= 1600 ? 3 : 2), `${w}: ${L.cols} tile columns`, L.cols);
+    ok(w > 1280 || L.pane >= 330, `${w}: detail pane ${L.pane}px (about 340 at 1280)`, L.pane);
+    ok(Math.abs(L.split - 0.62) < 0.02, `${w}: builder/FRAME LOADOUT split ${Math.round(L.split * 100)}/${100 - Math.round(L.split * 100)}`, L.split);
+    ok(L.nh >= 3 && !L.hdr.length, `${w}: FRAME LOADOUT section headers and counters not clipped (${L.nh})`, L.hdr);
     ok(L.add, `${w}: full-width ADD TO MECH is visible in the pane`, L);
     if (w === 1280) {
       await p.screenshot({ path: shots + '/v556-05-detail-1280.png' });
@@ -150,6 +158,7 @@ const ok = (c, m, e) => { if (c) pass++; else fail++; console.log((c ? 'PASS ' :
   // numbered selection still follows the listGroups order
   await p.evaluate(() => tab('A'));
   ok(await p.evaluate(() => { const L = listGroups('A').flatMap(g => g.items), c = [...document.querySelectorAll('.lt-card[data-c="A"]')]; return c.every((e, k) => +e.dataset.i === L[k] && e.querySelector('.v').textContent === String(k + 1)); }), 'card numbers match the numbered-selection order');
+  ok(await p.evaluate(() => { S.view = 'login'; R(); const c = getComputedStyle(document.querySelector('main')).gridTemplateColumns.split(' ').map(parseFloat); return !document.body.classList.contains('lt-open') && Math.abs(c[0] - c[1]) < 2; }), 'leaving the builder restores the normal 50/50 split');
   ok(!errs.length, 'no page errors', errs);
   await b.close();
   console.log(`\n${pass} passed, ${fail} failed`); process.exit(fail ? 1 : 0);

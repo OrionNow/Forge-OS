@@ -23,6 +23,13 @@ The cards and chips use only the existing theme variables (`--line`, `--cyan`, `
 - **Detail pane:** 42% of the catalogue width (248 px at 1280, 284 px at 1920) and larger type. The header is pinned at the top of the pane and holds the name, EP/TL, a full-width **[+] ADD TO MECH** button and the EP ledger. All stats, the tiers and the field record are shown as label/value pairs. The pane still clears when its card is hidden.
 - `check-v556-catalogue.js`: 43/43. New checks: uniform tile size, one-line names, pane width ≥ 38% of the catalogue, and ADD visible, all at 1280 and at 1920.
 
+### Pass 4 (Misaki's fixes)
+
+- While the Loadout Builder is open (`body.lt-open`), the builder takes 62% and FRAME LOADOUT 38%. In three-column windows the console keeps at least 300 px. The normal split comes back when the builder closes.
+- Tiles are a fixed 66 px tall. Names wrap onto 2 lines with no ellipsis, and the stat row uses smaller type and wraps inside the tile, so nothing is clipped. There are 2 columns below 1600 px and 3 from 1600 px up.
+- The detail pane is at least 340 px wide (`minmax(340px,44%)`).
+- `check-v556-catalogue.js`: 52/52. New checks, at 1280 and 1920: tile heights match, full VIBROBLADE names, no stat-row clipping, column count, pane width, the 62/38 split, FRAME LOADOUT headers and counters unclipped, and the split restored on exit.
+
 ## Version and cache keys
 
 - `APP_VERSION` is 5.5.6. The `<title>`, in-app changelog and `host/package.json` (+ lock) versions are 5.5.6.
@@ -32,7 +39,7 @@ The cards and chips use only the existing theme variables (`--line`, `--cyan`, `
 
 | Suite | Result |
 |---|---|
-| **New:** LOADOUT TERMINAL catalogue (`check-v556-catalogue.js`: tabs = data categories, chips = real subtypes and filter correctly, cross-tab search with category headers and labels, detail pane shows the selection, ADD goes through `inst()` once, Enter/double-click add, non-stackable refusal, tier menu, numbering order, the pane clearing when a chip, a non-matching search or a tab change hides the selection, with ADD removed, and no page errors) | 43/43 |
+| **New:** LOADOUT TERMINAL catalogue (`check-v556-catalogue.js`: tabs = data categories, chips = real subtypes and filter correctly, cross-tab search with category headers and labels, detail pane shows the selection, ADD goes through `inst()` once, Enter/double-click add, non-stackable refusal, tier menu, numbering order, the pane clearing when a chip, a non-matching search or a tab change hides the selection, with ADD removed, and no page errors) | 52/52 |
 | Page load (`check-v556-pageload.js`) | 4/4 |
 | Fix checks (`check-v556-fixes.js`) | 12/12 |
 | Solo (`check-v556-solo.js`) | 119/119 |
@@ -43,7 +50,7 @@ The cards and chips use only the existing theme variables (`--line`, `--cyan`, `
 | Branch UI (`check-v556-ui.cjs`) / workflows (`check-v556-workflows.cjs`) | 25/25 on rerun (the known "DMG rolls the recorded hit" timing flake also fails about half the time on unmodified 5.5.5), 9/9 |
 | Layout (`check-v556-layout.js`, 9 window sizes) | 336/336 |
 | Tab / owner colours (`check-v556-tabs.js`) | 63/63 |
-| Close-ups (`check-v556-closeup.js`) | 43/43 |
+| Close-ups (`check-v556-closeup.js`) | 52/52 |
 
 Test adaptations (intended changes only):
 - The `check-v556-*` suites are copies of `check-v555-*` with the version changed to 5.5.6. Nothing else changed. The unmodified `check-v555-workflows.cjs` passes its catalogue search and keyboard-install checks on 5.5.6, and stops only at the 5.5.5 version pin.
