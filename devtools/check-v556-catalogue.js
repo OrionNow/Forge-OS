@@ -22,12 +22,14 @@ const ok = (c, m, e) => { if (c) pass++; else fail++; console.log((c ? 'PASS ' :
   // 1) tabs = the catalogue's real equipment categories
   const tabs = await p.evaluate(() => ({ ui: [...document.querySelectorAll('#tb .tabs button[onclick^="tab("]')].map(b => b.getAttribute('onclick').slice(5, -2)).filter(c => c !== 'ID'), data: [...new Set(DB.map(x => x.c))].filter(c => c in TABS).sort(), labels: [...document.querySelectorAll('#tb .tabs button[onclick^="tab("]')].map(b => b.textContent) }));
   ok(JSON.stringify(tabs.ui.slice().sort()) === JSON.stringify(tabs.data) && tabs.ui.length === 3, 'tabs match the categories present in the catalogue data ' + tabs.ui.join(','), tabs);
-  const vis = () => p.evaluate(() => [...document.querySelectorAll('.lt-card')].filter(e => !e.hidden && e.offsetParent).map(e => ({ i: +e.dataset.i, c: e.dataset.c, sub: e.dataset.sub })));
+  const vis = () => p.evaluate(() => [...document.querySelectorAll('.lt-card')].filter(e => e.offsetParent && !e.classList.contains('lt-dim')).map(e => ({ i: +e.dataset.i, c: e.dataset.c, sub: e.dataset.sub })));
   let v = await vis();
   const nA = await p.evaluate(() => DB.filter(x => x.c === 'A').length);
   ok(v.length === nA && v.every(x => x.c === 'A'), `ARMAMENT tab shows all ${nA} armament records and only those`, v.length);
-  ok(await p.evaluate(() => { const c = document.querySelector('.lt-card:not([hidden])'); return /DMG|RNG|ROF/.test(c.querySelector('.lt-ks').textContent) && /^EP /.test(c.querySelector('.lt-epb').textContent) && c.getBoundingClientRect().height < 70; }), 'grid cards are compact: name, EP badge and key stats');
-  ok(await p.evaluate(() => getComputedStyle(document.getElementById('ltgrid')).gridTemplateColumns.split(' ').length >= 2), 'cards are laid out as a multi-column grid');
+  ok(await p.evaluate(() => { const c = [...document.querySelectorAll('.lt-card')].find(e => e.offsetParent); return !!c.querySelector('svg.lt-sil path,svg.lt-sil rect') && /^EP\d/.test(c.querySelector('.lt-epb').textContent) && /^A-01$/.test(c.querySelector('.lt-pno').textContent) && !!c.querySelector('.nm'); }), 'parts show an SVG silhouette, part number A-01, EP stamp and name');
+  ok(await p.evaluate(() => JSON.stringify([...document.querySelectorAll('.lt-runner')].map(e => e.dataset.c)) === JSON.stringify(ltCats()) && [...document.querySelectorAll('.lt-runner')].every(e => e.querySelector('.lt-kn').textContent === TABS[e.dataset.c] && e.querySelectorAll('.lt-tl').length >= 1 && e.querySelectorAll('.lt-card').length === DB.filter(x => x.c === e.dataset.c).length)), 'one runner per real category, each with its kit-box name, TL ribbon(s) and all its parts');
+  ok(await p.evaluate(() => { const s = ['MELEE', 'BALLISTIC', 'ROCKET/MISSILE', 'BEAM', 'SHIELD', 'ARMOR', 'MOBILITY', 'TARGETING'].map(k => LT_SHAPE(k)); return new Set(s).size === 8 && LT_SHAPE('ZZZ') === 'generic'; }), 'part silhouettes differ by subtype, with a generic fallback');
+  ok(await p.evaluate(() => getComputedStyle(document.querySelector('.lt-runner:not([hidden]) .lt-sprue')).gridTemplateColumns.split(' ').length >= 2), 'parts sit on the runner in a multi-column grid');
   // 2) chips = real subtypes of the tab
   const chips = await p.evaluate(() => ({ ui: [...document.querySelectorAll('.lt-chiprow:not([hidden]) .lt-chip')].map(b => b.dataset.sub).filter(Boolean), data: [...new Set(DB.filter(x => x.c === 'A').map(x => subtypeKey(subtypeOf(x) || 'UNSPECIFIED')))] }));
   ok(JSON.stringify(chips.ui.slice().sort()) === JSON.stringify(chips.data.slice().sort()), 'ARMAMENT chips are its real subtypes ' + chips.ui.join(','), chips);
@@ -35,6 +37,7 @@ const ok = (c, m, e) => { if (c) pass++; else fail++; console.log((c ? 'PASS ' :
   v = await vis();
   const nMel = await p.evaluate(() => DB.filter(x => x.c === 'A' && subtypeKey(subtypeOf(x)) === 'MELEE').length);
   ok(v.length === nMel && v.every(x => x.sub === 'MELEE'), `MELEE chip filters to its ${nMel} records`, v);
+  ok(await p.evaluate(() => { const d = [...document.querySelectorAll('.lt-runner:not([hidden]) .lt-card.lt-dim')]; return d.length === DB.filter(x => x.c === 'A').length - document.querySelectorAll('.lt-runner:not([hidden]) .lt-card:not(.lt-dim)').length && d.every(e => e.offsetParent && +getComputedStyle(e).opacity < 0.5 && e.tabIndex === -1); }), 'non-matching parts stay on the runner but are dimmed and skipped by Tab');
   ok(await p.evaluate(() => document.querySelector('.lt-chip[data-sub="MELEE"]').classList.contains('on')), 'active chip is highlighted');
   await p.screenshot({ path: shots + '/v556-01-armament-melee-chip.png' });
   await p.locator('.lt-chiprow:not([hidden]) .lt-chip[data-sub=""]').click();
@@ -54,13 +57,13 @@ const ok = (c, m, e) => { if (c) pass++; else fail++; console.log((c ? 'PASS ' :
   const cats = [...new Set(v.map(x => x.c))];
   const expect = await p.evaluate(() => DB.filter(x => 'ADU'.includes(x.c) && ltText(x).includes('HEAT')).length);
   ok(cats.length >= 2 && v.length === expect, `search "HEAT" lists ${v.length} matches from ${cats.join('/')}`, { cats, n: v.length, expect });
-  ok(await p.evaluate(() => [...document.querySelectorAll('.lt-cat')].filter(e => !e.hidden).length) === cats.length, 'search results are grouped under category headers');
-  ok(await p.evaluate(() => { const c = document.querySelector('.lt-card:not([hidden]) .lt-cc'); return c && getComputedStyle(c).display !== 'none' && /^(ARMAMENT|DEFENSIVE SYSTEMS|UTILITY) · $/.test(c.textContent); }), 'each search result card is labelled with its category');
-  ok(/MATCHES \/\/ ALL CATEGORIES/.test(await p.locator('#catn').textContent()), 'match counter says the search covers all categories');
-  await p.locator('.lt-card:not([hidden])').first().click();
+  ok(await p.evaluate(() => [...document.querySelectorAll('.lt-runner')].filter(e => !e.hidden).length) === cats.length, 'search shows every runner that has a match');
+  ok(await p.evaluate(() => [...document.querySelectorAll('.lt-card:not(.lt-dim)')].filter(e => e.offsetParent).every(e => e.closest('.lt-runner').querySelector('.lt-kn').textContent === TABS[e.dataset.c])), 'each match sits on its category runner, labelled by the kit box');
+  ok(/MATCHES \/\/ ALL RUNNERS/.test(await p.locator('#catn').textContent()), 'match counter says the search covers all categories');
+  await p.locator('.lt-card:not(.lt-dim):visible').first().click();
   await p.screenshot({ path: shots + '/v556-02-search-all-categories.png' });
   await p.locator('#catq').press('Escape');
-  ok((await vis()).length === nA && await p.evaluate(() => [...document.querySelectorAll('.lt-cat')].every(e => e.hidden)), 'Escape clears the search and returns to the tab');
+  ok((await vis()).length === nA && await p.evaluate(() => [...document.querySelectorAll('.lt-runner')].filter(e => !e.hidden).map(e => e.dataset.c).join() === 'A'), 'Escape clears the search and returns to the tab');
   // 4) detail pane
   const cheapA = () => p.evaluate(() => DB.map((x, j) => [x, j]).filter(([x]) => x.c === 'A' && !TIER[x.n]).sort((a, b) => a[0].e - b[0].e).map(a => a[1]));
   const [pick, kb] = await cheapA();
@@ -72,13 +75,13 @@ const ok = (c, m, e) => { if (c) pass++; else fail++; console.log((c ? 'PASS ' :
   ok(await p.evaluate(() => { const g = document.getElementById('ltgrid').getBoundingClientRect(), d = document.getElementById('ltpane').getBoundingClientRect(); return d.left >= g.right - 1; }), 'detail pane sits to the right of the grid');
   await p.screenshot({ path: shots + '/v556-03-detail-pane.png' });
   // 4b) a selection hidden by a chip, a search or a tab change clears the pane (ADD cannot add an unseen record)
-  const paneCleared = () => p.evaluate(() => ({ pick: S.catPick, add: !!document.querySelector('#ltpane .lt-add'), sel: document.querySelectorAll('.lt-card.sel').length, ph: /SELECT A CARD/.test(document.getElementById('ltpane').innerText) }));
+  const paneCleared = () => p.evaluate(() => ({ pick: S.catPick, add: !!document.querySelector('#ltpane .lt-add'), sel: document.querySelectorAll('.lt-card.sel').length, ph: /SELECT A PART/.test(document.getElementById('ltpane').innerText) }));
   const isClear = r => r.pick === null && !r.add && r.sel === 0 && r.ph;
   const pickSub = await p.evaluate(i => subtypeKey(subtypeOf(DB[i])), pick);
   const otherSub = await p.evaluate(s => [...document.querySelectorAll('.lt-chiprow:not([hidden]) .lt-chip')].map(b => b.dataset.sub).find(x => x && x !== s), pickSub);
   await p.locator(`.lt-chiprow:not([hidden]) .lt-chip[data-sub="${otherSub}"]`).click();
   let pc = await paneCleared();
-  ok(isClear(pc), `chip ${otherSub} hiding the selected card clears the pane and removes ADD`, pc);
+  ok(isClear(pc) && await p.evaluate(i => { const e = document.querySelector(`.lt-card[data-i="${i}"]`); return !!e.offsetParent && e.classList.contains('lt-dim'); }, pick), `chip ${otherSub} dimming the selected part clears the manual page and removes ADD`, pc);
   await p.locator('.lt-chiprow:not([hidden]) .lt-chip[data-sub=""]').click();
   await p.locator(`.lt-card[data-i="${pick}"]`).click();
   ok((await paneCleared()).add, 'card re-selected after it is visible again');
@@ -98,28 +101,28 @@ const ok = (c, m, e) => { if (c) pass++; else fail++; console.log((c ? 'PASS ' :
   for (const [w, hh] of [[1280, 800], [1920, 1080]]) {
     await p.setViewportSize({ width: w, height: hh }); await p.waitForTimeout(250);
     await p.locator(`.lt-card[data-i="${pick}"]`).click();
-    const L = await p.evaluate(() => { const vis = [...document.querySelectorAll('.lt-card')].filter(e => !e.hidden), cs = vis.map(e => e.getBoundingClientRect()), hs = [...new Set(cs.map(r => Math.round(r.height)))], wrap = document.querySelector('.lt-wrap').getBoundingClientRect(), pn = document.getElementById('ltpane').getBoundingClientRect(), a = document.querySelector('#ltpane .lt-add').getBoundingClientRect(), con = document.getElementById('con').getBoundingClientRect(), sh = document.getElementById('sh').getBoundingClientRect();
+    const L = await p.evaluate(() => { const vis = [...document.querySelectorAll('.lt-card')].filter(e => e.offsetParent && !e.classList.contains('lt-dim')), cs = vis.map(e => e.getBoundingClientRect()), hs = [...new Set(cs.map(r => Math.round(r.height)))], wrap = document.querySelector('.lt-wrap').getBoundingClientRect(), pn = document.getElementById('ltpane').getBoundingClientRect(), a = document.querySelector('#ltpane .lt-add').getBoundingClientRect(), con = document.getElementById('con').getBoundingClientRect(), sh = document.getElementById('sh').getBoundingClientRect();
       const vb = vis.filter(e => /VIBROBLADE/.test(e.querySelector('.nm').textContent)).map(e => { const t = e.querySelector('.lt-top'); return t.scrollWidth <= t.clientWidth + 1 && getComputedStyle(t).textOverflow !== 'ellipsis' && e.scrollHeight <= e.clientHeight + 1 && t.getBoundingClientRect().bottom <= e.getBoundingClientRect().bottom; });
-      const clip = vis.filter(e => { const k = e.querySelector('.lt-ks'), r = k.getBoundingClientRect(), c = e.getBoundingClientRect(); return k.scrollWidth > k.clientWidth + 1 || r.bottom > c.bottom - 1 || e.scrollHeight > e.clientHeight + 1; }).map(e => e.querySelector('.nm').textContent);
+      const clip = vis.filter(e => { const k = e.querySelector('.lt-top'), r = k.getBoundingClientRect(), c = e.getBoundingClientRect(); return k.scrollWidth > k.clientWidth + 1 || r.bottom > c.bottom - 1 || e.scrollHeight > e.clientHeight + 1; }).map(e => e.querySelector('.nm').textContent);
       const hdr = [...document.querySelectorAll('#sh .shh')].filter(e => e.offsetParent).map(e => { const r = e.getBoundingClientRect(), t = e.querySelector('.shtl'); return { t: e.textContent.slice(0, 30), ok: t.scrollWidth <= t.clientWidth + 1 && [...e.children].every(c => c.getBoundingClientRect().right <= r.right + 1 && c.getBoundingClientRect().width > 0) }; });
-      return { hs, n: vis.length, vb, clip, hdr: hdr.filter(x => !x.ok), nh: hdr.length, cols: getComputedStyle(document.getElementById('ltgrid')).gridTemplateColumns.split(' ').length, pane: Math.round(pn.width), split: +(con.width / (con.width + sh.width)).toFixed(3), add: a.height > 20 && a.top >= 0 && a.bottom <= innerHeight && a.width >= pn.width - 24, tile: Math.round(cs[0].width) + 'x' + Math.round(cs[0].height) }; });
+      return { hs, n: vis.length, vb, clip, hdr: hdr.filter(x => !x.ok), nh: hdr.length, cols: getComputedStyle(document.querySelector('.lt-runner:not([hidden]) .lt-sprue')).gridTemplateColumns.split(' ').length, pane: Math.round(pn.width), split: +(con.width / (con.width + sh.width)).toFixed(3), add: a.height > 20 && a.top >= 0 && a.bottom <= innerHeight && a.width >= pn.width - 30 && (() => { const st = document.querySelector('#ltpane .lt-step').getBoundingClientRect(), el = document.elementFromPoint(st.left + 20, st.top + st.height / 2); return !!el && !!el.closest('#ltpane'); })(), tile: Math.round(cs[0].width) + 'x' + Math.round(cs[0].height) }; });
     console.log('LAYOUT ' + w + ' ' + JSON.stringify(L));
     ok(L.hs.length === 1, `${w}: every tile is the same height (${L.tile})`, L);
     ok(L.vb.length >= 3 && L.vb.every(Boolean), `${w}: full VIBROBLADE names visible on up to 2 lines, no ellipsis`, L.vb);
-    ok(!L.clip.length, `${w}: no tile clips its stat row`, L.clip);
+    ok(!L.clip.length, `${w}: every full part name fits inside its part`, L.clip);
     ok(L.cols === (w >= 1600 ? 3 : 2), `${w}: ${L.cols} tile columns`, L.cols);
     ok(w > 1280 || L.pane >= 330, `${w}: detail pane ${L.pane}px (about 340 at 1280)`, L.pane);
     ok(Math.abs(L.split - 0.62) < 0.02, `${w}: builder/FRAME LOADOUT split ${Math.round(L.split * 100)}/${100 - Math.round(L.split * 100)}`, L.split);
     ok(L.nh >= 3 && !L.hdr.length, `${w}: FRAME LOADOUT section headers and counters not clipped (${L.nh})`, L.hdr);
     ok(L.add, `${w}: full-width ADD TO MECH is visible in the pane`, L);
     if (w === 1280) {
-      await p.screenshot({ path: shots + '/v556-05-detail-1280.png' });
+      await p.screenshot({ path: shots + '/v556-08-manual-page-1280.png' });
       await p.evaluate(() => { S.catPick = null; catFilter(); document.getElementById('ltpane').innerHTML = ltPane(); document.querySelectorAll('.lt-card.sel').forEach(e => e.classList.remove('sel')); });
       await p.locator('#con').evaluate(e => e.scrollTop = 0);
-      await p.screenshot({ path: shots + '/v556-04-tiles-1280.png' });
+      await p.screenshot({ path: shots + '/v556-07-runners-1280.png' });
     } else {
-      await p.locator('#catq').fill('HEAT'); await p.locator('.lt-card:not([hidden])').first().click(); await p.waitForTimeout(150);
-      await p.screenshot({ path: shots + '/v556-06-search-1920.png' });
+      await p.locator('#catq').fill('HEAT'); await p.locator('.lt-card:not(.lt-dim):visible').first().click(); await p.waitForTimeout(150);
+      await p.screenshot({ path: shots + '/v556-09-search-dim-1920.png' });
       await p.locator('#catq').press('Escape');
     }
   }
@@ -130,9 +133,15 @@ const ok = (c, m, e) => { if (c) pass++; else fail++; console.log((c ? 'PASS ' :
   const add = await p.evaluate(i => { const x = variant(i, null), y = S.items[S.items.length - 1]; return { n: S.items.length, same: !!y && y.n === x.n && y.e === x.e && y.s === x.s && y.c === x.c, inst: window.__inst, sel: S.sel, msg: (document.getElementById('log') || document.body).innerText.includes('LOADOUT ENTRY COMMITTED') }; }, pick);
   ok(add.n === n0 + 1 && add.same && add.inst === 1 && add.sel === null, 'ADD installs the selected record through inst() exactly once', add);
   ok(await p.evaluate(() => document.getElementById('ltpane').innerText.includes('NOW ')), 'detail pane stays on the record after ADD');
+  ok(await p.evaluate(i => { const e = document.querySelector(`.lt-card[data-i="${i}"]`); return e.classList.contains('lt-on') && /ON MECH/.test(e.innerText); }, pick), 'the added part is marked ON MECH with cut gates');
+  ok(await p.evaluate(() => window.__ltSnips === 1 && !document.querySelector('.lt-fly,.lt-nip')), 'reduced motion: the snip runs no animation');
+  ok(/STEP 02/.test(await p.locator('#ltpane .lt-step').innerText()) && await p.evaluate(() => !!document.querySelector('#ltpane svg.lt-xpl path')), 'manual page shows the next STEP number and exploded line art');
+  await p.emulateMedia({ reducedMotion: 'no-preference' });
   // keyboard Enter on a card still installs directly (unchanged)
   await p.locator(`.lt-card[data-i="${kb}"]`).focus(); await p.keyboard.press('Enter');
   ok(await p.evaluate(() => S.items.length) === n0 + 2, 'Enter on a focused card installs it, as before');
+  ok(await p.evaluate(() => !!document.querySelector('.lt-fly') && !!document.querySelector('.lt-nip')), 'with motion allowed, ADD plays the nipper snip and the part flies off');
+  await p.emulateMedia({ reducedMotion: 'reduce' });
   await p.locator(`.lt-card[data-i="${kb}"]`).dblclick();
   ok(await p.evaluate(() => S.items.length) === n0 + 3, 'double-click installs once (armament stacks, as before)');
   // non-stackable refusal unchanged
@@ -157,7 +166,7 @@ const ok = (c, m, e) => { if (c) pass++; else fail++; console.log((c ? 'PASS ' :
   }
   // numbered selection still follows the listGroups order
   await p.evaluate(() => tab('A'));
-  ok(await p.evaluate(() => { const L = listGroups('A').flatMap(g => g.items), c = [...document.querySelectorAll('.lt-card[data-c="A"]')]; return c.every((e, k) => +e.dataset.i === L[k] && e.querySelector('.v').textContent === String(k + 1)); }), 'card numbers match the numbered-selection order');
+  ok(await p.evaluate(() => { const L = listGroups('A').flatMap(g => g.items), c = [...document.querySelectorAll('.lt-card[data-c="A"]')]; return c.every((e, k) => +e.dataset.i === L[k] && e.dataset.pn === 'A-' + String(k + 1).padStart(2, '0')); }), 'card numbers match the numbered-selection order');
   ok(await p.evaluate(() => { S.view = 'login'; R(); const c = getComputedStyle(document.querySelector('main')).gridTemplateColumns.split(' ').map(parseFloat); return !document.body.classList.contains('lt-open') && Math.abs(c[0] - c[1]) < 2; }), 'leaving the builder restores the normal 50/50 split');
   ok(!errs.length, 'no page errors', errs);
   await b.close();

@@ -29,7 +29,7 @@ function check(ok, label) {
     await page.getByRole('button', { name: '[CONFIRM FRAME CONFIGURATION]', exact: true }).click();
     check(frameFocus && await page.evaluate(() => S.view === 'main' && !!S.ch && !!S.core.R && !!S.core.T && !!S.core.G), 'keyboard builder retains selection focus and confirms a complete frame');
     await page.locator('#catq').fill('VIBROBLADE');
-    const visible = page.locator('.row[onclick^="addMech"]:visible');
+    const visible = page.locator('.row[onclick^="addMech"]:visible:not(.lt-dim)');
     await visible.first().focus(); await page.keyboard.press('Enter');
     check(await page.evaluate(() => S.items.length === 1), 'catalogue search and keyboard selection install equipment');
     await page.locator('button[onclick="tab(\'ID\')"]').click();

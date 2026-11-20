@@ -30,6 +30,16 @@ The cards and chips use only the existing theme variables (`--line`, `--cyan`, `
 - The detail pane is at least 340 px wide (`minmax(340px,44%)`).
 - `check-v556-catalogue.js`: 52/52. New checks, at 1280 and 1920: tile heights match, full VIBROBLADE names, no stat-row clipping, column count, pane width, the 62/38 split, FRAME LOADOUT headers and counters unclipped, and the split restored on exit.
 
+### Pass 5: GUNPLA RUNNER RACK (Overseer)
+
+The tile grid is replaced by model-kit runners, built with CSS and SVG only. No data, rules or the 62/38 split changed.
+- **Runners:** each category is a runner frame in its accent colour (armament `--c-dmg`, defensive `--cyan`, utility `--c-good`). A kit-box header shows the category name, the part count and TL ribbons from the TL field. Parts hang from the frame on gate nubs.
+- **Parts:** each part is a uniform 96 px tall, with 2 columns below 1600 px and 3 from 1600 px up. Each has an SVG silhouette for its subtype (blade, rifle, missile, beam, shield, plate, booster, sensor, or a generic fallback), the full wrapped name, an EP stamp moulded into the plastic, and a part number such as `A-07` that matches the number-key order. Hovering lifts the part and casts a shadow. Parts already on the mech have dashed edges, cut-gate stubs and an `ON MECH ×n` label.
+- **Search and chips** dim non-matching parts instead of hiding them. Dimmed parts can't be clicked and Tab skips them. During a search, only runners with matches are shown. If the selected part is dimmed or hidden, the manual page clears.
+- **Instruction-manual page:** the detail pane shows `STEP nn // ATTACH PART X-nn`, exploded SVG line art (leader lines to a MECH bracket) and label/value stats, with a pinned full-width [+] ADD TO MECH.
+- **ADD** uses the existing `addMech()` → `inst()` path unchanged. On a successful direct add, nippers snip the gate and the part flies to FRAME LOADOUT. With reduced motion there is no animation and no hover lift.
+- Tests: `check-v556-catalogue.js` 59/59. The `check-v556-workflows.cjs` search-install step now picks the first *undimmed* match (`:not(.lt-dim)`), because filtering now dims parts instead of hiding them.
+
 ## Version and cache keys
 
 - `APP_VERSION` is 5.5.6. The `<title>`, in-app changelog and `host/package.json` (+ lock) versions are 5.5.6.
@@ -39,7 +49,7 @@ The cards and chips use only the existing theme variables (`--line`, `--cyan`, `
 
 | Suite | Result |
 |---|---|
-| **New:** LOADOUT TERMINAL catalogue (`check-v556-catalogue.js`: tabs = data categories, chips = real subtypes and filter correctly, cross-tab search with category headers and labels, detail pane shows the selection, ADD goes through `inst()` once, Enter/double-click add, non-stackable refusal, tier menu, numbering order, the pane clearing when a chip, a non-matching search or a tab change hides the selection, with ADD removed, and no page errors) | 52/52 |
+| **New:** LOADOUT TERMINAL catalogue (`check-v556-catalogue.js`: tabs = data categories, chips = real subtypes and filter correctly, cross-tab search with category headers and labels, detail pane shows the selection, ADD goes through `inst()` once, Enter/double-click add, non-stackable refusal, tier menu, numbering order, the pane clearing when a chip, a non-matching search or a tab change hides the selection, with ADD removed, and no page errors) | 59/59 |
 | Page load (`check-v556-pageload.js`) | 4/4 |
 | Fix checks (`check-v556-fixes.js`) | 12/12 |
 | Solo (`check-v556-solo.js`) | 119/119 |
@@ -50,7 +60,7 @@ The cards and chips use only the existing theme variables (`--line`, `--cyan`, `
 | Branch UI (`check-v556-ui.cjs`) / workflows (`check-v556-workflows.cjs`) | 25/25 on rerun (the known "DMG rolls the recorded hit" timing flake also fails about half the time on unmodified 5.5.5), 9/9 |
 | Layout (`check-v556-layout.js`, 9 window sizes) | 336/336 |
 | Tab / owner colours (`check-v556-tabs.js`) | 63/63 |
-| Close-ups (`check-v556-closeup.js`) | 52/52 |
+| Close-ups (`check-v556-closeup.js`) | 59/59 |
 
 Test adaptations (intended changes only):
 - The `check-v556-*` suites are copies of `check-v555-*` with the version changed to 5.5.6. Nothing else changed. The unmodified `check-v555-workflows.cjs` passes its catalogue search and keyboard-install checks on 5.5.6, and stops only at the 5.5.5 version pin.
