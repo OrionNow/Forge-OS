@@ -40,6 +40,24 @@ The tile grid is replaced by model-kit runners, built with CSS and SVG only. No 
 - **ADD** uses the existing `addMech()` → `inst()` path unchanged. On a successful direct add, nippers snip the gate and the part flies to FRAME LOADOUT. With reduced motion there is no animation and no hover lift.
 - Tests: `check-v556-catalogue.js` 59/59. The `check-v556-workflows.cjs` search-install step now picks the first *undimmed* match (`:not(.lt-dim)`), because filtering now dims parts instead of hiding them.
 
+### Pass 6: runner rack density and palette (Misaki)
+
+- **Parts:** 62 px tall (169×62 at 1280, 142×62 at 1920). There is a small silhouette in the top band between the part number and the EP stamp, then the full wrapped name, then one compact stat row (DMG/RNG or the key effect, from the same source as the old tiles). Cards use the theme palette. The category accent stays on the runner frame, gate nubs and EP stamp only.
+- **Search and chips:** matching parts move to the top of each runner (CSS `order`, so DOM and number-key order are unchanged) and dimmed parts sit below. During a search, runners with no matches collapse to their header showing `0 MATCH`. The manual page still clears when its part is dimmed.
+- **Snip:** finishes in about 230 ms and never blocks input, so rapid repeated ADDs all install. It is still skipped under reduced motion.
+- `check-v556-catalogue.js`: 63/63. New checks: part height ≤ 64 px with a stat row, matches first in original order, 0-MATCH collapse, rapid double ADD, animation under 250 ms.
+
+### Pass 7: HANGAR REQUISITION BOARD (Overseer: "more in-setting, less gamified")
+
+The model-kit skin is gone. The layout, grid and logic from pass 6 are kept, and only the skin changed. Pass 6's structural fixes ship here: a stat row per item, 62 px items, matches floated to the top, zero-match bays collapsed to `0 MATCH`, a non-blocking feedback animation under 250 ms, and reduced-motion support.
+- **Board:** each category is a bay on a worn steel pegboard. The bay header is stenciled with hazard-stripe trim, a small faction decal and TL plates.
+- **Items:** tagged locker slots. Each has a tape tag number (`A-07`) with tally marks, a stenciled EP and a dashed stencil icon. Some items get deterministic masking-tape labels, coffee rings and scuffs. Grease-pencil notes (2 per subtype, picked by item index) appear in the tooltip and on the form.
+- **Requisition form:** the detail pane is a clipboard form, the same size as before, showing `REQ nn // FORM 27-B // ITEM TAG`, the grease-pencil note and form-line fields. The pinned button reads **REQUISITION**.
+- **On ADD:** a rubber APPROVED stamp lands (190 ms, skipped under reduced motion), and the item gets an ISSUED tag and an OUT FOR SERVICE chit.
+- **Lookup:** the search label reads MANIFEST LOOKUP, and the chips are clip tabs.
+- No nippers, flying parts or arcade effects. Theme colours plus muted steel, kraft and tape tones. No data or rule changes.
+- `check-v556-catalogue.js`: 64/64 (the pass-6 checks plus board-dressing, stamp and form checks).
+
 ## Version and cache keys
 
 - `APP_VERSION` is 5.5.6. The `<title>`, in-app changelog and `host/package.json` (+ lock) versions are 5.5.6.
@@ -49,7 +67,7 @@ The tile grid is replaced by model-kit runners, built with CSS and SVG only. No 
 
 | Suite | Result |
 |---|---|
-| **New:** LOADOUT TERMINAL catalogue (`check-v556-catalogue.js`: tabs = data categories, chips = real subtypes and filter correctly, cross-tab search with category headers and labels, detail pane shows the selection, ADD goes through `inst()` once, Enter/double-click add, non-stackable refusal, tier menu, numbering order, the pane clearing when a chip, a non-matching search or a tab change hides the selection, with ADD removed, and no page errors) | 59/59 |
+| **New:** LOADOUT TERMINAL catalogue (`check-v556-catalogue.js`: tabs = data categories, chips = real subtypes and filter correctly, cross-tab search with category headers and labels, detail pane shows the selection, ADD goes through `inst()` once, Enter/double-click add, non-stackable refusal, tier menu, numbering order, the pane clearing when a chip, a non-matching search or a tab change hides the selection, with ADD removed, and no page errors) | 64/64 |
 | Page load (`check-v556-pageload.js`) | 4/4 |
 | Fix checks (`check-v556-fixes.js`) | 12/12 |
 | Solo (`check-v556-solo.js`) | 119/119 |
@@ -59,8 +77,8 @@ The tile grid is replaced by model-kit runners, built with CSS and SVG only. No 
 | API: base / v52 / v53 / v55 | 18/18, 9/11 (the same 2 intended 5.5.3 rename/auto-connect results as 5.5.4 and 5.5.5), 10/10, 7/7 |
 | Branch UI (`check-v556-ui.cjs`) / workflows (`check-v556-workflows.cjs`) | 25/25 on rerun (the known "DMG rolls the recorded hit" timing flake also fails about half the time on unmodified 5.5.5), 9/9 |
 | Layout (`check-v556-layout.js`, 9 window sizes) | 336/336 |
-| Tab / owner colours (`check-v556-tabs.js`) | 63/63 |
-| Close-ups (`check-v556-closeup.js`) | 59/59 |
+| Tab / owner colours (`check-v556-tabs.js`) | 64/64 |
+| Close-ups (`check-v556-closeup.js`) | 64/64 |
 
 Test adaptations (intended changes only):
 - The `check-v556-*` suites are copies of `check-v555-*` with the version changed to 5.5.6. Nothing else changed. The unmodified `check-v555-workflows.cjs` passes its catalogue search and keyboard-install checks on 5.5.6, and stops only at the 5.5.5 version pin.
