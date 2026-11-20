@@ -58,6 +58,16 @@ The model-kit skin is gone. The layout, grid and logic from pass 6 are kept, and
 - No nippers, flying parts or arcade effects. Theme colours plus muted steel, kraft and tape tones. No data or rule changes.
 - `check-v556-catalogue.js`: 64/64 (the pass-6 checks plus board-dressing, stamp and form checks).
 
+### Pass 8: TACTICAL ARMORY CONSOLE (Overseer, final overhaul)
+
+Replaces the requisition-board skin. The layout and logic are reused, with no data or rule changes.
+- **Items:** chamfered HUD panels (`clip-path`), 64 px tall (192×64 at 1280, 160×64 at 1920). Each has a glowing category spine, a line-art subtype glyph, the part number, a TL hex badge, the full wrapped name, EP as power pips, and two micro gauges with their values. Gauges are scaled against the highest value for that stat in the category, using the existing statline numbers (dice = count × multiplier). There is no faction field in the data, so there is no faction notch.
+- **States:** hover runs a scanline sweep and closes [ ] lock-on brackets; selected shows a solid target-lock frame with brackets. Equipped items show a LINKED light, on the item and in the pane.
+- **Schematic pane (≥340 px):** a wireframe of the glyph on a grid, leader lines to callouts for up to 3 stats, then the full stat readout. The pinned **INSTALL** button plays a 200 ms charge fill after a successful install. It never blocks input and is skipped under reduced motion.
+- **Quartermaster ticker:** one console line above the board with a dry, deterministic quip for each subtype. Bays boot in with a stagger when a category tab loads (not under reduced motion).
+- **Kept:** search across all bays (`> QUERY ALL BAYS_`), subtype chips as console toggle switches, matches first, empty bays collapsed to `0 MATCH`, the 62/38 split and stale-pane clearing.
+- `check-v556-catalogue.js`: 65/65.
+
 ## Version and cache keys
 
 - `APP_VERSION` is 5.5.6. The `<title>`, in-app changelog and `host/package.json` (+ lock) versions are 5.5.6.
@@ -67,7 +77,7 @@ The model-kit skin is gone. The layout, grid and logic from pass 6 are kept, and
 
 | Suite | Result |
 |---|---|
-| **New:** LOADOUT TERMINAL catalogue (`check-v556-catalogue.js`: tabs = data categories, chips = real subtypes and filter correctly, cross-tab search with category headers and labels, detail pane shows the selection, ADD goes through `inst()` once, Enter/double-click add, non-stackable refusal, tier menu, numbering order, the pane clearing when a chip, a non-matching search or a tab change hides the selection, with ADD removed, and no page errors) | 64/64 |
+| **New:** LOADOUT TERMINAL catalogue (`check-v556-catalogue.js`: tabs = data categories, chips = real subtypes and filter correctly, cross-tab search with category headers and labels, detail pane shows the selection, ADD goes through `inst()` once, Enter/double-click add, non-stackable refusal, tier menu, numbering order, the pane clearing when a chip, a non-matching search or a tab change hides the selection, with ADD removed, and no page errors) | 65/65 |
 | Page load (`check-v556-pageload.js`) | 4/4 |
 | Fix checks (`check-v556-fixes.js`) | 12/12 |
 | Solo (`check-v556-solo.js`) | 119/119 |
@@ -77,8 +87,8 @@ The model-kit skin is gone. The layout, grid and logic from pass 6 are kept, and
 | API: base / v52 / v53 / v55 | 18/18, 9/11 (the same 2 intended 5.5.3 rename/auto-connect results as 5.5.4 and 5.5.5), 10/10, 7/7 |
 | Branch UI (`check-v556-ui.cjs`) / workflows (`check-v556-workflows.cjs`) | 25/25 on rerun (the known "DMG rolls the recorded hit" timing flake also fails about half the time on unmodified 5.5.5), 9/9 |
 | Layout (`check-v556-layout.js`, 9 window sizes) | 336/336 |
-| Tab / owner colours (`check-v556-tabs.js`) | 64/64 |
-| Close-ups (`check-v556-closeup.js`) | 64/64 |
+| Tab / owner colours (`check-v556-tabs.js`) | 65/65 |
+| Close-ups (`check-v556-closeup.js`) | 65/65 |
 
 Test adaptations (intended changes only):
 - The `check-v556-*` suites are copies of `check-v555-*` with the version changed to 5.5.6. Nothing else changed. The unmodified `check-v555-workflows.cjs` passes its catalogue search and keyboard-install checks on 5.5.6, and stops only at the 5.5.5 version pin.

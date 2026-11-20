@@ -26,7 +26,7 @@ const ok = (c, m, e) => { if (c) pass++; else fail++; console.log((c ? 'PASS ' :
   let v = await vis();
   const nA = await p.evaluate(() => DB.filter(x => x.c === 'A').length);
   ok(v.length === nA && v.every(x => x.c === 'A'), `ARMAMENT tab shows all ${nA} armament records and only those`, v.length);
-  ok(await p.evaluate(() => { const c = [...document.querySelectorAll('.lt-card')].find(e => e.offsetParent); return !!c.querySelector('svg.lt-sil path,svg.lt-sil rect') && /^EP \d/.test(c.querySelector('.lt-epb').textContent) && /^A-01$/.test(c.querySelector('.lt-pno').textContent) && !!c.querySelector('.nm'); }), 'items show a stencil icon, tag A-01, stenciled EP and name');
+  ok(await p.evaluate(() => { const c = [...document.querySelectorAll('.lt-card')].find(e => e.offsetParent); return !!c.querySelector('svg.lt-sil path,svg.lt-sil rect') && c.querySelectorAll('.lt-pips i').length === Math.min(10, DB[+c.dataset.i].e) && /^TL\d+$/.test(c.querySelector('.lt-tl6').textContent) && !!c.querySelector('.lt-spine') && /^A-01$/.test(c.querySelector('.lt-pno').textContent) && !!c.querySelector('.nm'); }), 'items show a glyph, A-01, EP power pips, TL hex, spine and full name');
   ok(await p.evaluate(() => JSON.stringify([...document.querySelectorAll('.lt-runner')].map(e => e.dataset.c)) === JSON.stringify(ltCats()) && [...document.querySelectorAll('.lt-runner')].every(e => e.querySelector('.lt-kn').textContent === TABS[e.dataset.c] && e.querySelectorAll('.lt-tl').length >= 1 && e.querySelectorAll('.lt-card').length === DB.filter(x => x.c === e.dataset.c).length)), 'one runner per real category, each with its kit-box name, TL ribbon(s) and all its parts');
   ok(await p.evaluate(() => { const s = ['MELEE', 'BALLISTIC', 'ROCKET/MISSILE', 'BEAM', 'SHIELD', 'ARMOR', 'MOBILITY', 'TARGETING'].map(k => LT_SHAPE(k)); return new Set(s).size === 8 && LT_SHAPE('ZZZ') === 'generic'; }), 'part silhouettes differ by subtype, with a generic fallback');
   ok(await p.evaluate(() => getComputedStyle(document.querySelector('.lt-runner:not([hidden]) .lt-sprue')).gridTemplateColumns.split(' ').length >= 2), 'parts sit on the runner in a multi-column grid');
@@ -118,13 +118,13 @@ const ok = (c, m, e) => { if (c) pass++; else fail++; console.log((c ? 'PASS ' :
     ok(L.nh >= 3 && !L.hdr.length, `${w}: FRAME LOADOUT section headers and counters not clipped (${L.nh})`, L.hdr);
     ok(L.add, `${w}: full-width ADD TO MECH is visible in the pane`, L);
     if (w === 1280) {
-      await p.screenshot({ path: shots + '/v556-11-requisition-1280.png' });
+      await p.screenshot({ path: shots + '/v556-14-schematic-1280.png' });
       await p.evaluate(() => { S.catPick = null; catFilter(); document.getElementById('ltpane').innerHTML = ltPane(); document.querySelectorAll('.lt-card.sel').forEach(e => e.classList.remove('sel')); });
       await p.locator('#con').evaluate(e => e.scrollTop = 0);
-      await p.screenshot({ path: shots + '/v556-10-board-1280.png' });
+      await p.screenshot({ path: shots + '/v556-13-armory-1280.png' });
     } else {
       await p.locator('#catq').fill('HEAT'); await p.locator('.lt-card:not(.lt-dim):visible').first().click(); await p.waitForTimeout(150);
-      await p.screenshot({ path: shots + '/v556-12-lookup-1920.png' });
+      await p.screenshot({ path: shots + '/v556-15-search-1920.png' });
       await p.locator('#catq').press('Escape');
     }
   }
@@ -135,23 +135,24 @@ const ok = (c, m, e) => { if (c) pass++; else fail++; console.log((c ? 'PASS ' :
   const add = await p.evaluate(i => { const x = variant(i, null), y = S.items[S.items.length - 1]; return { n: S.items.length, same: !!y && y.n === x.n && y.e === x.e && y.s === x.s && y.c === x.c, inst: window.__inst, sel: S.sel, msg: (document.getElementById('log') || document.body).innerText.includes('LOADOUT ENTRY COMMITTED') }; }, pick);
   ok(add.n === n0 + 1 && add.same && add.inst === 1 && add.sel === null, 'ADD installs the selected record through inst() exactly once', add);
   ok(await p.evaluate(() => document.getElementById('ltpane').innerText.includes('NOW ')), 'detail pane stays on the record after ADD');
-  ok(await p.evaluate(i => { const e = document.querySelector(`.lt-card[data-i="${i}"]`); return e.classList.contains('lt-on') && /OUT FOR SERVICE/.test(e.innerText) && /ISSUED/.test(e.querySelector('.lt-iss').textContent); }, pick), 'the requisitioned item gets its ISSUED tag and OUT FOR SERVICE chit');
-  ok(await p.evaluate(() => window.__ltSnips === 1 && !document.querySelector('.lt-stamp')), 'reduced motion: no APPROVED stamp animation');
-  ok(/REQ 02/.test(await p.locator('#ltpane .lt-step').innerText()) && /\S{4}/.test(await p.locator('#ltpane .lt-note').innerText()) && (await p.locator('#ltpane .lt-add').innerText()).startsWith('REQUISITION'), 'requisition form shows the next REQ number, a grease-pencil note and the REQUISITION button');
-  ok(await p.evaluate(() => { const ks = Object.keys(LT_NOTES); return ks.every(k => LT_NOTES[k].length === 2 && LT_NOTES[k][0] !== LT_NOTES[k][1]) && DB.filter(x => x.c === 'A').every((x, j) => ltNote(x, j) === ltNote(x, j)) && document.getElementById('catq').labels[0].textContent === 'MANIFEST LOOKUP' && document.querySelectorAll('.lt-kit .lt-dec').length === 3 && document.querySelectorAll('.lt-card.lt-tape').length > 0 && document.querySelectorAll('.lt-card.lt-cof').length > 0; }), 'board dressing: 2 notes per subtype picked deterministically, MANIFEST LOOKUP label, bay decals, tape and coffee rings');
+  ok(await p.evaluate(i => { const e = document.querySelector(`.lt-card[data-i="${i}"]`); return e.classList.contains('lt-on') && /LINKED/.test(e.querySelector('.lt-link').textContent) && /LINKED/.test(document.querySelector('#ltpane .lt-link').textContent); }, pick), 'the installed item shows a LINKED light on the item and in the pane');
+  ok(await p.evaluate(() => window.__ltSnips === 1 && !document.querySelector('.lt-add.lt-charge')), 'reduced motion: no INSTALL charge animation');
+  ok(await p.evaluate(() => document.querySelectorAll('#ltpane svg.lt-xpl circle').length >= 2 && /SCHEMATIC/.test(document.querySelector('#ltpane .lt-step').textContent)) && (await p.locator('#ltpane .lt-add').innerText()).startsWith('INSTALL'), 'schematic pane shows callout leader lines and the INSTALL button');
+  ok(await p.evaluate(i => { const q = document.getElementById('lttick').textContent; return q.startsWith('QM> ') && q === ltQuip(DB[i]) && q.includes(ltNote(DB[i], parseInt(ltPN(DB[i], i).slice(2), 10))); }, pick), 'quartermaster ticker shows the deterministic quip for the selection');
+  ok(await p.evaluate(() => { const ks = Object.keys(LT_NOTES); return ks.every(k => LT_NOTES[k].length === 2 && LT_NOTES[k][0] !== LT_NOTES[k][1]) && DB.filter(x => x.c === 'A').every((x, j) => ltNote(x, j) === ltNote(x, j)) && /QUERY ALL BAYS/.test(document.getElementById('catq').labels[0].textContent) && [...document.querySelectorAll('.lt-runner[data-c="A"] .lt-card')].every(e => { const g = [...e.querySelectorAll('.lt-g i')].map(i => parseFloat(i.style.getPropertyValue('--g'))); return g.length === 2 && g.every(v => v >= 0 && v <= 100); }) && ['DMG', 'RNG'].every(k => [...document.querySelectorAll('.lt-runner[data-c="A"] .lt-g')].some(g => g.querySelector('.l').textContent === k && g.querySelector('i').style.getPropertyValue('--g') === '100%')); }), 'two stat gauges per item, scaled within the category (top item = 100%), plus quip table and QUERY label');
   await p.emulateMedia({ reducedMotion: 'no-preference' });
   // keyboard Enter on a card still installs directly (unchanged)
   await p.locator(`.lt-card[data-i="${kb}"]`).focus(); await p.keyboard.press('Enter');
   ok(await p.evaluate(() => S.items.length) === n0 + 2, 'Enter on a focused card installs it, as before');
-  ok(await p.evaluate(() => !!document.querySelector('.lt-stamp') && document.querySelector('.lt-stamp').textContent === 'APPROVED'), 'with motion allowed, ADD lands an APPROVED stamp');
-  ok(await p.evaluate(() => { const a = [...document.querySelectorAll('.lt-stamp')].flatMap(e => e.getAnimations()); return a.length >= 1 && a.every(x => x.effect.getComputedTiming().endTime < 250); }), 'APPROVED stamp animation finishes in under 250ms');
+  ok(await p.evaluate(() => !!document.querySelector('#ltpane .lt-add.lt-charge')), 'with motion allowed, INSTALL plays its charge-fill');
+  ok(await p.evaluate(() => { const a = [...document.querySelectorAll('#ltpane .lt-add')].flatMap(e => e.getAnimations({ subtree: true })); return a.length >= 1 && a.every(x => x.effect.getComputedTiming().endTime < 250); }), 'INSTALL charge animation finishes in under 250ms');
   await p.emulateMedia({ reducedMotion: 'reduce' });
   await p.locator(`.lt-card[data-i="${kb}"]`).dblclick();
   ok(await p.evaluate(() => S.items.length) === n0 + 3, 'double-click installs once (armament stacks, as before)');
   await p.emulateMedia({ reducedMotion: 'no-preference' });
   await p.locator(`.lt-card[data-i="${pick}"]`).click();
   await p.locator('#ltpane .lt-add').click(); await p.locator('#ltpane .lt-add').click();
-  ok(await p.evaluate(() => S.items.length) === n0 + 5, 'rapid double REQUISITION during the stamp installs both (stackable armament)');
+  ok(await p.evaluate(() => S.items.length) === n0 + 5, 'rapid double INSTALL during the charge installs both (stackable armament)');
   await p.emulateMedia({ reducedMotion: 'reduce' });
   // non-stackable refusal unchanged
   await p.evaluate(() => { S.items = []; R(); });
