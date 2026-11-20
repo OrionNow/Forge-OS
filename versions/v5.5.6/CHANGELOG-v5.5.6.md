@@ -17,6 +17,12 @@
 
 The cards and chips use only the existing theme variables (`--line`, `--cyan`, `--hover`, `--label`), so every colour theme applies. The `[INFO]` row button and the full-screen dossier are no longer reached from the catalogue grid, because the detail pane replaces them. The dossier still opens from the loadout manifest.
 
+### Pass 3 (Overseer: denser tiles, larger preview)
+
+- **Tiles:** every tile is the same size: 54 px tall, 165×54 at 1280 and 190×54 at 1920. They sit in a strict `auto-fill/minmax(150px)` grid. Each tile has its number and name on one line (long names end in an ellipsis; the full name is in the tooltip), an EP badge in the top-right corner, the subtype and tags, and the two key stats on one row. Padding is tighter, and hover and selected states are clearer. A thin left stripe marks the category using theme colours: ARMAMENT `--c-dmg`, DEFENSIVE `--cyan`, UTILITY `--c-good`.
+- **Detail pane:** 42% of the catalogue width (248 px at 1280, 284 px at 1920) and larger type. The header is pinned at the top of the pane and holds the name, EP/TL, a full-width **[+] ADD TO MECH** button and the EP ledger. All stats, the tiers and the field record are shown as label/value pairs. The pane still clears when its card is hidden.
+- `check-v556-catalogue.js`: 43/43. New checks: uniform tile size, one-line names, pane width ≥ 38% of the catalogue, and ADD visible, all at 1280 and at 1920.
+
 ## Version and cache keys
 
 - `APP_VERSION` is 5.5.6. The `<title>`, in-app changelog and `host/package.json` (+ lock) versions are 5.5.6.
@@ -26,7 +32,7 @@ The cards and chips use only the existing theme variables (`--line`, `--cyan`, `
 
 | Suite | Result |
 |---|---|
-| **New:** LOADOUT TERMINAL catalogue (`check-v556-catalogue.js`: tabs = data categories, chips = real subtypes and filter correctly, cross-tab search with category headers and labels, detail pane shows the selection, ADD goes through `inst()` once, Enter/double-click add, non-stackable refusal, tier menu, numbering order, the pane clearing when a chip, a non-matching search or a tab change hides the selection, with ADD removed, and no page errors) | 35/35 |
+| **New:** LOADOUT TERMINAL catalogue (`check-v556-catalogue.js`: tabs = data categories, chips = real subtypes and filter correctly, cross-tab search with category headers and labels, detail pane shows the selection, ADD goes through `inst()` once, Enter/double-click add, non-stackable refusal, tier menu, numbering order, the pane clearing when a chip, a non-matching search or a tab change hides the selection, with ADD removed, and no page errors) | 43/43 |
 | Page load (`check-v556-pageload.js`) | 4/4 |
 | Fix checks (`check-v556-fixes.js`) | 12/12 |
 | Solo (`check-v556-solo.js`) | 119/119 |

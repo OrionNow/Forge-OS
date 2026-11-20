@@ -756,30 +756,39 @@ html.ux-scaled #wrap { zoom:var(--ux-z,1); width:var(--ux-vw,100%); max-width:no
   .ux-line-crawl>.ux-line-text,.mp-place>.mp-place-text { animation:none!important; transform:none!important; }
 }
 
-/* v5.5.6 LOADOUT TERMINAL catalogue (theme variables only) */
-#out .lt-chips{margin:0 0 var(--sp1)}
+/* v5.5.6 LOADOUT TERMINAL catalogue (theme variables only); pass 3: uniform dense tiles, wide detail pane */
+#out .lt-chips{margin:0 0 6px}
 .lt-chiprow{display:flex;flex-wrap:wrap;gap:4px}
 .lt-chiprow[hidden],.lt-card[hidden],.lt-cat[hidden],#ltnone[hidden]{display:none!important}
 .lt-chip{font:inherit;font-size:.86em;padding:1px 7px;border:1px solid var(--line);background:transparent;color:var(--label);cursor:pointer;border-radius:0}
 .lt-chip:hover{background:var(--hover)}
 .lt-chip.on{border-color:var(--cyan);color:var(--cyan);background:var(--hover)}
-.lt-wrap{display:grid;grid-template-columns:minmax(0,1fr) minmax(220px,38%);gap:var(--sp2,8px);align-items:start}
-.lt-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(168px,1fr));gap:5px;align-content:start;min-width:0}
-.lt-cat{grid-column:1/-1;color:var(--cyan);margin-top:4px}
-#ltnone{grid-column:1/-1;padding:8px 2px}
-#out .lt-card{display:flex;flex-direction:column;gap:2px;min-width:0;padding:5px 6px;border:1px solid var(--line);border-left:3px solid var(--line);background:transparent}
-#out .lt-card:hover{background:var(--hover)}
-#out .lt-card.sel{border-color:var(--cyan);border-left-color:var(--cyan);background:var(--hover)}
-.lt-top{overflow-wrap:anywhere}
-.lt-meta{font-size:.84em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.lt-cc{display:none;color:var(--cyan)}
+.lt-wrap{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,42%);gap:8px;align-items:start}
+.lt-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));grid-auto-rows:54px;gap:4px;align-content:start;min-width:0}
+.lt-cat,#ltnone{grid-column:1/-1;align-self:end;color:var(--cyan)}
+#ltnone{color:inherit;align-self:center}
+.lt-cA{--lt-ac:var(--c-dmg,#ff9a1f)}.lt-cD{--lt-ac:var(--cyan)}.lt-cU{--lt-ac:var(--c-good,#6f9)}
+#out .lt-card{position:relative;box-sizing:border-box;height:54px;min-width:0;overflow:hidden;display:grid;grid-template-rows:18px 14px 14px;align-content:center;padding:2px 6px 2px 7px;border:1px solid var(--line);border-left:3px solid var(--lt-ac);background:transparent;font-size:.9em;line-height:1.25}
+#out .lt-card:hover{background:var(--hover);border-color:var(--lt-ac)}
+#out .lt-card.sel{background:var(--hover);border-color:var(--cyan);box-shadow:inset 0 0 0 1px var(--cyan)}
+#out .lt-card:focus-visible{outline:1px dashed var(--cyan);outline-offset:1px}
+.lt-top,.lt-meta,.lt-ks{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.lt-top{padding-right:46px}.lt-top .v{color:var(--label);font-size:.85em}
+.lt-epb{position:absolute;top:2px;right:3px;padding:0 4px;font-size:.78em;line-height:15px;border:1px solid var(--lt-ac);color:var(--lt-ac);white-space:nowrap}
+.lt-meta{font-size:.8em;color:var(--label)}
+.lt-cc{display:none;color:var(--lt-ac)}
 .lt-grid.srch .lt-cc{display:inline}
-.lt-ks{display:flex;flex-wrap:wrap;gap:0 10px;font-size:.86em}
-.lt-k{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
-.lt-pane{position:sticky;top:44px;max-height:calc(100vh - 120px);overflow-y:auto;border:1px solid var(--line);padding:6px 8px;min-width:0;overflow-wrap:anywhere}
-.lt-pane .lt-pn{font-size:1.08em}
-.lt-pane .lt-tier{margin:2px 0}
-.lt-pane .lt-add{margin-top:8px;width:100%}
+.lt-ks{font-size:.82em}
+.lt-pane{position:sticky;top:44px;max-height:calc(100vh - 110px);overflow-y:auto;border:1px solid var(--line);padding:0 10px 8px;min-width:0;overflow-wrap:anywhere;font-size:1.06em}
+.lt-pane .lt-ph{position:sticky;top:0;z-index:2;background:var(--bg);padding:6px 0 6px;border-bottom:1px dashed var(--line)}
+.lt-pane .lt-ph.lt-cA,.lt-pane .lt-ph.lt-cD,.lt-pane .lt-ph.lt-cU{box-shadow:inset 3px 0 0 var(--lt-ac);padding-left:9px;margin-left:-10px;padding-right:0}
+.lt-pane .lt-pn{font-size:1.2em;margin:2px 0}
+.lt-pane .lt-add{display:block;width:100%;margin:8px 0 4px;padding:7px 0;font-size:1.05em;font-weight:bold;border:1px solid var(--cyan);color:var(--cyan);background:var(--hover);cursor:pointer}
+.lt-pane .lt-add:hover{background:var(--cyan);color:var(--bg)}
+.lt-pane .lt-led{font-size:.9em}
+.lt-dl{display:grid;grid-template-columns:max-content 1fr;gap:2px 12px;margin:4px 0}
+.lt-dl dt{color:var(--label);margin:0}.lt-dl dd{margin:0;color:#fd5}
+.lt-pane .lt-tier{margin:4px 0}
 </style></head><body class=""><div id="sr" class="sr-only" aria-live="polite"></div><div id="sra" class="sr-only" aria-live="assertive"></div><div id="hudfx" aria-hidden="true"></div><div id="wrap">
 <header><span class="hbrand" title="CORE EMPIRE // SCIENCE CORPS R+D // FORGE-OS"><b>CORE EMPIRE</b>&nbsp;<span class="hsub">// SCIENCE CORPS R+D</span><span class="hb2">&nbsp;// FORGE-OS v<span id="ver" class="verlink" onclick="openLog()" title="Open the changelog">5.5.5</span> // TL8</span></span><span class="hctl"><button id="muteBtn" class="audio-btn" type="button" onclick="toggleMute()" title="Toggle terminal audio feedback (muted by default)">[AUDIO: ON]</button> <button id="themeBtn" class="audio-btn" type="button" onclick="cycleTheme()" title="Cycle color theme (current: IMPERIAL NAVY)">[THEME: IMPERIAL NAVY]</button> <span id="clk" class="dim clk" title="Sector standard time">c 120.11.01 19:22:17</span></span><span id="who"></span></header>
 <div id="bar"></div><main><div class="panel primary" id="con"><div id="tb"></div><div id="out"></div></div><div id="rt"><div class="panel sheet" id="sh"></div><div class="panel cs1 rolls-only" id="cb"><div id="conhead" class="conhead"><span class="ctitle">// OPERATOR CONSOLE</span><button id="lfBtn" class="lfbtn" type="button" aria-pressed="true" onclick="event.stopPropagation();toggleLF()" title="Only rolls and player messages are shown. Click for all console lines.">[ROLLS ONLY]</button><button id="rosterBtn" class="hros" type="button" hidden="" onclick="event.stopPropagation();window.mpSeats&amp;&amp;mpSeats()" title="Show or hide the table roster">[USERS]</button></div><div id="log" role="log" aria-live="off" aria-label="operator console log"></div><div id="pr" onclick="$('CI').focus()"><span class="ok">CE//FORGE&gt;</span> <span id="typed"></span><span class="blink">_</span><input id="CI" autocomplete="off" spellcheck="false" aria-label="operator console command input"></div><div id="hint" class="dim"></div></div></div></main></div>
@@ -1769,11 +1778,12 @@ const ltChip=c=>((S.catChip||{})[c])||'';
 const LT_PREF=['DMG','RNG','ROF','DR','HP','MOVE','EFFECT','DEF','ACC'];
 function ltStats(x){const p=String(x.s||'').split(' ').map(t=>{const i=t.indexOf(':');return i>0?[t.slice(0,i),t.slice(i+1).replace(/_/g,' ')]:null}).filter(a=>a&&a[0]!='NOTE'),o=[];for(const k of LT_PREF){const a=p.find(q=>q[0]==k);if(a&&o.length<2)o.push(a)}for(const a of p){if(o.length>=2)break;if(!o.includes(a))o.push(a)}return o}
 function ltText(x){return[x.n,TABS[x.c],x.t,String(x.s||'').replace(/_/g,' ').replace(/:/g,' '),x.r,'TL'+(x.tl>=0?x.tl:8),x.exp?'EXPERIMENTAL':'',x.th?'TWO-HANDED':'',x.sd?'SHOULDER':''].join(' ').toUpperCase()}
-function ltCard(x,i,n){const ks=ltStats(x),sub=subtypeOf(x)||'UNSPECIFIED';return`<div class="row lt-card${S.catPick==i?' sel':''}" data-i=${i} data-c=${x.c} data-sub="${esc(subtypeKey(sub))}" data-q="${esc(ltText(x))}" title="Click: details // Enter or double-click: add to mech" onclick="addMech(${i},event)"><div class=lt-top><span class=v>[${n}]</span> <span class=nm>${x.n}</span></div><div class=lt-meta><span class=lt-cc>[${esc(TABS[x.c])}]</span> <span class=ep>[EP ${epT(x)}]</span> <span class=dim>${esc(sub)}</span>${x.exp?' <span class=warn>[EXP]</span>':''}${x.th?' <span class="warn ctag">[2H]</span>':''}${x.sd?' <span class="warn ctag">[SHLD]</span>':''}</div><div class=lt-ks>${ks.length?ks.map(a=>`<span class=lt-k><span class=l>${esc(a[0])}</span> <span class=v>${esc(a[1])}</span></span>`).join(''):`<span class=lt-k><span class=dim>${esc(modelOf(x)||sub)}</span></span>`}</div></div>`}
+function ltCard(x,i,n){const ks=ltStats(x),sub=subtypeOf(x)||'UNSPECIFIED',tg=(x.exp?' [EXP]':'')+(x.th?' [2H]':'')+(x.sd?' [SHLD]':'');return`<div class="row lt-card lt-c${x.c}${S.catPick==i?' sel':''}" data-i=${i} data-c=${x.c} data-sub="${esc(subtypeKey(sub))}" data-q="${esc(ltText(x))}" title="${esc(x.n)} // click: details // Enter or double-click: add to mech" onclick="addMech(${i},event)"><span class=lt-epb>EP ${epT(x)}</span><div class=lt-top><span class=v>${n}</span> <span class=nm>${x.n}</span></div><div class=lt-meta><span class=lt-cc>${esc(TABS[x.c])} · </span>${esc(sub)}<span class=warn>${tg}</span></div><div class=lt-ks>${ks.length?ks.map(a=>`<span class=l>${esc(a[0])}</span>&nbsp;<span class=v>${esc(a[1])}</span>`).join(' <span class=sp>|</span> '):`<span class=dim>${esc(modelOf(x)||sub)}</span>`}</div></div>`}
+function ltDL(s){return'<dl class=lt-dl>'+String(s||'').split(' ').filter(Boolean).map(t=>{const i=t.indexOf(':');return i>0?`<dt>${esc(t.slice(0,i))}</dt><dd>${esc(t.slice(i+1).replace(/_/g,' '))}</dd>`:`<dt></dt><dd>${esc(t.replace(/_/g,' '))}</dd>`}).join('')+'</dl>'}
 function ltPane(){const i=S.catPick,x=i!=null&&DB[i]&&ltCats().includes(DB[i].c)?DB[i]:null;
- if(!x)return`<div class=sec>-- RECORD DETAIL</div><p class=dim>SELECT A CARD TO VIEW ITS FULL SPECIFICATION.<br><br>ENTER OR DOUBLE-CLICK ON A CARD ADDS IT DIRECTLY.</p>`;
+ if(!x)return`<div class=lt-ph><div class=sec>-- RECORD DETAIL</div><p class=dim>SELECT A CARD TO VIEW ITS FULL SPECIFICATION.<br><br>ENTER OR DOUBLE-CLICK ON A CARD ADDS IT DIRECTLY.</p></div>`;
  const T=TIER[x.n],n=used()+x.e,over=!T&&n>cap(),dup=x.c!='A'&&S.items.some(y=>y.n==x.n),C=ov()?'UNLIMITED':cap();
- return`<div class=sec>-- RECORD DETAIL // ${esc(TABS[x.c])}</div><div class="nm lt-pn">${x.n}</div><div><span class=ep>[EP ${epT(x)}]</span>${tagsOf(x)}${x.th?' <span class="warn ctag">[TWO-HANDED]</span>':''}${x.sd?' <span class="warn ctag">[SHOULDER]</span>':''}</div><p><span class=l>CLASS</span> <span class=v>${x.t}</span></p><div class=sec>--PERFORMANCE DATA</div><div class=lt-stats>${fmt(x.s,1)}</div>${T?'<div class=sec>--TIERS (CHOSEN ON ADD)</div>'+T.map((a,k)=>`<div class=lt-tier><span class=v>TIER ${k+1}</span> <span class=ep>[EP ${a[0]}]</span><div class=st>${fmt(a[1],1)}</div></div>`).join(''):''}<div class=sec>--FIELD RECORD</div><p><span class=l>MASS </span> <span class=v>${x.w}</span><br><span class=l>${x.xl} </span> <span class=v>${x.x}</span><br><span class=l>ROLE </span> <span class=v>${x.r}</span>${handsLine(x)}</p><div class=sec>--ENGINEERING NOTES</div><p class=f>${x.f}</p><div class=sec>--EQUIPMENT POINT LEDGER</div><p>NOW ${used()}/${C}${T?'':` &nbsp; AFTER ADD <span class="${over?'bad':'ok'}">${n}/${C}</span>`}</p>${over?'<div class=bad>LOAD LIMIT EXCEEDED // this installation will be refused</div>':''}${dup?'<div class=bad>NON-STACKABLE RECORD ALREADY PRESENT // installation will be refused</div>':''}<button type=button class=lt-add title="Commit this component to the current frame loadout" onclick="addMech(${i})">[+] ADD TO MECH${T?' // SELECT TIER':''}</button>`}
+ return`<div class="lt-ph lt-c${x.c}"><div class=sec>-- RECORD DETAIL // ${esc(TABS[x.c])}</div><div class="nm lt-pn">${x.n}</div><div><span class=ep>[EP ${epT(x)}]</span>${tagsOf(x)}${x.th?' <span class="warn ctag">[TWO-HANDED]</span>':''}${x.sd?' <span class="warn ctag">[SHOULDER]</span>':''}</div><button type=button class=lt-add title="Commit this component to the current frame loadout" onclick="addMech(${i})">[+] ADD TO MECH${T?' // SELECT TIER':''}</button><div class=lt-led>NOW ${used()}/${C}${T?' &nbsp; TIER CHOSEN ON ADD':` &nbsp; AFTER ADD <span class="${over?'bad':'ok'}">${n}/${C}</span>`}</div>${over?'<div class=bad>LOAD LIMIT EXCEEDED // this installation will be refused</div>':''}${dup?'<div class=bad>NON-STACKABLE RECORD ALREADY PRESENT // installation will be refused</div>':''}</div><div class=lt-body><dl class=lt-dl><dt>CLASS</dt><dd>${x.t}</dd></dl><div class=sec>--PERFORMANCE DATA</div><div class=lt-stats>${ltDL(x.s)}</div>${T?'<div class=sec>--TIERS (CHOSEN ON ADD)</div>'+T.map((a,k)=>`<div class=lt-tier><span class=v>TIER ${k+1}</span> <span class=ep>[EP ${a[0]}]</span>${ltDL(a[1])}</div>`).join(''):''}<div class=sec>--FIELD RECORD</div><dl class=lt-dl><dt>MASS</dt><dd>${x.w}</dd><dt>${x.xl}</dt><dd>${x.x}</dd><dt>ROLE</dt><dd>${x.r}</dd><dt>TECH</dt><dd>TL${x.tl>=0?x.tl:8}</dd></dl>${handsLine(x)?`<p>${handsLine(x).replace(/^<br>/,'')}</p>`:''}<div class=sec>--ENGINEERING NOTES</div><p class=f>${x.f}</p></div>`}
 function ltPick(i){S.catPick=i;document.querySelectorAll('.lt-card.sel').forEach(e=>e.classList.remove('sel'));const c=document.querySelector('.lt-card[data-i="'+i+'"]');if(c)c.classList.add('sel');const p=$('ltpane');if(p){p.innerHTML=ltPane();p.scrollTop=0}try{audioEvent('open',true)}catch(e){}}
 function ltSetChip(c,s){(S.catChip=S.catChip||{})[c]=s||'';catFilter()}
 function list(){const cats=ltCats();let h=catHead();

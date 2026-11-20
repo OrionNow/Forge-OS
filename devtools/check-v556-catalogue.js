@@ -26,7 +26,7 @@ const ok = (c, m, e) => { if (c) pass++; else fail++; console.log((c ? 'PASS ' :
   let v = await vis();
   const nA = await p.evaluate(() => DB.filter(x => x.c === 'A').length);
   ok(v.length === nA && v.every(x => x.c === 'A'), `ARMAMENT tab shows all ${nA} armament records and only those`, v.length);
-  ok(await p.evaluate(() => { const c = document.querySelector('.lt-card:not([hidden])'); return c.querySelectorAll('.lt-ks .lt-k').length >= 1 && /EP/.test(c.querySelector('.ep').textContent) && c.getBoundingClientRect().height < 90; }), 'grid cards are compact: name, EP and key stats');
+  ok(await p.evaluate(() => { const c = document.querySelector('.lt-card:not([hidden])'); return /DMG|RNG|ROF/.test(c.querySelector('.lt-ks').textContent) && /^EP /.test(c.querySelector('.lt-epb').textContent) && c.getBoundingClientRect().height < 70; }), 'grid cards are compact: name, EP badge and key stats');
   ok(await p.evaluate(() => getComputedStyle(document.getElementById('ltgrid')).gridTemplateColumns.split(' ').length >= 2), 'cards are laid out as a multi-column grid');
   // 2) chips = real subtypes of the tab
   const chips = await p.evaluate(() => ({ ui: [...document.querySelectorAll('.lt-chiprow:not([hidden]) .lt-chip')].map(b => b.dataset.sub).filter(Boolean), data: [...new Set(DB.filter(x => x.c === 'A').map(x => subtypeKey(subtypeOf(x) || 'UNSPECIFIED')))] }));
@@ -55,7 +55,7 @@ const ok = (c, m, e) => { if (c) pass++; else fail++; console.log((c ? 'PASS ' :
   const expect = await p.evaluate(() => DB.filter(x => 'ADU'.includes(x.c) && ltText(x).includes('HEAT')).length);
   ok(cats.length >= 2 && v.length === expect, `search "HEAT" lists ${v.length} matches from ${cats.join('/')}`, { cats, n: v.length, expect });
   ok(await p.evaluate(() => [...document.querySelectorAll('.lt-cat')].filter(e => !e.hidden).length) === cats.length, 'search results are grouped under category headers');
-  ok(await p.evaluate(() => { const c = document.querySelector('.lt-card:not([hidden]) .lt-cc'); return c && getComputedStyle(c).display !== 'none' && /\[(ARMAMENT|DEFENSIVE SYSTEMS|UTILITY)\]/.test(c.textContent); }), 'each search result card is labelled with its category');
+  ok(await p.evaluate(() => { const c = document.querySelector('.lt-card:not([hidden]) .lt-cc'); return c && getComputedStyle(c).display !== 'none' && /^(ARMAMENT|DEFENSIVE SYSTEMS|UTILITY) · $/.test(c.textContent); }), 'each search result card is labelled with its category');
   ok(/MATCHES \/\/ ALL CATEGORIES/.test(await p.locator('#catn').textContent()), 'match counter says the search covers all categories');
   await p.locator('.lt-card:not([hidden])').first().click();
   await p.screenshot({ path: shots + '/v556-02-search-all-categories.png' });
@@ -66,7 +66,7 @@ const ok = (c, m, e) => { if (c) pass++; else fail++; console.log((c ? 'PASS ' :
   const [pick, kb] = await cheapA();
   const n0 = await p.evaluate(() => S.items.length);
   await p.locator(`.lt-card[data-i="${pick}"]`).click();
-  const pane = await p.evaluate(i => { const x = DB[i], t = document.getElementById('ltpane').innerText; return { pick: S.catPick, sel: document.querySelector('.lt-card.sel')?.dataset.i, name: t.includes(x.n), stats: t.includes(fmt(x.s, 0).split(' | ')[0]), role: t.includes(x.r), add: !!document.querySelector('#ltpane .lt-add'), items: S.items.length }; }, pick);
+  const pane = await p.evaluate(i => { const x = DB[i], t = document.getElementById('ltpane').innerText; return { pick: S.catPick, sel: document.querySelector('.lt-card.sel')?.dataset.i, name: t.includes(x.n), stats: [...document.querySelectorAll('#ltpane .lt-stats dt')].length >= 2 && t.includes(x.s.split(' ')[0].split(':')[1]), role: t.includes(x.r), add: !!document.querySelector('#ltpane .lt-add'), items: S.items.length }; }, pick);
   ok(pane.pick === pick && +pane.sel === pick && pane.name && pane.stats && pane.role && pane.add, 'clicking a card shows its full record in the right-hand detail pane with ADD', pane);
   ok(pane.items === n0, 'selecting a card does not install it');
   ok(await p.evaluate(() => { const g = document.getElementById('ltgrid').getBoundingClientRect(), d = document.getElementById('ltpane').getBoundingClientRect(); return d.left >= g.right - 1; }), 'detail pane sits to the right of the grid');
@@ -94,6 +94,28 @@ const ok = (c, m, e) => { if (c) pass++; else fail++; console.log((c ? 'PASS ' :
   await p.locator(`.lt-card[data-i="${pick}"]`).click();
   ok(await p.evaluate(() => S.items.length) === n0, 'none of the hide/clear steps installed anything');
   ok(await p.evaluate(() => document.getElementById('catq').scrollWidth <= document.getElementById('catq').clientWidth + 1 || document.getElementById('catq').placeholder === 'name, class, stat, tag  (/)'), 'search placeholder is the short form');
+  // 4c) pass 3 layout: uniform tiles, wide pane, ADD visible (1280 and 1920)
+  for (const [w, hh] of [[1280, 800], [1920, 1080]]) {
+    await p.setViewportSize({ width: w, height: hh }); await p.waitForTimeout(250);
+    await p.locator(`.lt-card[data-i="${pick}"]`).click();
+    const L = await p.evaluate(() => { const cs = [...document.querySelectorAll('.lt-card')].filter(e => !e.hidden).map(e => e.getBoundingClientRect()), hs = [...new Set(cs.map(r => Math.round(r.height)))], ws = [...new Set(cs.map(r => Math.round(r.width)))], wrap = document.querySelector('.lt-wrap').getBoundingClientRect(), pn = document.getElementById('ltpane').getBoundingClientRect(), a = document.querySelector('#ltpane .lt-add').getBoundingClientRect(), nm = document.querySelector('.lt-card .lt-top'); return { hs, ws, cols: getComputedStyle(document.getElementById('ltgrid')).gridTemplateColumns.split(' ').length, ratio: +(pn.width / wrap.width).toFixed(3), pane: Math.round(pn.width), add: a.height > 20 && a.top >= 0 && a.bottom <= innerHeight && a.width >= pn.width - 24, oneLine: getComputedStyle(nm).whiteSpace === 'nowrap' && getComputedStyle(nm).textOverflow === 'ellipsis', tile: Math.round(cs[0].width) + 'x' + Math.round(cs[0].height) }; });
+    console.log('LAYOUT ' + w + ' ' + JSON.stringify(L));
+    ok(L.hs.length === 1 && L.ws.length === 1, `${w}: every tile is the same size (${L.tile})`, L);
+    ok(L.oneLine, `${w}: tile name is one line with ellipsis`);
+    ok(L.ratio >= 0.38, `${w}: detail pane is ${Math.round(L.ratio * 100)}% of the catalogue width (>= 38%)`, L);
+    ok(L.add, `${w}: full-width ADD TO MECH is visible in the pane`, L);
+    if (w === 1280) {
+      await p.screenshot({ path: shots + '/v556-05-detail-1280.png' });
+      await p.evaluate(() => { S.catPick = null; catFilter(); document.getElementById('ltpane').innerHTML = ltPane(); document.querySelectorAll('.lt-card.sel').forEach(e => e.classList.remove('sel')); });
+      await p.locator('#con').evaluate(e => e.scrollTop = 0);
+      await p.screenshot({ path: shots + '/v556-04-tiles-1280.png' });
+    } else {
+      await p.locator('#catq').fill('HEAT'); await p.locator('.lt-card:not([hidden])').first().click(); await p.waitForTimeout(150);
+      await p.screenshot({ path: shots + '/v556-06-search-1920.png' });
+      await p.locator('#catq').press('Escape');
+    }
+  }
+  await p.locator(`.lt-card[data-i="${pick}"]`).click();
   // 5) ADD uses the existing install path
   await p.evaluate(() => { window.__inst = 0; const o = window.inst; window.inst = function (...a) { window.__inst++; return o.apply(this, a); }; });
   await p.locator('#ltpane .lt-add').click();
@@ -127,7 +149,7 @@ const ok = (c, m, e) => { if (c) pass++; else fail++; console.log((c ? 'PASS ' :
   }
   // numbered selection still follows the listGroups order
   await p.evaluate(() => tab('A'));
-  ok(await p.evaluate(() => { const L = listGroups('A').flatMap(g => g.items), c = [...document.querySelectorAll('.lt-card[data-c="A"]')]; return c.every((e, k) => +e.dataset.i === L[k] && e.querySelector('.v').textContent === '[' + (k + 1) + ']'); }), 'card numbers match the numbered-selection order');
+  ok(await p.evaluate(() => { const L = listGroups('A').flatMap(g => g.items), c = [...document.querySelectorAll('.lt-card[data-c="A"]')]; return c.every((e, k) => +e.dataset.i === L[k] && e.querySelector('.v').textContent === String(k + 1)); }), 'card numbers match the numbered-selection order');
   ok(!errs.length, 'no page errors', errs);
   await b.close();
   console.log(`\n${pass} passed, ${fail} failed`); process.exit(fail ? 1 : 0);
